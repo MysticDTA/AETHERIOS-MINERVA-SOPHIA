@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ÆTHERIOS // MINERVA SOPHIA</title>
+    <script src="https://cdn-tailwindcss.vercel.app/"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;500&display=swap');
+
+      :root {
+        --pearl: #f8f5ec;
+        --rose: #f4c2c2;
+        --gold: #e6c77f;
+        --warm-grey: #b6b0a0;
+        --aether-blue: #6d28d9;
+        --aether-violet: #4c1d95;
+        --dark-bg: #0a0909;
+        --dark-surface: #121010;
+        --dark-border: #262424;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--dark-bg);
+        color: var(--pearl);
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        text-rendering: optimizeLegibility;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at 15% 25%, rgba(109, 40, 217, 0.04), transparent 40%),
+                    radial-gradient(circle at 85% 75%, rgba(76, 29, 149, 0.04), transparent 40%);
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      #root { height: 100%; display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
+      
+      .font-orbitron { font-family: 'Orbitron', sans-serif; }
+      .font-minerva { font-family: 'Playfair Display', serif; }
+      .font-mono { font-family: 'JetBrains Mono', monospace; }
+      
+      .glass-panel {
+        background: rgba(18, 16, 16, 0.45);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .scanline-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+        background: linear-gradient(0deg, transparent 50%, rgba(109, 40, 217, 0.01) 50%);
+        background-size: 100% 4px;
+        animation: scanline-anim 160s linear infinite;
+        opacity: 0.04;
+      }
+      @keyframes scanline-anim { from { background-position-y: 0; } to { background-position-y: 100vh; } }
+
+      .aether-pulse {
+        animation: aether-pulse-glow 10s ease-in-out infinite;
+      }
+      @keyframes aether-pulse-glow {
+        0%, 100% { box-shadow: 0 0 15px rgba(109, 40, 217, 0.08); }
+        50% { box-shadow: 0 0 30px rgba(109, 40, 217, 0.15); }
+      }
+
+      .text-glow-pearl { text-shadow: 0 0 10px rgba(248, 245, 236, 0.25); }
+      .text-glow-gold { text-shadow: 0 0 12px rgba(230, 199, 127, 0.2); }
+      .text-glow-violet { text-shadow: 0 0 15px rgba(109, 40, 217, 0.4); }
+
+      /* GLOBAL CRYSTAL-CLEAR SCROLLBAR */
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+      ::-webkit-scrollbar-thumb { 
+        background: rgba(109, 40, 217, 0.15); 
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+      }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(109, 40, 217, 0.35); }
+
+      .tooltip { position: relative; }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 240px;
+        background-color: rgba(10, 9, 9, 0.98);
+        color: var(--pearl);
+        text-align: center;
+        border-radius: 4px;
+        padding: 10px 14px;
+        position: absolute;
+        z-index: 2000;
+        bottom: 130%;
+        left: 50%;
+        margin-left: -120px;
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+        transform: translateY(10px);
+        font-size: 11px;
+        line-height: 1.5;
+        border: 1px solid rgba(109, 40, 217, 0.2);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        pointer-events: none;
+        font-family: 'Inter', sans-serif;
+      }
+      .tooltip-visible .tooltiptext { visibility: visible; opacity: 1; transform: translateY(0); }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.8; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.002); }
+      }
+      
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+      
+      .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+      .high-resonance-glow {
+        box-shadow: 0 0 25px rgba(109, 40, 217, 0.2);
+        border-color: rgba(109, 40, 217, 0.4) !important;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      /* Specific class for information boxes that need to be clear while scrolling */
+      .clear-scrolling-window {
+        overflow-anchor: none;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@^19.2.3",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+        "@vercel/node": "https://esm.sh/@vercel/node@^5.5.16",
+        "stripe": "https://esm.sh/stripe@^20.1.0",
+        "vite": "https://esm.sh/vite@^7.3.0",
+        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div class="scanline-overlay"></div>
+    <script type="module" src="index.tsx"></script>
+  </body>
+</html>

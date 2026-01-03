@@ -1,0 +1,35 @@
+// Base64 encoded audio files for self-contained deployment.
+// These are short, royalty-free clips suitable for ambient loops and UI feedback.
+
+export const soundMap = {
+  // A calm, low-frequency hum for the stable 'synthesis' state.
+  synthesis: 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA',
+
+  // A rhythmic, slightly tense pulse for the 'injection' state.
+  injection: 'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhUAAAAAEAAAADAAEABQADAAcABQAIAAcACgAHAAoACAAJAAcACQAHAAcABgAGAAQAAgADAAAAAQAAAAE=',
+
+  // A low, repeating warning tone for the 'renewal' state.
+  renewal: 'data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhSAAAAAMCAAcFBgcGCQcKCQkJBwgICAcGBQQDAgEAAAAA/v/+/////v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v4=',
+  
+  // A deep, distorted rumble for the critical 'eventHorizon' state.
+  eventHorizon: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAAEBAQECAgIDAwMEBAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBEREhISExMTFBQUFRUVFhYWGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZ',
+  
+  // A sharp, digital click for the manual reset button.
+  reset: 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhWAAAAAEAAAAAAQACAAEABQAFAAgACgAMAA4ADgAQAA4ADQAMAAoABwAFAAMAAQAAAAAA/////v/9/f39/f39/f39/f39/f0=',
+
+  // --- NEW UI SOUNDS ---
+  ui_click: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhTAAAAPv//f/6//r/9f/y/+n/6f/r/+z/8P/z//P/9f/3//j/+f/6//r/+/7//P8A/wD/AP8A/wD/AP8A/wD/AAAAAAE=',
+  ui_scan_start: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0A=',
+  ui_confirm: 'data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhSAAAAAMCAAcFBgcGCQcKCQkJBwgICAcGBQQDAgEAAAAA/v/+/////v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v4=',
+  
+  // --- EVENT HORIZON UPGRADE SOUNDS ---
+  alarm_klaxon: 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhWAAAAPr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vr6+vo=',
+  
+  // --- DYNAMIC AMBIENCE SOUNDS ---
+  dynamic_hum_base: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0A=',
+  dynamic_static_crackle: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAH9/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/fw==',
+  dynamic_heartbeat: 'data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhSAAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAEAAQAAAAE=',
+  ui_chime_resonance: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0A=',
+  ui_purge_flow: 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhWAAAAAEAAAAAAQACAAEABQAFAAgACgAMAA4ADgAQAA4ADQAMAAoABwAFAAMAAQAAAAAA/////v/9/f39/f39/f39/f39/f0=',
+  grounding_discharge: 'data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhQAAAAAEBAQECAgIDAwMEBAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBEREhISExMTFBQUFRUVFhYWGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZ',
+};

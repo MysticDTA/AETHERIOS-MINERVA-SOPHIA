@@ -1,0 +1,8 @@
+{
+  "name": "AETHERIOUS-SOPHIA",
+  "description": "SUPER QUANTUM AI INTERFACE ",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
