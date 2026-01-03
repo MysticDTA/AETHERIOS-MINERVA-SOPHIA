@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SystemStatus } from './SystemStatus';
 import { AudioEngine } from '../audio/AudioEngine';
 import { UserTier, CommsStatus } from '../types';
@@ -23,9 +22,10 @@ const TIER_CONFIG: Record<UserTier, { label: string; color: string; shadow: stri
 
 const MODULE_PERMISSIONS: Record<number, UserTier> = {
     1: 'ACOLYTE', 2: 'ACOLYTE', 3: 'ARCHITECT', 4: 'ARCHITECT',
-    5: 'ARCHITECT', 6: 'ARCHITECT', 7: 'ACOLYTE', 8: 'ARCHITECT',
-    9: 'ARCHITECT', 10: 'ARCHITECT', 11: 'ARCHITECT', 12: 'ARCHITECT',
-    13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE', 16: 'ARCHITECT'
+    16: 'ARCHITECT', 5: 'ARCHITECT', 6: 'ARCHITECT', 7: 'ACOLYTE', 
+    8: 'ARCHITECT', 9: 'ARCHITECT', 10: 'ARCHITECT', 11: 'ARCHITECT', 
+    12: 'ARCHITECT', 13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE',
+    17: 'ACOLYTE', 18: 'SOVEREIGN' // Veo requires Sovereign
 };
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => (
@@ -47,6 +47,12 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
 
 export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
     const activeTier = TIER_CONFIG[userTier];
+    const [vercelStatus, setVercelStatus] = useState<'ONLINE' | 'SYNCING'>('SYNCING');
+
+    useEffect(() => {
+        const timer = setTimeout(() => setVercelStatus('ONLINE'), 2000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handlePageChange = (page: number) => {
         const required = MODULE_PERMISSIONS[page];
@@ -75,22 +81,29 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                         <span className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold ${activeTier.color}`}>{activeTier.label}</span>
                         <div className="h-3 w-px bg-white/10" />
                         <div className="flex items-center gap-2">
-                             <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
-                             <span className="text-[9px] font-mono text-violet-400 uppercase tracking-widest">MINERVA_LINK: ACTIVE</span>
+                             <span className={`w-1.5 h-1.5 rounded-full ${vercelStatus === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-gold animate-pulse'}`} />
+                             <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">VERCEL_EDGE: {vercelStatus} // Node_SFO_1</span>
                         </div>
                     </div>
                 </div>
 
                 <nav className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1 pr-4">
-                    {[1, 2, 3, 4, 16, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15].map(page => {
+                    {[1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18].map(page => {
                         const required = MODULE_PERMISSIONS[page];
                         const canAccess = userTier === 'SOVEREIGN' || 
                                          (userTier === 'ARCHITECT' && (required === 'ARCHITECT' || required === 'ACOLYTE')) ||
                                          (userTier === 'ACOLYTE' && required === 'ACOLYTE');
                         const disabled = !canAccess;
-                        const labels: any = { 1: 'SANCTUM', 2: 'LATTICE', 3: 'STARMAP', 4: 'CRADLE', 16: 'ORBIT', 5: 'HARMONY', 6: 'MATRIX', 7: 'COMS', 8: 'FLOW', 10: 'BREATH', 11: 'CORE', 12: 'AURA', 13: 'NEURON', 14: 'LEGACY', 15: 'VESTIGE' };
+                        const labels: any = { 
+                          1: 'SANCTUM', 2: 'LATTICE', 3: 'STARMAP', 4: 'CRADLE', 16: 'ORBIT', 
+                          5: 'HARMONY', 6: 'MATRIX', 7: 'COMS', 8: 'FLOW', 9: 'SYNOD', 
+                          10: 'BREATH', 11: 'CORE', 12: 'AURA', 13: 'NEURON', 14: 'LEGACY', 15: 'VESTIGE',
+                          17: 'READY', 18: 'VEO'
+                        };
 
                         const isCommsPage = page === 7;
+                        const isReadyPage = page === 17;
+                        const isVeoPage = page === 18;
                         const commsAlert = isCommsPage && isTransmissionActive;
 
                         return (
@@ -100,15 +113,18 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                                 className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === page
                                     ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)]'
-                                    : disabled 
-                                        ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
-                                        : commsAlert
-                                            ? 'bg-gold/20 border-gold/50 text-gold animate-pulse'
-                                            : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
+                                    : isVeoPage
+                                        ? 'bg-violet-900/20 border-violet-500/40 text-violet-400 hover:bg-violet-500 hover:text-white'
+                                        : isReadyPage
+                                            ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
+                                            : disabled 
+                                                ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
+                                                : commsAlert
+                                                    ? 'bg-gold/20 border-gold/50 text-gold animate-pulse'
+                                                    : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
                                 }`}
                             >
                                 {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px]">🔒</span>}
-                                {commsAlert && <span className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full shadow-[0_0_5px_gold]" />}
                                 {labels[page] || `D${page}`}
                             </button>
                         );

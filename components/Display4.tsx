@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SystemState, OrbMode } from '../types';
 import { SophiaConsole } from './SophiaConsole';
@@ -13,7 +12,8 @@ interface Display4Props {
   onToggleInstructionsModal: () => void;
   onRelayCalibration: (relayId: string) => void;
   setOrbMode: (mode: OrbMode) => void;
-  voiceInterface: any; // Added to receive the hook data
+  voiceInterface: any; 
+  onTriggerAudit?: () => void;
 }
 
 export const Display4: React.FC<Display4Props> = ({ 
@@ -25,6 +25,7 @@ export const Display4: React.FC<Display4Props> = ({
     onRelayCalibration,
     setOrbMode,
     voiceInterface,
+    onTriggerAudit
 }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
@@ -38,6 +39,7 @@ export const Display4: React.FC<Display4Props> = ({
             onToggleInstructionsModal={onToggleInstructionsModal}
             onRelayCalibration={onRelayCalibration}
             setOrbMode={setOrbMode}
+            onSystemAuditTrigger={onTriggerAudit}
         />
       </div>
 
@@ -51,6 +53,8 @@ export const Display4: React.FC<Display4Props> = ({
             sophiaOutput={voiceInterface.sophiaOutputTranscription}
             history={voiceInterface.transcriptionHistory}
             resonance={systemState.resonanceFactorRho}
+            lastSystemCommand={voiceInterface.lastSystemCommand}
+            onSetOrbMode={setOrbMode}
         />
       </div>
     </div>

@@ -24,7 +24,8 @@ const MODULE_PERMISSIONS: Record<number, UserTier> = {
     1: 'ACOLYTE', 2: 'ACOLYTE', 3: 'ARCHITECT', 4: 'ARCHITECT',
     5: 'ARCHITECT', 6: 'ARCHITECT', 7: 'ACOLYTE', 8: 'ARCHITECT',
     9: 'ARCHITECT', 10: 'ARCHITECT', 11: 'ARCHITECT', 12: 'ARCHITECT',
-    13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE', 16: 'ARCHITECT'
+    13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE', 16: 'ARCHITECT',
+    17: 'ACOLYTE', 18: 'SOVEREIGN', 19: 'ARCHITECT'
 };
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => (
@@ -81,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                 </div>
 
                 <nav className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1 pr-4">
-                    {[1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(page => {
+                    {[1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19].map(page => {
                         const required = MODULE_PERMISSIONS[page];
                         const canAccess = userTier === 'SOVEREIGN' || 
                                          (userTier === 'ARCHITECT' && (required === 'ARCHITECT' || required === 'ACOLYTE')) ||
@@ -90,10 +91,12 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                         const labels: any = { 
                             1: 'SANCTUM', 2: 'LATTICE', 3: 'STARMAP', 4: 'CRADLE', 16: 'ORBIT', 
                             5: 'HARMONY', 6: 'MATRIX', 7: 'COMS', 8: 'FLOW', 9: 'SYNOD',
-                            10: 'BREATH', 11: 'CORE', 12: 'AURA', 13: 'NEURON', 14: 'LEGACY', 15: 'VESTIGE' 
+                            10: 'BREATH', 11: 'CORE', 12: 'AURA', 13: 'NEURON', 14: 'LEGACY', 15: 'VESTIGE',
+                            17: 'READY', 18: 'VEO', 19: 'AUDIT'
                         };
 
                         const isCommsPage = page === 7;
+                        const isAuditPage = page === 19;
                         const commsAlert = isCommsPage && isTransmissionActive;
 
                         return (
@@ -103,11 +106,13 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                                 className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === page
                                     ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)]'
-                                    : disabled 
-                                        ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
-                                        : commsAlert
-                                            ? 'bg-gold/20 border-gold/50 text-gold animate-pulse'
-                                            : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
+                                    : isAuditPage
+                                        ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
+                                        : disabled 
+                                            ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
+                                            : commsAlert
+                                                ? 'bg-gold/20 border-gold/50 text-gold animate-pulse'
+                                                : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
                                 }`}
                             >
                                 {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px]">🔒</span>}

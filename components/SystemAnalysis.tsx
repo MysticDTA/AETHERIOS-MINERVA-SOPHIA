@@ -127,13 +127,13 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
       }
   }, [isLoading, analysis, setOrbMode]);
 
-  // Periodic Failure Prediction
+  // Periodic Failure Prediction - QUOTA OPTIMIZATION: Frequency reduced to 3 minutes
   useEffect(() => {
     const interval = setInterval(() => {
         if (!isLoading && !isPredicting && sophiaEngine) {
             runPrediction();
         }
-    }, 45000); // Check every 45s
+    }, 180000); 
     return () => clearInterval(interval);
   }, [isLoading, isPredicting, sophiaEngine, runPrediction]);
 
@@ -158,6 +158,12 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
         ref={scrollContainerRef} 
         className="flex-grow min-h-0 overflow-y-auto px-6 py-5 relative z-10 clear-scrolling-window select-text scrollbar-thin"
       >
+        {error && (
+            <div className="mb-4 bg-rose-950/20 border border-rose-500/40 p-3 rounded text-[10px] text-rose-300 font-mono">
+                [SYSTEM_ERROR] {error}
+            </div>
+        )}
+
         {showPredictionAlert && (
             <div className="mb-6 bg-rose-950/30 border border-rose-500/50 p-4 rounded-sm animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.15)] relative overflow-hidden group/alert">
                 <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />

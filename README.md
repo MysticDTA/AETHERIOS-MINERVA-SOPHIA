@@ -26,9 +26,16 @@ The system is built upon the **Justice Lattice**—a reactive framework that bal
 *   **Resonance Map**: Visualizes global parity across distributed laboratory nodes (Sirius, Arcturian, Lemurian).
 *   **Synodal Dashboard**: A worldwide standard for managing large-scale field stability and collective intentionality.
 
-### 4. Space Weather Grounding
-*   **NASA/NOAA Integration**: Real-time Search Grounding for solar wind telemetry and geomagnetic Kp-index shifts.
-*   **Golden Ratio Intercept**: Baseline resonance maintained at 1.617 GHz.
+---
+
+## 🔑 AI Studio Integration
+
+This interface uses Pro-grade Gemini models which require explicit API key selection.
+
+### Secure Handshake Flow
+1.  **Selection**: On initial boot, the system triggers `window.aistudio.openSelectKey()`.
+2.  **Paid Projects**: You MUST select a key from a paid Google Cloud Project. [Billing Setup Info](https://ai.google.dev/gemini-api/docs/billing).
+3.  **Persistence**: The selected key is injected via `process.env.API_KEY` and powers the 32k reasoning budget.
 
 ---
 
@@ -38,14 +45,13 @@ The system is built upon the **Justice Lattice**—a reactive framework that bal
 *   **AI Engine**: `@google/genai` (Gemini 3 Pro, 3 Pro Image, 2.5 Flash Native Audio).
 *   **Audio**: Web Audio API with raw PCM streaming and custom Base64 encoding logic.
 *   **Deployment**: Vercel Serverless Functions for secure Stripe-based causal procurement.
-*   **Infrastructure**: Persistent `localStorage` for Recursive Memory and Ledger tracking.
 
 ---
 
 ## 🚀 Installation & Deployment
 
 ### Prerequisites
-*   A valid **Google Gemini API Key** (Accessible via `process.env.API_KEY`).
+*   A valid **Google Gemini API Key** (Accessible via AI Studio).
 *   Optional: **Stripe Secret Key** for production-grade procurement features.
 
 ### Setup
@@ -61,7 +67,6 @@ The system is built upon the **Justice Lattice**—a reactive framework that bal
 3.  Configure Environment Variables:
     Create a `.env` file in the root:
     ```env
-    API_KEY=your_gemini_api_key_here
     STRIPE_SECRET_KEY=optional_key
     FRONTEND_URL=http://localhost:5173
     ```

@@ -2,6 +2,31 @@
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN';
 
+export interface PerformanceTelemetry {
+    logicalLatency: number; // in ms
+    visualParity: number; // 0-1
+    gpuLoad: number; // 0-1
+    frameStability: number; // 0-1
+    thermalIndex: number; // simulated
+}
+
+export interface Collaborator {
+    id: string;
+    name: string;
+    role: string;
+    status: 'ONLINE' | 'SYNCHRONIZING' | 'IDLE';
+    specialty: string;
+    clearance: UserTier;
+}
+
+export interface InstitutionalEntity {
+    id: string;
+    name: string;
+    type: 'BANK' | 'GOVERNMENT' | 'CORPORATION';
+    observing: boolean;
+    trustScore: number;
+}
+
 export interface AuthState {
     isAuthenticated: boolean;
     operatorId: string | null;
@@ -62,10 +87,6 @@ export interface FailurePrediction {
     severity: 'STABLE' | 'MODERATE' | 'CRITICAL';
 }
 
-/**
- * CausalStep and CausalStrategy interfaces added to resolve import errors
- * mentioned in sophiaEngine.ts and useSophiaCore.ts.
- */
 export interface CausalStep {
   id: string;
   label: string;
@@ -247,6 +268,7 @@ export interface SystemState {
   userResources: UserResources;
   auth: AuthState;
   quantumHealing: QuantumHealingData;
+  performance: PerformanceTelemetry;
   holisticAlignmentScore: number;
   resonanceFactorRho: number;
   selfCorrectionField: number;

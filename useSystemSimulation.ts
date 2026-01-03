@@ -8,7 +8,8 @@ import {
   OrbMode, 
   GalacticRelay,
   CoherenceResonanceData,
-  UserTier
+  UserTier,
+  PerformanceTelemetry
 } from './types';
 import { ApiService } from './services/api';
 
@@ -20,8 +21,14 @@ export const initialSystemState: SystemState = {
     sovereignTier: 'ACOLYTE',
     unlockedModules: ['CAUSAL_MATRIX'],
     ledgerHistory: [],
-    // Fix: Added missing required property 'subscriptionActive' to satisfy UserResources interface
     subscriptionActive: false
+  },
+  performance: {
+    logicalLatency: 0.00012,
+    visualParity: 0.9998,
+    gpuLoad: 0.12,
+    frameStability: 1.0,
+    thermalIndex: 32.4
   },
   auth: {
     isAuthenticated: true,
@@ -193,7 +200,7 @@ export const useSystemSimulation = (
   }, []);
 
   useEffect(() => {
-    const breathDuration = isGrounded ? 6000 : 4500; // Refined breath duration
+    const breathDuration = isGrounded ? 6000 : 4500;
     breathIntervalRef.current = window.setInterval(() => {
       if (!isMounted.current) return;
       setSystemState(prev => ({
@@ -212,13 +219,21 @@ export const useSystemSimulation = (
         let newLesions = prev.quantumHealing.lesions;
         let newDecoherence = prev.quantumHealing.decoherence;
         let newShield = prev.quantumHealing.stabilizationShield;
-        let newRepairRate = 0.003; // Base repair rate optimized
+        let newRepairRate = 0.003;
         let newAxiom = prev.governanceAxiom;
         
         const diagnosticJitter = diagnosticMode ? (Math.random() - 0.5) * 0.06 : 0;
         let resonanceModifier = Math.max(0, Math.min(1, prev.resonanceFactorRho + diagnosticJitter));
         
-        // Optimization Logic - Forced Rectification Trend
+        // Performance Telemetry Calculation
+        const newPerformance: PerformanceTelemetry = {
+            logicalLatency: 0.0001 + (newDecoherence * 0.005),
+            visualParity: 1.0 - (newDecoherence * 0.1),
+            gpuLoad: 0.1 + (prev.supanovaTriforce.output / 100),
+            frameStability: 1.0 - (prev.vibration.amplitude / 100),
+            thermalIndex: 30 + (prev.supanovaTriforce.stability * 10)
+        };
+
         if (optimizationActive) {
             newDecoherence = Math.max(0, newDecoherence - 0.12);
             newHealth = Math.min(1.0, newHealth + 0.08);
@@ -279,11 +294,7 @@ export const useSystemSimulation = (
         } else if (newHealth > 0.92 && newDecoherence < 0.04) {
             newAxiom = 'SOVEREIGN EMBODIMENT';
         } else {
-            if (newAxiom === 'SYSTEM COMPOSURE FAILURE' && newHealth > 0.3) {
-                 newAxiom = 'CRADLE OF PRESENCE';
-            } else if (newAxiom !== 'SOVEREIGN EMBODIMENT') {
-                 newAxiom = 'CRADLE OF PRESENCE';
-            }
+            newAxiom = 'CRADLE OF PRESENCE';
         }
 
         const newPillars = { ...prev.pillars };
@@ -301,7 +312,7 @@ export const useSystemSimulation = (
         newTriforce.omegaEnergy = Math.min(1, Math.max(0.15, newTriforce.omegaEnergy + (Math.random() - 0.5) * 0.008));
         const avgEnergy = (newTriforce.phiEnergy + newTriforce.psiEnergy + newTriforce.omegaEnergy) / 3;
         newTriforce.stability = avgEnergy * (1 - newDecoherence * 0.25);
-        newTriforce.output = avgEnergy * 32.4; // 1.617 * 20
+        newTriforce.output = avgEnergy * 32.4; 
         
         if (newTriforce.stability < 0.12) newTriforce.state = SupanovaTriforceState.SUPERNOVA;
         else if (prev.breathCycle === 'INHALE') newTriforce.state = SupanovaTriforceState.CHARGING;
@@ -331,6 +342,7 @@ export const useSystemSimulation = (
         return {
           ...prev,
           isGrounded,
+          performance: newPerformance,
           quantumHealing: {
             health: newHealth,
             lesions: newLesions,

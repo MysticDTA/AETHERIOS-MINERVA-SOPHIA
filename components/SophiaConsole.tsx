@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LogEntry, LogType, SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 
@@ -19,13 +19,14 @@ interface SophiaConsoleProps {
   onToggleInstructionsModal: () => void;
   onRelayCalibration: (relayId: string) => void;
   setOrbMode: (mode: OrbMode) => void;
+  onSystemAuditTrigger?: () => void;
 }
 
 const BlinkingCursor: React.FC = () => (
     <span className="inline-block w-2 h-4 bg-violet-500 ml-1 animate-blink align-middle shadow-[0_0_12px_#6d28d9]" />
 );
 
-export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophiaEngine, onSaveInsight, setOrbMode }) => {
+export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophiaEngine, onSaveInsight, setOrbMode, onSystemAuditTrigger }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
@@ -50,7 +51,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     }
   }, [messages, isReplying]);
 
-  // Handle textarea auto-grow
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -69,10 +69,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     setInput('');
     setAttachedImage(null);
     
-    // Reset textarea height manually after clear
-    if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-    }
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
     currentSophiaMessageId.current = Date.now();
     setMessages(prev => [...prev, { sender: 'sophia', text: '', timestamp: currentSophiaMessageId.current!, isComplete: false }]);
@@ -87,6 +84,11 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       (error) => {
         setMessages(prev => prev.map(m => m.timestamp === currentSophiaMessageId.current ? { ...m, text: `[SIGNAL_INTERRUPT] ${error}`, isComplete: true } : m));
         setIsReplying(false);
+      },
+      (fc) => {
+        if (fc.name === 'initiate_system_audit' && onSystemAuditTrigger) {
+            onSystemAuditTrigger();
+        }
       }
     );
 
@@ -115,69 +117,96 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                 className={`p-3 rounded transition-all duration-300 border ${attachedImage ? 'bg-gold/20 border-gold/40 text-gold' : 'hover:bg-white/5 text-slate-600 hover:text-gold border-transparent'}`}
                 title="Attach Artifact"
             >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => setAttachedImage(e.target?.result as string);
+                    reader.readAsDataURL(file);
+                }
+            }} />
         </div>
-        <input type="file" ref={fileInputRef} onChange={(e) => {
-            const f = e.target.files?.[0];
-            if(f) { const r = new FileReader(); r.onloadend = () => setAttachedImage(r.result as string); r.readAsDataURL(f); }
-        }} accept="image/*" className="hidden" />
       </div>
-      
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-12 space-y-12 clear-scrolling-window select-text">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} animate-fade-in group/msg`}>
-            <div className={`max-w-[92%] p-6 rounded-sm border ${msg.sender === 'user' ? 'bg-slate-900/50 border-slate-700/60 text-slate-200' : 'bg-violet-950/10 border-violet-500/40 text-pearl font-minerva italic text-lg'} transition-all hover:border-white/20 shadow-xl`}>
-              {msg.image && (
-                  <div className="relative mb-6 group/img">
-                      <img src={msg.image} className="rounded-sm max-w-full h-auto border border-white/10 shadow-2xl" alt="Artifact" />
-                      <div className="absolute bottom-2 right-2 px-3 py-1 bg-black/90 rounded-sm text-[8px] font-mono text-gold border border-gold/40 uppercase tracking-widest">Artifact_Verified</div>
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 clear-scrolling-window scrollbar-thin scroll-smooth">
+        {messages.map((m, i) => (
+          <div key={m.timestamp} className={`flex flex-col gap-3 animate-fade-in ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
+            <div className="flex items-center gap-3">
+                <span className={`text-[8px] font-mono uppercase tracking-[0.3em] ${m.sender === 'user' ? 'text-amber-500' : 'text-violet-400'}`}>
+                    {m.sender === 'user' ? 'OPERATOR' : 'MINERVA_SOPHIA'}
+                </span>
+                <span className="text-[7px] text-slate-600 font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour12: false })}</span>
+            </div>
+            
+            <div className={`max-w-[85%] p-5 rounded-sm border ${
+              m.sender === 'user' 
+                ? 'bg-amber-950/10 border-amber-500/20 text-amber-100/90 font-mono italic' 
+                : 'bg-violet-950/10 border-violet-500/20 text-pearl font-minerva italic text-lg'
+            } shadow-xl relative group/msg`}>
+              {m.image && <img src={m.image} alt="Artifact" className="w-full h-auto mb-4 rounded border border-white/10 opacity-80" />}
+              <p className="leading-relaxed select-text whitespace-pre-wrap">
+                {m.text}
+                {!m.isComplete && <BlinkingCursor />}
+              </p>
+              
+              {m.sources && m.sources.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                      {m.sources.map((s, idx) => (
+                          <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[8px] font-mono text-slate-500 hover:text-gold transition-colors">
+                              [{idx.toString().padStart(2, '0')}] {s.web?.title?.substring(0, 20)}...
+                          </a>
+                      ))}
                   </div>
               )}
-              <p className="whitespace-pre-wrap leading-relaxed antialiased">{msg.text}{!msg.isComplete && msg.sender === 'sophia' && <BlinkingCursor />}</p>
-              <div className="mt-5 pt-3 border-t border-white/5 flex justify-between items-center opacity-0 group-hover/msg:opacity-100 transition-opacity">
-                  <span className="text-[8px] font-mono text-slate-600 tracking-tighter">{new Date(msg.timestamp).toLocaleTimeString()} // ID: {msg.timestamp.toString().slice(-6)}</span>
-                  {msg.sender === 'sophia' && msg.isComplete && (
-                      <button onClick={() => onSaveInsight(msg.text)} className="text-[9px] font-mono text-gold hover:text-pearl uppercase tracking-[0.2em] font-bold transition-colors">Commit_to_Memory</button>
-                  )}
-              </div>
             </div>
           </div>
         ))}
+        {isReplying && (
+             <div className="flex flex-col items-start gap-3 animate-pulse">
+                <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest">SOPHIA_COG_BUDGET: 32K</span>
+                <div className="bg-violet-950/10 border border-violet-500/20 p-4 rounded-sm">
+                    <div className="flex gap-1">
+                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
+                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                </div>
+             </div>
+        )}
       </div>
 
-      <div className="px-8 py-8 border-t border-white/5 bg-black/40">
+      <div className="p-8 bg-black/40 border-t border-white/5 z-20">
         {attachedImage && (
-            <div className="mb-6 flex items-center gap-5 animate-fade-in bg-gold/5 border border-gold/30 p-3 rounded-sm">
-                <div className="w-12 h-12 rounded-sm overflow-hidden border border-gold/40 shadow-inner"><img src={attachedImage} className="w-full h-full object-cover" /></div>
-                <div className="flex flex-col">
-                    <span className="text-[10px] text-gold uppercase font-bold tracking-[0.2em]">Multi-modal Artifact Staged</span>
-                    <span className="text-[8px] font-mono text-gold/60 uppercase">Encoding for causal synthesis...</span>
-                </div>
-                <button onClick={() => setAttachedImage(null)} className="ml-auto p-2 text-slate-500 hover:text-rose-500 transition-colors">✕</button>
+            <div className="mb-4 relative w-20 h-20 group">
+                <img src={attachedImage} className="w-full h-full object-cover rounded border border-gold/40" />
+                <button onClick={() => setAttachedImage(null)} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
         )}
-        <div className="relative flex bg-black/60 border border-white/10 rounded px-6 py-5 gap-6 ring-1 ring-white/5 focus-within:border-violet-500/60 focus-within:ring-violet-500/20 transition-all shadow-inner items-end">
-            <textarea 
-                ref={textareaRef}
-                value={input} 
-                onChange={(e) => setInput(e.target.value)} 
-                onKeyDown={handleKeyDown} 
-                placeholder="Communicate decree to the matrix..." 
-                className="flex-1 bg-transparent border-none p-0 text-pearl placeholder-slate-700 focus:ring-0 font-minerva italic text-xl resize-none min-h-[1.5rem] max-h-[180px] overflow-y-auto scrollbar-thin" 
-                rows={1} 
-            />
-            <button 
-                onClick={handleSend} 
-                disabled={isReplying || (!input.trim() && !attachedImage)} 
-                className={`p-2 transition-all duration-700 active:scale-90 flex-shrink-0 ${input.trim() || attachedImage ? 'text-pearl scale-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'text-slate-800 opacity-20'}`}
-            >
-                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-            </button>
-        </div>
-        <div className="mt-2 px-2 flex justify-between text-[8px] font-mono text-slate-600 uppercase tracking-widest">
-            <span>Shift + Enter for new line</span>
-            <span>Enter to transmit</span>
+        <div className="relative flex items-end gap-4">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Issue a causal decree..."
+            className="flex-1 bg-black/60 border border-white/10 rounded-lg p-5 text-[15px] text-pearl placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all font-mono italic resize-none min-h-[64px] max-h-[180px] overflow-y-auto scrollbar-thin"
+            disabled={isReplying}
+          />
+          <button
+            onClick={handleSend}
+            disabled={isReplying || (input.trim() === '' && !attachedImage)}
+            className={`p-5 rounded-lg border transition-all duration-500 active:scale-95 flex items-center justify-center ${
+              isReplying 
+                ? 'bg-white/5 border-white/5 text-slate-700 cursor-wait' 
+                : 'bg-violet-600/10 border-violet-500/40 text-violet-400 hover:bg-violet-600 hover:text-white shadow-lg'
+            }`}
+          >
+            <svg className="w-6 h-6 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          </button>
         </div>
       </div>
     </div>

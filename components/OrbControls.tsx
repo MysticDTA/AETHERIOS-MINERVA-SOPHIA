@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { OrbMode, OrbModeConfig } from '../types';
 import { Tooltip } from './Tooltip';
@@ -115,7 +114,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="group" aria-label="System Orb Mode Selection">
           {modes.map((modeConfig) => (
             <Tooltip key={modeConfig.id} text={modeConfig.description}>
               <button
@@ -126,6 +125,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
                 }`}
                 onClick={() => setMode(modeConfig.id)}
                 aria-label={`Activate ${modeConfig.name} Mode`}
+                aria-pressed={currentMode === modeConfig.id}
               >
                 {modeConfig.name}
               </button>
@@ -137,10 +137,11 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
             <Tooltip text={isListening ? "Listening for Decree..." : "Voice Control"}>
             <button
               onClick={toggleVoiceControl}
-              className={`relative flex items-center justify-center w-8 h-8 rounded transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-900/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'}`}
-              aria-label="Voice Command Toggle"
+              className={`relative flex items-center justify-center w-8 h-8 rounded transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-950/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'}`}
+              aria-label={isListening ? "Stop listening for voice commands" : "Start listening for voice commands"}
+              aria-pressed={isListening}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
               {isListening && (
@@ -155,7 +156,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
       </div>
 
       {/* Voice Command Visual Feedback - Intellectual Integration */}
-      <div className="h-4 flex items-center gap-2 overflow-hidden px-1">
+      <div className="h-4 flex items-center gap-2 overflow-hidden px-1" aria-live="polite">
         {isListening ? (
           <div className="flex gap-1 items-center">
             <span className="w-1 h-1 bg-violet-500 rounded-full animate-bounce" />

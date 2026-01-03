@@ -25,12 +25,12 @@ export const Display5: React.FC<Display5Props> = ({
     const coherence = systemState.biometricSync.coherence;
     const entropy = systemState.coherenceResonance.entropyFlux;
 
-    // Shift Detection Logic: Increase stability thresholds
+    // Shift Detection Logic: Increase stability thresholds to preserve quota
     const rhoDelta = Math.abs(rho - lastMetricsRef.current.rho);
     const coherenceDelta = Math.abs(coherence - lastMetricsRef.current.coherence);
 
-    // Only interpret if meaningful shift detected OR if log is empty
-    const shouldInterpret = (rhoDelta > 0.08 || coherenceDelta > 0.15 || systemState.coherenceResonance.intelligenceLog.length === 0) 
+    // QUOTA OPTIMIZATION: Only interpret if meaningful shift detected (> 0.15 rho or > 0.25 coherence)
+    const shouldInterpret = (rhoDelta > 0.15 || coherenceDelta > 0.25 || systemState.coherenceResonance.intelligenceLog.length === 0) 
                           && !isFetchingRef.current 
                           && sophiaEngine;
 

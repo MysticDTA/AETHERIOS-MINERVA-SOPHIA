@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ResonanceSymmetryArray } from './ResonanceSymmetryArray';
+import { OrbMode } from '../types';
+import { Tooltip } from './Tooltip';
 
 interface VoiceInterfaceProps {
   isSessionActive: boolean;
@@ -9,6 +11,8 @@ interface VoiceInterfaceProps {
   sophiaOutput: string;
   history: { user: string; sophia: string }[];
   resonance: number;
+  lastSystemCommand?: string | null;
+  onSetOrbMode?: (mode: OrbMode) => void;
 }
 
 const ResonanceMemoryPulsar: React.FC<{ active: boolean }> = ({ active }) => (
@@ -70,8 +74,92 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
     userInput, 
     sophiaOutput,
     history,
-    resonance
+    resonance,
+    lastSystemCommand,
+    onSetOrbMode
 }) => {
+    const [isLocalListening, setIsLocalListening] = useState(false);
+    const [localTranscript, setLocalTranscript] = useState('');
+    const [localFeedback, setLocalFeedback] = useState<string | null>(null);
+    const feedbackTimeoutRef = useRef<number | null>(null);
+    const recognitionRef = useRef<any>(null);
+
+    useEffect(() => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recog = new SpeechRecognition();
+            recog.continuous = false;
+            recog.lang = 'en-US';
+            recog.interimResults = false;
+            recog.maxAlternatives = 1;
+            recognitionRef.current = recog;
+        }
+    }, []);
+
+    const triggerLocalFeedback = (message: string) => {
+        if (feedbackTimeoutRef.current) window.clearTimeout(feedbackTimeoutRef.current);
+        setLocalFeedback(message);
+        feedbackTimeoutRef.current = window.setTimeout(() => setLocalFeedback(null), 3000);
+    };
+
+    const handleLocalCommand = useCallback((transcript: string) => {
+        const lower = transcript.toLowerCase();
+        const modeMap: Record<string, OrbMode> = {
+            'standby': 'STANDBY',
+            'analysis': 'ANALYSIS',
+            'analyze': 'ANALYSIS',
+            'synthesis': 'SYNTHESIS',
+            'synthesize': 'SYNTHESIS',
+            'repair': 'REPAIR',
+            'healing': 'REPAIR',
+            'grounding': 'GROUNDING',
+            'ground': 'GROUNDING',
+            'concordance': 'CONCORDANCE',
+            'align': 'CONCORDANCE',
+            'offline': 'OFFLINE',
+            'shut down': 'OFFLINE'
+        };
+
+        const foundKey = Object.keys(modeMap).find(key => lower.includes(key));
+        if (foundKey && onSetOrbMode) {
+            const targetMode = modeMap[foundKey];
+            onSetOrbMode(targetMode);
+            triggerLocalFeedback(`DIRECTIVE: ${targetMode} ENGAGED`);
+        } else {
+            triggerLocalFeedback("PATTERN_NOT_MATCHED");
+        }
+    }, [onSetOrbMode]);
+
+    const toggleLocalDirective = () => {
+        if (!recognitionRef.current || isSessionActive) return;
+
+        if (isLocalListening) {
+            recognitionRef.current.stop();
+            setIsLocalListening(false);
+        } else {
+            try {
+                setLocalTranscript('');
+                recognitionRef.current.start();
+                setIsLocalListening(true);
+                
+                recognitionRef.current.onresult = (event: any) => {
+                    const last = event.results.length - 1;
+                    const transcript = event.results[last][0].transcript;
+                    setLocalTranscript(transcript);
+                    handleLocalCommand(transcript);
+                };
+                
+                recognitionRef.current.onend = () => setIsLocalListening(false);
+                recognitionRef.current.onerror = () => {
+                    setIsLocalListening(false);
+                    triggerLocalFeedback("SENSOR_ERR");
+                };
+            } catch (e) {
+                setIsLocalListening(false);
+            }
+        }
+    };
+
     return (
         <div className="w-full h-full bg-dark-surface/40 border border-dark-border/60 p-6 rounded-xl border-glow-aether backdrop-blur-md flex flex-col relative overflow-hidden group">
             {/* Subtle interference scanline for the voice bridge */}
@@ -92,17 +180,33 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                     </div>
                 </div>
 
-                <button 
-                    onClick={isSessionActive ? closeSession : startSession}
-                    className={`px-8 py-3.5 rounded-sm font-orbitron text-[10px] font-bold uppercase tracking-[0.4em] transition-all border relative overflow-hidden group/btn active:scale-95 ${
-                        isSessionActive 
-                        ? 'bg-rose-950/20 border-rose-500/50 text-rose-400 hover:bg-rose-500 hover:text-white' 
-                        : 'bg-violet-900/20 border-violet-500/50 text-violet-300 hover:bg-violet-500 hover:text-white'
-                    }`}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
-                    <span className="relative z-10">{isSessionActive ? 'Sever Connection' : 'Initialize Bridge'}</span>
-                </button>
+                <div className="flex gap-4">
+                    {!isSessionActive && (
+                        <Tooltip text="Direct System Command (Local Recognition)">
+                            <button 
+                                onClick={toggleLocalDirective}
+                                className={`px-6 py-3.5 rounded-sm font-orbitron text-[10px] font-bold uppercase tracking-[0.4em] transition-all border relative overflow-hidden active:scale-95 ${
+                                    isLocalListening 
+                                    ? 'bg-amber-950/20 border-amber-500 text-amber-400 animate-pulse' 
+                                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-amber-400 hover:border-amber-500/50'
+                                }`}
+                            >
+                                <span className="relative z-10">{isLocalListening ? 'Listening...' : 'Quick Cmd'}</span>
+                            </button>
+                        </Tooltip>
+                    )}
+                    <button 
+                        onClick={isSessionActive ? closeSession : startSession}
+                        className={`px-8 py-3.5 rounded-sm font-orbitron text-[10px] font-bold uppercase tracking-[0.4em] transition-all border relative overflow-hidden group/btn active:scale-95 ${
+                            isSessionActive 
+                            ? 'bg-rose-950/20 border-rose-500/50 text-rose-400 hover:bg-rose-500 hover:text-white' 
+                            : 'bg-violet-900/20 border-violet-500/50 text-violet-300 hover:bg-violet-500 hover:text-white'
+                        }`}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+                        <span className="relative z-10">{isSessionActive ? 'Sever Connection' : 'Initialize Bridge'}</span>
+                    </button>
+                </div>
             </div>
 
             {/* Main Interaction Area */}
@@ -116,24 +220,47 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                       <ResonanceSymmetryArray rho={resonance} isOptimizing={isSessionActive} />
                    </div>
                    <div className="flex flex-col gap-4 min-h-0">
-                      <TranscriptionVessel title="Operator_Intent_Rx" text={userInput} type="user" />
+                      <TranscriptionVessel title="Operator_Intent_Rx" text={isLocalListening ? localTranscript : userInput} type="user" />
                       <TranscriptionVessel title="Sophia_Synthesized_Tx" text={sophiaOutput} type="sophia" />
                    </div>
                 </div>
 
-                {/* Status Synchronizer */}
-                <div className="flex flex-col items-center justify-center py-5 bg-black/40 border border-white/5 rounded-xl flex-shrink-0 relative shadow-inner">
-                    <ResonanceMemoryPulsar active={isSessionActive && (!!userInput || !!sophiaOutput)} />
-                    <div className="mt-4 text-center">
-                        <p className="text-[9px] text-slate-500 font-mono uppercase tracking-[0.5em] font-bold mb-2">Phase Synchronization</p>
-                        <div className="flex gap-2.5 justify-center">
-                            {Array.from({ length: 16 }).map((_, i) => (
-                                <div 
-                                    key={i} 
-                                    className={`w-0.5 h-4 rounded-full transition-all duration-700 ${isSessionActive ? 'bg-violet-400 animate-pulse' : 'bg-slate-800'}`} 
-                                    style={{ animationDelay: `${i * 0.1}s`, opacity: isSessionActive ? (1 - (Math.abs(i - 8) / 8)) : 0.2 }} 
-                                />
-                            ))}
+                {/* Status Synchronizer & Command Display */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-shrink-0">
+                    <div className="flex flex-col items-center justify-center py-5 bg-black/40 border border-white/5 rounded-xl relative shadow-inner">
+                        <ResonanceMemoryPulsar active={isSessionActive && (!!userInput || !!sophiaOutput)} />
+                        <div className="mt-4 text-center">
+                            <p className="text-[9px] text-slate-500 font-mono uppercase tracking-[0.5em] font-bold mb-2">Phase Synchronization</p>
+                            <div className="flex gap-2.5 justify-center">
+                                {Array.from({ length: 16 }).map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`w-0.5 h-4 rounded-full transition-all duration-700 ${isSessionActive ? 'bg-violet-400 animate-pulse' : 'bg-slate-800'}`} 
+                                        style={{ animationDelay: `${i * 0.1}s`, opacity: isSessionActive ? (1 - (Math.abs(i - 8) / 8)) : 0.2 }} 
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-black/60 border border-white/10 rounded-xl p-5 flex flex-col justify-center gap-3">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                             <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">System Directive Hub</span>
+                             <div className="w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_#6d28d9]" />
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[8px] font-mono text-slate-600 uppercase">Last Decree</span>
+                                <span className="text-[10px] font-mono text-pearl uppercase bg-violet-900/20 px-2 py-0.5 rounded border border-violet-500/20">
+                                    {lastSystemCommand || localFeedback || 'NONE'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center opacity-40">
+                                <span className="text-[8px] font-mono text-slate-600 uppercase">Input Channel</span>
+                                <span className="text-[8px] font-mono text-slate-400 uppercase">
+                                    {isSessionActive ? 'Gemini_Bridge_TX' : isLocalListening ? 'Local_Sensor_RX' : 'STANDBY'}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

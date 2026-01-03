@@ -15,6 +15,7 @@ class CosmosCommsService {
     private decodingInterval: number | null = null;
     private nextMessageTimeout: number | null = null;
     private isRunning = false;
+    private retryCount = 0;
     
     public initialState: CosmosTransmission = {
         source: 'AWAITING_NASA_UPLINK',
@@ -49,10 +50,16 @@ class CosmosCommsService {
         if(this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
     }
 
-    private scheduleNextTransmission() {
+    private scheduleNextTransmission(isError = false) {
         if (!this.isRunning) return;
-        // Search every 30-60 seconds for real-time changes
-        const delay = 45000 + Math.random() * 30000;
+        if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
+
+        // PRODUCTION OPTIMIZATION: Increasing interval significantly to preserve API quota.
+        // Base delay: 6 minutes. Exponential backoff if error occurred.
+        const baseDelay = isError ? 300000 * Math.pow(2, this.retryCount) : 360000; 
+        const jitter = Math.random() * 120000;
+        const delay = Math.min(baseDelay + jitter, 3600000); // Cap at 1 hour
+
         this.nextMessageTimeout = window.setTimeout(() => this.beginTransmission(), delay);
     }
 
@@ -72,7 +79,6 @@ class CosmosCommsService {
             if (!process.env.API_KEY) throw new Error("No API Key configured");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-            // Requesting 100% real data via Search Grounding
             const prompt = `
                 Fetch the latest solar wind telemetry, Kp-index, or solar flare activity from NOAA Space Weather Prediction Center or NASA.
                 Analyze the data for potential resonance at the 1.617 GHz L-band frequency.
@@ -107,17 +113,27 @@ class CosmosCommsService {
             this.currentState.message = text;
             this.currentState.realWorldMetric = metric;
             this.currentState.status = 'DECODING...';
+            this.retryCount = 0; // Reset retry counter on success
             this.emit();
 
             this.startDecoding(); 
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Grounding Link Failure:", error);
+            
+            let statusMsg: CommsStatus = 'SIGNAL LOST';
+            if (error?.status === 'RESOURCE_EXHAUSTED' || error?.message?.includes('429')) {
+                statusMsg = 'SIGNAL LOST';
+                this.currentState.message = "Grounding link quota exhausted. High-order resonance required. Re-synchronizing in standby mode...";
+                this.retryCount++;
+            } else {
+                this.currentState.message = "Grounding link to NASA/NOAA data stream interrupted. Re-synchronizing at 1.617 GHz...";
+            }
+
             this.currentState.source = "SYSTEM_ERROR";
-            this.currentState.message = "Grounding link to NASA/NOAA data stream interrupted. Re-synchronizing at 1.617 GHz...";
-            this.currentState.status = "SIGNAL LOST";
+            this.currentState.status = statusMsg;
             this.emit();
-            this.scheduleNextTransmission();
+            this.scheduleNextTransmission(true);
         }
     }
 
@@ -131,7 +147,7 @@ class CosmosCommsService {
             } else {
                 this.endTransmission();
             }
-        }, 30); // Faster decoding for technical feel
+        }, 30);
     }
 
     private endTransmission() {

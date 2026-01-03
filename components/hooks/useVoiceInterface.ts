@@ -31,6 +31,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const [userInputTranscription, setUserInputTranscription] = useState('');
     const [sophiaOutputTranscription, setSophiaOutputTranscription] = useState('');
     const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>([]);
+    const [lastSystemCommand, setLastSystemCommand] = useState<string | null>(null);
     
     const sessionPromise = useRef<Promise<any> | null>(null);
     const inputAudioContext = useRef<AudioContext | null>(null);
@@ -115,6 +116,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                             if (fc.name === 'update_system_mode') {
                                 const mode = fc.args.mode as OrbMode;
                                 addLogEntry(LogType.SYSTEM, `Vocal Command: Initiating ${mode} Protocol.`);
+                                setLastSystemCommand(`Bridge: ${mode}`);
                                 onSetOrbMode(mode);
                                 
                                 sessionPromise.current?.then((session) => {
@@ -192,6 +194,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
         userInputTranscription,
         sophiaOutputTranscription,
         transcriptionHistory,
+        lastSystemCommand,
         startVoiceSession,
         closeVoiceSession,
     };
