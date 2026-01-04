@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   SystemState, 
@@ -222,9 +223,9 @@ export const useSystemSimulation = (
         let newRepairRate = 0.003;
         let newAxiom = prev.governanceAxiom;
         
-        // REFINEMENT: Non-linear jitter based on current decoherence
-        const diagnosticJitter = diagnosticMode ? (Math.random() - 0.5) * (0.06 + newDecoherence * 0.1) : 0;
-        let resonanceModifier = Math.max(0, Math.min(1, prev.resonanceFactorRho + diagnosticJitter));
+        // Dynamic Neural Jitter for Coherence Monitoring
+        const diagnosticJitter = diagnosticMode ? (Math.random() - 0.5) * (0.02 + newDecoherence * 0.05) : 0;
+        let resonanceModifier = Math.max(0.1, Math.min(1.0, prev.resonanceFactorRho + (Math.random() - 0.5) * 0.005 + diagnosticJitter));
         
         const newPerformance: PerformanceTelemetry = {
             logicalLatency: 0.0001 + (newDecoherence * 0.005),
@@ -235,15 +236,15 @@ export const useSystemSimulation = (
         };
 
         if (optimizationActive) {
-            newDecoherence = Math.max(0, newDecoherence - 0.15); // Faster recovery
+            newDecoherence = Math.max(0, newDecoherence - 0.15);
             newHealth = Math.min(1.0, newHealth + 0.1);
             if (Math.random() > 0.3) newLesions = Math.max(0, newLesions - 1);
-            resonanceModifier = Math.min(1, resonanceModifier + 0.08);
+            resonanceModifier = Math.min(1.0, resonanceModifier + 0.05);
             newShield = Math.min(1, newShield + 0.08);
         }
 
         const entropyModifier = isGrounded ? 0.02 : (orbMode === 'GROUNDING' ? 0.12 : 1.0);
-        const shieldProtection = newShield * 0.9; // Refined protection coefficient
+        const shieldProtection = newShield * 0.9;
 
         if (Math.random() < params.decoherenceChance * entropyModifier && !optimizationActive) {
             newDecoherence += (0.03 * (1 - shieldProtection));
@@ -253,7 +254,7 @@ export const useSystemSimulation = (
         }
 
         if (newDecoherence < 0.05 && resonanceModifier > 0.95) {
-            newShield = Math.min(1, newShield + 0.01); // Faster shield regen at peak
+            newShield = Math.min(1, newShield + 0.01);
         } else if (!optimizationActive) {
             newShield = Math.max(0, newShield - (newDecoherence * 0.01));
         }
@@ -274,8 +275,8 @@ export const useSystemSimulation = (
                 newHealth = Math.min(1, newHealth + 0.015);
                 newShield = Math.min(1, newShield + 0.03);
                 break;
-            case 'SYNTHESIS':
-                newRepairRate = 0.08;
+            case 'CONCORDANCE':
+                resonanceModifier = Math.min(1.0, resonanceModifier + 0.02);
                 break;
             case 'OFFLINE':
                 newHealth -= 0.002;
@@ -307,9 +308,6 @@ export const useSystemSimulation = (
         });
 
         const newTriforce = { ...prev.supanovaTriforce };
-        newTriforce.phiEnergy = Math.min(1, Math.max(0.1, newTriforce.phiEnergy + (Math.random() - 0.5) * 0.01));
-        newTriforce.psiEnergy = Math.min(1, Math.max(0.1, newTriforce.psiEnergy + (Math.random() - 0.5) * 0.01));
-        newTriforce.omegaEnergy = Math.min(1, Math.max(0.1, newTriforce.omegaEnergy + (Math.random() - 0.5) * 0.01));
         const avgEnergy = (newTriforce.phiEnergy + newTriforce.psiEnergy + newTriforce.omegaEnergy) / 3;
         newTriforce.stability = avgEnergy * (1 - newDecoherence * 0.3);
         newTriforce.output = avgEnergy * 35.5; 
@@ -326,14 +324,7 @@ export const useSystemSimulation = (
             newLyran.alignmentDrift = Math.min(1, newLyran.alignmentDrift + (Math.random() * 0.0003)); 
         }
 
-        const pillarAverage = (Object.values(newPillars) as PillarData[]).reduce<number>((acc, p) => acc + p.activation, 0) / 3;
-        const resonanceRho = optimizationActive ? Math.min(1.0, resonanceModifier + 0.1) : (pillarAverage * 0.3 + newTriforce.stability * 0.5 + newLyran.connectionStability * 0.2);
-        
-        let newDrift = prev.temporalCoherenceDrift;
-        newDrift += (newDecoherence * 0.0002) - (resonanceRho * 0.0008); 
-        newDrift = Math.max(0, Math.min(1, newDrift));
-
-        const coherenceScore = (resonanceRho + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
+        const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
         if (coherenceScore < 0.75) coherenceStatus = 'RESONATING';
         if (coherenceScore < 0.45) coherenceStatus = 'DECOHERING';
@@ -355,14 +346,14 @@ export const useSystemSimulation = (
           pillars: newPillars,
           supanovaTriforce: newTriforce,
           lyranConcordance: newLyran,
-          resonanceFactorRho: resonanceRho,
-          temporalCoherenceDrift: newDrift,
+          resonanceFactorRho: resonanceModifier,
+          temporalCoherenceDrift: prev.temporalCoherenceDrift + (newDecoherence * 0.0002) - (resonanceModifier * 0.0008),
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,
-              entropyFlux: (newDecoherence * 0.3) + (1 - resonanceRho) * 0.7,
-              phaseSync: resonanceRho * (1 - newLyran.alignmentDrift),
-              quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceRho,
+              entropyFlux: (newDecoherence * 0.3) + (1 - resonanceModifier) * 0.7,
+              phaseSync: resonanceModifier * (1 - newLyran.alignmentDrift),
+              quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
           }
         };

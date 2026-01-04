@@ -1,9 +1,7 @@
 
 // Global shared types for SOPHIA DV99 / Alliance System
 
-/**
- * Interface for AI Studio environment bridge.
- */
+// FIX: Define AIStudio interface for local usage
 export interface AIStudio {
   hasSelectedApiKey: () => Promise<boolean>;
   openSelectKey: () => Promise<void>;
@@ -11,8 +9,8 @@ export interface AIStudio {
 
 declare global {
   interface Window {
-    // FIX: Changed from inline type to AIStudio interface to match environmental expectations and resolve declaration conflicts
-    aistudio: AIStudio;
+    // FIX: Added 'readonly' to match global modifiers and changed type to 'any' to resolve structural collision errors with environment-provided AIStudio types
+    readonly aistudio: any;
     SpeechRecognition: any;
     webkitSpeechRecognition: any;
   }
@@ -283,13 +281,13 @@ export interface AbundanceCoreData {
     status: 'EXPANDING' | 'STABLE' | 'CONTRACTING';
 }
 
-export type DilutionRefrigeratorStatus = 'STABLE' | 'UNSTABLE' | 'BOOSTED' | 'OFFLINE';
-
 export interface DilutionRefrigeratorData {
     temperature: number;
     status: DilutionRefrigeratorStatus;
     coolingPower: number;
 }
+
+export type DilutionRefrigeratorStatus = 'STABLE' | 'UNSTABLE' | 'BOOSTED' | 'OFFLINE';
 
 export interface SystemState {
   userResources: UserResources;
