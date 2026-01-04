@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { OrbMode, OrbModeConfig } from '../types';
 import { Tooltip } from './Tooltip';
@@ -6,14 +7,6 @@ interface OrbControlsProps {
   modes: OrbModeConfig[];
   currentMode: OrbMode;
   setMode: (mode: OrbMode) => void;
-}
-
-// Polyfill for TypeScript support of the Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
 }
 
 export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, setMode }) => {
@@ -25,6 +18,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
 
   // Initialize Speech Recognition on mount
   useEffect(() => {
+    /* FIX: Using global window property provided by environment/types.ts and removed duplicate local declaration */
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recog = new SpeechRecognition();

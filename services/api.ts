@@ -14,14 +14,20 @@ export class ApiService {
 
   /**
    * Initializes a Stripe Checkout session.
-   * Path matches the Vercel serverless function location.
+   * Supports metadata for cross-project integration (Menerva vs Aetherios).
    */
-  static async createCheckoutSession(priceId: string, token: string | null): Promise<{ url: string } | null> {
+  static async createCheckoutSession(priceId: string, token: string | null, origin: 'MENERVA' | 'AETHERIOS' = 'AETHERIOS'): Promise<{ url: string } | null> {
     try {
       const response = await fetch('/api/payments/create-session', {
         method: 'POST',
         headers: this.getHeaders(token),
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ 
+            priceId,
+            metadata: {
+                project_origin: origin,
+                causal_lock: 'true'
+            }
+        }),
       });
 
       if (!response.ok) {
@@ -38,8 +44,9 @@ export class ApiService {
 
   /**
    * Fetches the latest operator data from the Vercel backend.
+   * Now includes Menerva legacy points and project synchronization status.
    */
-  static async syncOperatorProfile(token: string | null): Promise<{ tier: UserTier; tokens: number } | null> {
+  static async syncOperatorProfile(token: string | null): Promise<{ tier: UserTier; tokens: number; legacyPoints: number } | null> {
     try {
       const response = await fetch('/api/operator/profile', {
         method: 'GET',

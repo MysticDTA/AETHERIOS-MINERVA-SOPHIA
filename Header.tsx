@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SystemStatus } from './components/SystemStatus';
 import { AudioEngine } from './components/audio/AudioEngine';
@@ -17,7 +18,9 @@ interface HeaderProps {
 const TIER_CONFIG: Record<UserTier, { label: string; color: string; shadow: string }> = {
     ACOLYTE: { label: 'GUEST_ACCESS', color: 'text-slate-400', shadow: 'none' },
     ARCHITECT: { label: 'ÆTHERIOS_ARCHITECT', color: 'text-gold', shadow: '0 0 10px rgba(230, 199, 127, 0.4)' },
-    SOVEREIGN: { label: 'ÆTHERIOS_SOVEREIGN', color: 'text-pearl', shadow: '0 0 15px rgba(248, 245, 236, 0.6)' }
+    SOVEREIGN: { label: 'ÆTHERIOS_SOVEREIGN', color: 'text-pearl', shadow: '0 0 15px rgba(248, 245, 236, 0.6)' },
+    // FIX: Added missing LEGACY_MENERVA mapping
+    LEGACY_MENERVA: { label: 'MENERVA_LEGACY', color: 'text-rose-400', shadow: '0 0 10px rgba(244, 63, 94, 0.4)' }
 };
 
 const MODULE_PERMISSIONS: Record<number, UserTier> = {

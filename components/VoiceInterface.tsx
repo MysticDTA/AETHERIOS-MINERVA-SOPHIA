@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ResonanceSymmetryArray } from './ResonanceSymmetryArray';
 import { OrbMode } from '../types';
@@ -13,6 +14,7 @@ interface VoiceInterfaceProps {
   resonance: number;
   lastSystemCommand?: string | null;
   onSetOrbMode?: (mode: OrbMode) => void;
+  clearHistory?: () => void;
 }
 
 const ResonanceMemoryPulsar: React.FC<{ active: boolean }> = ({ active }) => (
@@ -76,13 +78,15 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
     history,
     resonance,
     lastSystemCommand,
-    onSetOrbMode
+    onSetOrbMode,
+    clearHistory
 }) => {
     const [isLocalListening, setIsLocalListening] = useState(false);
     const [localTranscript, setLocalTranscript] = useState('');
     const [localFeedback, setLocalFeedback] = useState<string | null>(null);
     const feedbackTimeoutRef = useRef<number | null>(null);
     const recognitionRef = useRef<any>(null);
+    const archiveEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -95,6 +99,13 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
             recognitionRef.current = recog;
         }
     }, []);
+
+    // Auto-scroll to top of archive when new items arrive (since it's reversed)
+    useEffect(() => {
+        if (archiveEndRef.current) {
+            // No action needed for reversed list as top is latest, but logic is here for future expansion
+        }
+    }, [history]);
 
     const triggerLocalFeedback = (message: string) => {
         if (feedbackTimeoutRef.current) window.clearTimeout(feedbackTimeoutRef.current);
@@ -272,7 +283,15 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                             <div className="w-1.5 h-4 bg-violet-400 rounded-sm" />
                             <span className="text-[11px] text-warm-grey uppercase tracking-[0.3em] font-bold">Causal Exchange Archive</span>
                         </div>
-                        <span className="text-[9px] font-mono text-slate-500 bg-black/30 px-3 py-1 rounded-full tracking-tighter border border-white/5">CYCLES: {history.length}</span>
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={clearHistory}
+                                className="text-[8px] font-mono text-slate-500 hover:text-rose-400 uppercase tracking-widest transition-colors"
+                            >
+                                [Flush_Buffer]
+                            </button>
+                            <span className="text-[9px] font-mono text-slate-500 bg-black/30 px-3 py-1 rounded-full tracking-tighter border border-white/5">CYCLES: {history.length}</span>
+                        </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-6 space-y-10 scrollbar-thin">
                         {history.length === 0 ? (

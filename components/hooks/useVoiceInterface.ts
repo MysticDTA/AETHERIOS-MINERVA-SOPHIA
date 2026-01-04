@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from "@google/genai";
 import { LogType, OrbMode } from '../../types';
 import { encode, decode, decodeAudioData } from '../audio/liveUtils';
@@ -10,6 +10,8 @@ interface UseVoiceInterfaceProps {
     systemInstruction: string;
     onSetOrbMode: (mode: OrbMode) => void;
 }
+
+const HISTORY_STORAGE_KEY = 'AETHER_VOICE_HISTORY';
 
 const updateSystemModeDeclaration: FunctionDeclaration = {
     name: 'update_system_mode',
@@ -31,7 +33,14 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [userInputTranscription, setUserInputTranscription] = useState('');
     const [sophiaOutputTranscription, setSophiaOutputTranscription] = useState('');
-    const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>([]);
+    const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>(() => {
+        try {
+            const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    });
     const [lastSystemCommand, setLastSystemCommand] = useState<string | null>(null);
     
     const sessionPromise = useRef<Promise<any> | null>(null);
@@ -44,6 +53,16 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const nextStartTime = useRef(0);
     const currentTurnInputRef = useRef('');
     const currentTurnOutputRef = useRef('');
+
+    // Persist history changes
+    useEffect(() => {
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(transcriptionHistory));
+    }, [transcriptionHistory]);
+
+    const clearHistory = useCallback(() => {
+        setTranscriptionHistory([]);
+        addLogEntry(LogType.INFO, "Vocal Bridge: Transcription history cleared.");
+    }, [addLogEntry]);
 
     const closeVoiceSession = useCallback(async () => {
         if (!isSessionActive && !sessionPromise.current) return;
@@ -198,5 +217,6 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
         lastSystemCommand,
         startVoiceSession,
         closeVoiceSession,
+        clearHistory
     };
 };

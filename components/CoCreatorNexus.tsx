@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Collaborator, UserTier } from '../types';
 import { Tooltip } from './Tooltip';
@@ -12,7 +13,9 @@ const COLLABORATORS: Collaborator[] = [
 const TIER_COLOR: Record<UserTier, string> = {
     'ACOLYTE': 'text-slate-400',
     'ARCHITECT': 'text-gold',
-    'SOVEREIGN': 'text-pearl'
+    'SOVEREIGN': 'text-pearl',
+    // FIX: Added missing LEGACY_MENERVA mapping
+    'LEGACY_MENERVA': 'text-rose-400'
 };
 
 export const CoCreatorNexus: React.FC = () => {

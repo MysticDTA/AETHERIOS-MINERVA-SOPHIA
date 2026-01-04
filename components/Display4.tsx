@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SystemState, OrbMode } from '../types';
 import { SophiaConsole } from './SophiaConsole';
@@ -55,6 +56,7 @@ export const Display4: React.FC<Display4Props> = ({
             resonance={systemState.resonanceFactorRho}
             lastSystemCommand={voiceInterface.lastSystemCommand}
             onSetOrbMode={setOrbMode}
+            clearHistory={voiceInterface.clearHistory}
         />
       </div>
     </div>
