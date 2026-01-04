@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { SatelliteUplinkData, SatelliteLockStatus, GalacticRelay, OrbMode } from '../types';
+import { SatelliteUplinkData, SatelliteLockStatus, GalacticRelay, OrbMode, SystemState } from '../types';
 import { Tooltip } from './Tooltip';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 
@@ -9,6 +9,7 @@ interface CosmicUplinkArrayProps {
   onCalibrate: (relayId: string) => void;
   setOrbMode?: (mode: OrbMode) => void;
   sophiaEngine: SophiaEngineCore | null;
+  systemState: SystemState;
 }
 
 const getLockStatusConfig = (status: SatelliteLockStatus) => {
@@ -33,7 +34,7 @@ const CELESTIAL_BODIES: Record<string, {
     dec: number; 
     color: string;
     dist: string;
-    mag: number; // Apparent Magnitude
+    mag: number; 
 }> = {
     'RELAY_ALPHA': { name: 'Alpha Centauri', type: 'Stellar System', ra: 14.65, dec: -60.83, color: '#fcd34d', dist: '4.37 ly', mag: -0.27 },
     'RELAY_BETA': { name: 'Sirius A', type: 'Main Sequence', ra: 6.75, dec: -16.71, color: '#60a5fa', dist: '8.6 ly', mag: -1.46 },
@@ -62,7 +63,8 @@ const CelestialNavigator: React.FC<{
     onCalibrate: (id: string) => void;
     calibratingId: string | null;
     liveTelemetry: any;
-}> = ({ relays, lockStatus, onCalibrate, calibratingId, liveTelemetry }) => {
+    coherence: number;
+}> = ({ relays, lockStatus, onCalibrate, calibratingId, liveTelemetry, coherence }) => {
     const stars = useMemo(() => Array.from({ length: 150 }).map((_, i) => ({
         id: i, 
         cx: Math.random() * 100, 
@@ -71,6 +73,8 @@ const CelestialNavigator: React.FC<{
         opacity: Math.random() * 0.5,
         twinkle: Math.random() * 5 + 2
     })), []);
+
+    const ripples = useMemo(() => [0, 1, 2], []);
 
     return (
         <div className="relative w-full aspect-square bg-[#050505] rounded-full border border-white/[0.08] overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,1)] ring-1 ring-white/5">
@@ -85,7 +89,26 @@ const CelestialNavigator: React.FC<{
                         <stop offset="90%" stopColor="rgba(230, 199, 127, 0.02)" />
                         <stop offset="100%" stopColor="rgba(230, 199, 127, 0.1)" />
                     </radialGradient>
+                    <mask id="rippleMask">
+                        <circle cx="50" cy="50" r="48" fill="white" />
+                    </mask>
                 </defs>
+
+                {/* Coherence Resonance Ripples */}
+                <g mask="url(#rippleMask)">
+                    {ripples.map((r, i) => (
+                        <circle 
+                            key={`ripple-${i}`}
+                            cx="50" cy="50" r="0"
+                            fill="none"
+                            stroke="rgba(103, 232, 249, 0.15)"
+                            strokeWidth="0.5"
+                        >
+                            <animate attributeName="r" from="0" to="50" dur={`${4 - coherence * 3}s`} begin={`${i * 1.5}s`} repeatCount="indefinite" />
+                            <animate attributeName="opacity" from="0.8" to="0" dur={`${4 - coherence * 3}s`} begin={`${i * 1.5}s`} repeatCount="indefinite" />
+                        </circle>
+                    ))}
+                </g>
 
                 {/* Star Field with Twinkle */}
                 {stars.map(s => (
@@ -108,7 +131,7 @@ const CelestialNavigator: React.FC<{
                     </g>
                 )}
 
-                {/* Constellation Outlines (Simplified) */}
+                {/* Constellation Outlines */}
                 {CONSTELLATIONS.map((c, i) => (
                     <polyline 
                         key={i}
@@ -123,10 +146,10 @@ const CelestialNavigator: React.FC<{
                     />
                 ))}
 
-                {/* Origin Point */}
+                {/* Local Node Origin */}
                 <circle cx="50" cy="50" r="0.8" fill="var(--pearl)" filter="url(#stellarGlow)" className="animate-pulse" />
 
-                {/* Celestial Relay Nodes */}
+                {/* Celestial Relay Nodes & Tolerance Rings */}
                 {(Object.values(relays) as GalacticRelay[]).map((relay) => {
                     const body = CELESTIAL_BODIES[relay.id];
                     if (!body) return null;
@@ -137,6 +160,15 @@ const CelestialNavigator: React.FC<{
                     
                     return (
                         <g key={`relay-${relay.id}`}>
+                            {/* Tolerance Ring */}
+                            <circle 
+                                cx={cx} cy={cy} r={magFactor * 3} 
+                                fill="none" 
+                                stroke={isOnline ? "rgba(34, 197, 94, 0.2)" : "rgba(239, 68, 68, 0.1)"} 
+                                strokeWidth="0.2" 
+                                strokeDasharray="1 1"
+                            />
+
                             {/* Carrier Beam */}
                             <line 
                                 x1="50" y1="50" x2={cx} y2={cy} 
@@ -162,12 +194,16 @@ const CelestialNavigator: React.FC<{
                                 
                                 {isCalibrating && (
                                     <>
-                                        <rect x={cx-4} y={cy-4} width="8" height="8" fill="none" stroke="white" strokeWidth="0.1" className="animate-pulse" />
+                                        {/* Scope Overlay */}
+                                        <g opacity="0.6">
+                                            <line x1={cx - 5} y1={cy} x2={cx + 5} y2={cy} stroke="white" strokeWidth="0.1" />
+                                            <line x1={cx} y1={cy - 5} x2={cx} y2={cy + 5} stroke="white" strokeWidth="0.1" />
+                                            <circle cx={cx} cy={cy} r="4" fill="none" stroke="white" strokeWidth="0.1" className="animate-pulse" />
+                                        </g>
                                         <circle cx={cx} cy={cy} r="2" fill="none" stroke="white" strokeWidth="0.1">
                                             <animate attributeName="r" values="1;6" dur="1.5s" repeatCount="indefinite" />
                                             <animate attributeName="opacity" values="1;0" dur="1.5s" repeatCount="indefinite" />
                                         </circle>
-                                        {/* Data Pulses towards center */}
                                         <circle r="0.5" fill="white">
                                             <animateMotion dur="1s" repeatCount="indefinite" path={`M ${cx} ${cy} L 50 50`} />
                                         </circle>
@@ -184,16 +220,16 @@ const CelestialNavigator: React.FC<{
                 <div className="absolute top-6 left-6 right-6 p-4 bg-black/70 border border-white/10 rounded-sm backdrop-blur-xl animate-fade-in z-30 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-l-4 border-l-gold">
                     <div className="flex justify-between items-start mb-3 border-b border-white/10 pb-2">
                         <div>
-                            <span className="text-[8px] font-mono text-gold uppercase tracking-[0.3em] font-bold">LOCK_SEQUENCE_INIT</span>
+                            <span className="text-[8px] font-mono text-gold uppercase tracking-[0.3em] font-bold">CELESTIAL_LOCK_ACTIVE</span>
                             <h5 className="font-orbitron text-sm text-pearl uppercase tracking-tighter mt-1">{liveTelemetry.body}</h5>
                         </div>
                         <span className="text-[8px] font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded">DIST: {liveTelemetry.dist}</span>
                     </div>
                     <p className="text-[11px] font-minerva italic text-pearl/80 leading-relaxed mb-4">"{liveTelemetry.status}"</p>
                     <div className="grid grid-cols-3 gap-2 border-t border-white/5 pt-3">
-                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Magnitude</p><p className="text-[9px] font-mono text-gold">{liveTelemetry.magnitude}</p></div>
-                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Flux_Rho</p><p className="text-[9px] font-mono text-cyan-400">{liveTelemetry.flux}</p></div>
-                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Parity</p><p className="text-[9px] font-mono text-green-400">SYNCED</p></div>
+                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Mag</p><p className="text-[9px] font-mono text-gold">{liveTelemetry.magnitude}</p></div>
+                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Rho_Sync</p><p className="text-[9px] font-mono text-cyan-400">{liveTelemetry.flux}</p></div>
+                        <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Parity</p><p className="text-[9px] font-mono text-green-400">LOCKED</p></div>
                     </div>
                 </div>
             )}
@@ -202,13 +238,13 @@ const CelestialNavigator: React.FC<{
             <div className="absolute bottom-6 left-6 font-mono text-[7px] text-slate-600 uppercase tracking-widest pointer-events-none">
                 <p>Projection: GRS_80_POLAR</p>
                 <p>Epoch: J2000.0</p>
-                <p>Parallax: 0.042as</p>
+                <p>Resonance: {coherence.toFixed(4)}Ψ</p>
             </div>
         </div>
     );
 };
 
-export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({ uplinkData, relayData, onCalibrate, setOrbMode, sophiaEngine }) => {
+export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({ uplinkData, relayData, onCalibrate, setOrbMode, sophiaEngine, systemState }) => {
     const { signalStrength, lockStatus, transmissionProtocol } = uplinkData;
     const lockConfig = getLockStatusConfig(lockStatus);
     const [calibratingId, setCalibratingId] = useState<string | null>(null);
@@ -261,6 +297,7 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                         onCalibrate={handleCalibrateClick}
                         calibratingId={calibratingId}
                         liveTelemetry={liveTelemetry}
+                        coherence={systemState.coherenceResonance.score}
                     />
                 </div>
                 

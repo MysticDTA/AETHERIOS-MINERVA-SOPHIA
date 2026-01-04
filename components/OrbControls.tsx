@@ -138,7 +138,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
             <button
               onClick={toggleVoiceControl}
               className={`relative flex items-center justify-center w-8 h-8 rounded transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-950/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'}`}
-              aria-label={isListening ? "Stop listening for voice commands" : "Start listening for voice commands"}
+              aria-label={isListening ? "Stop listening for voice commands" : "Start listening for voice commands to change system resonance mode"}
               aria-pressed={isListening}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

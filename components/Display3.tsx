@@ -40,12 +40,14 @@ export const Display3: React.FC<Display3Props> = ({
 
         {/* --- RIGHT COLUMN --- */}
         <div className="lg:col-span-1 flex flex-col gap-6">
+          {/* FIX: Passed missing systemState prop to CosmicUplinkArray to satisfy its required props */}
           <CosmicUplinkArray 
             uplinkData={systemState.satelliteUplink} 
             relayData={systemState.galacticRelayNetwork}
             onCalibrate={onRelayCalibration}
             setOrbMode={setOrbMode}
             sophiaEngine={sophiaEngine}
+            systemState={systemState}
           />
         </div>
       </div>

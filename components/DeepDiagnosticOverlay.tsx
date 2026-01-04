@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 
@@ -33,33 +33,67 @@ const SCAN_TELEMETRY = [
   "Finalizing Golden Ratio frequency alignment...",
 ];
 
-const ParityWaveform: React.FC<{ active: boolean, progress: number }> = ({ active, progress }) => {
-    const [points, setPoints] = useState<number[]>(new Array(40).fill(0));
-    
+const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean }> = ({ progress, isActive }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [history] = useState<number[]>(new Array(60).fill(0));
+
     useEffect(() => {
-        if (!active) return;
-        const interval = setInterval(() => {
-            setPoints(prev => {
-                const next = [...prev.slice(1), Math.sin(Date.now() / 100) * 10 + (Math.random() - 0.5) * (100 - progress)];
-                return next;
+        if (!isActive) return;
+        const ctx = canvasRef.current?.getContext('2d');
+        if (!ctx || !canvasRef.current) return;
+
+        let frame = 0;
+        const animate = () => {
+            const w = canvasRef.current!.width;
+            const h = canvasRef.current!.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Background Grid
+            ctx.strokeStyle = 'rgba(230, 199, 127, 0.05)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < w; i += 20) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
+            for (let j = 0; j < h; j += 20) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(w, j); ctx.stroke(); }
+
+            // Update Resonance Rho simulation
+            // Noise decreases as progress increases
+            const noise = (1 - progress / 100) * 40;
+            const rho = 0.99 - (noise / 100);
+            
+            history.push(rho);
+            if (history.length > 60) history.shift();
+
+            // Draw Waveform
+            ctx.strokeStyle = '#e6c77f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            history.forEach((val, i) => {
+                const x = (i / 60) * w;
+                const jitter = (Math.random() - 0.5) * noise;
+                const y = h - (val * h * 0.8) + jitter;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             });
-        }, 50);
-        return () => clearInterval(interval);
-    }, [active, progress]);
+            ctx.stroke();
+
+            // Draw Scanline
+            ctx.fillStyle = 'rgba(230, 199, 127, 0.1)';
+            ctx.fillRect((frame % 60) / 60 * w, 0, 2, h);
+
+            frame++;
+            if (isActive) requestAnimationFrame(animate);
+        };
+        const handle = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(handle);
+    }, [isActive, progress, history]);
 
     return (
-        <div className="w-full h-16 bg-black/40 rounded border border-white/5 overflow-hidden flex items-center justify-center p-2 shadow-inner">
-            <svg viewBox="0 0 400 50" className="w-full h-full preserve-3d">
-                <path 
-                    d={`M ${points.map((p, i) => `${i * 10},${25 + p}`).join(' L ')}`} 
-                    fill="none" 
-                    stroke="var(--gold)" 
-                    strokeWidth="1.5" 
-                    opacity={0.6}
-                    className="transition-all duration-300"
-                />
-                <line x1="0" y1="25" x2="400" y2="25" stroke="white" opacity="0.05" />
-            </svg>
+        <div className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-32 group shadow-inner">
+            <div className="absolute top-2 left-4 font-mono text-[8px] text-gold uppercase tracking-[0.4em] font-bold opacity-60">Resonance_Spectral_Waterfall</div>
+            <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-80" />
+            <div className="absolute bottom-2 right-4 text-right">
+                <p className="text-[7px] text-slate-600 uppercase">Rho_Coefficient</p>
+                <p className="font-orbitron text-xs text-pearl">{(0.99 - (1 - progress/100) * 0.4).toFixed(6)}</p>
+            </div>
         </div>
     );
 };
@@ -81,37 +115,35 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         setActiveStepIdx(i);
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
         
-        const iterations = 10; // Slightly more for audit depth
+        const iterations = 12; 
         for (let p = 0; p <= iterations; p++) {
           const progress = (p / iterations) * 100;
-          await new Promise(r => setTimeout(r, 120 + Math.random() * 180));
+          await new Promise(r => setTimeout(r, 100 + Math.random() * 150));
           setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress } : s));
           
-          if (Math.random() > 0.3) {
+          if (Math.random() > 0.25) {
             const msg = SCAN_TELEMETRY[Math.floor(Math.random() * SCAN_TELEMETRY.length)];
-            setTerminalOutput(prev => [...prev.slice(-40), `[${steps[i].id.toUpperCase()}] ${msg}`]);
+            setTerminalOutput(prev => [...prev.slice(-50), `[${steps[i].id.toUpperCase()}] ${msg}`]);
           }
         }
 
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'SUCCESS', progress: 100 } : s));
-        const successMsg = steps[i].id === 'audit_logic' 
-            ? `[RECTIFIED] Heuristic parity achieved across local cognitive clusters.`
-            : `[SUCCESS] ${steps[i].id} functional registry verified.`;
+        const successMsg = `[SUCCESS] ${steps[i].id} functional registry verified.`;
         setTerminalOutput(prev => [...prev, successMsg]);
 
         if (steps[i].id === 'audit_logic' && sophiaEngine) {
             setIsAuditing(true);
-            setTerminalOutput(prev => [...prev, "[SOPHIA] Initiating Deep Intellectual Synthesis..."]);
+            setTerminalOutput(prev => [...prev, "[SOPHIA] Initiating deep intellectual synthesis..."]);
             const report = await sophiaEngine.performSystemAudit(systemState);
             setAuditReport(report);
             setIsAuditing(false);
-            setTerminalOutput(prev => [...prev, "[SUCCESS] Heuristic Audit Report Synthesized."]);
+            setTerminalOutput(prev => [...prev, "[SUCCESS] Heuristic audit report generated."]);
         }
       }
 
       setDiagnosticStatus('PARITY_CHECK');
       setTerminalOutput(prev => [...prev, "--- ALL MODULES VERIFIED & HARMONIZED ---", "ESTABLISHING GLOBAL PARITY LOCK AT 1.617 GHz..."]);
-      await new Promise(r => setTimeout(r, 2500));
+      await new Promise(r => setTimeout(r, 2000));
       setDiagnosticStatus('COMPLETED');
     };
 
@@ -126,59 +158,52 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
 
   return (
     <div className="fixed inset-0 z-[600] bg-black/98 backdrop-blur-3xl flex flex-col p-6 md:p-12 animate-fade-in font-mono overflow-hidden">
-      {/* Background Matrix Rain (Refined) */}
-      <div className="absolute inset-0 opacity-[0.015] pointer-events-none overflow-hidden select-none">
+      <div className="absolute inset-0 opacity-[0.01] pointer-events-none overflow-hidden">
         <div className="grid grid-cols-24 gap-4 h-full text-[6px] leading-tight">
           {Array.from({ length: 96 }).map((_, i) => (
-            <div key={i} className="animate-[pulse_5s_infinite]" style={{ animationDelay: `${i * 0.08}s` }}>
-              {Math.random().toString(36).repeat(30)}
+            <div key={i} className="animate-[pulse_5s_infinite]" style={{ animationDelay: `${i * 0.05}s` }}>
+              {Math.random().toString(36).repeat(40)}
             </div>
           ))}
         </div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex flex-col gap-8">
-        {/* Header Section */}
-        <div className="flex justify-between items-end border-b border-white/10 pb-10">
+        <div className="flex justify-between items-end border-b border-white/10 pb-8">
           <div className="space-y-4">
-            <div className="flex items-center gap-6">
-                <div className="w-4 h-4 bg-violet-500 rounded-full animate-ping shadow-[0_0_20px_#6d28d9]" />
-                <h1 className="font-orbitron text-4xl md:text-6xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">SYSTEM AUDIT</h1>
+            <div className="flex items-center gap-4">
+                <div className="w-3 h-3 bg-gold rounded-full animate-ping" />
+                <h1 className="font-orbitron text-4xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">Full System Audit</h1>
             </div>
-            <p className="text-slate-500 uppercase tracking-[0.6em] text-[11px] font-bold">Heuristic Integrity Sweep // ÆTHERIOS V1.2.6</p>
+            <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] font-bold">Node_SFO_1 // Causal Parity Audit // Grade_07</p>
           </div>
-          <div className="hidden md:block text-right">
-            <div className={`px-8 py-4 rounded-sm border-2 text-[14px] font-bold tracking-[0.4em] transition-all duration-1000 ${
-              diagnosticStatus === 'COMPLETED' ? 'border-green-500/60 text-green-400 bg-green-950/40 shadow-[0_0_35px_rgba(34,197,94,0.3)]' : 'border-gold/60 text-gold bg-gold/10 animate-pulse'
+          <div className="hidden md:block">
+            <div className={`px-8 py-3 rounded-sm border-2 text-[12px] font-bold tracking-[0.3em] transition-all duration-1000 ${
+              diagnosticStatus === 'COMPLETED' ? 'border-green-500/60 text-green-400 bg-green-950/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 'border-gold/60 text-gold bg-gold/10 animate-pulse'
             }`}>
-              {diagnosticStatus === 'COMPLETED' ? 'AUDIT_COMPLETE' : 'EXECUTING_COGNITIVE_SYNC'}
+              {diagnosticStatus === 'COMPLETED' ? 'SCAN_LOCKED' : 'EXECUTING_HEURISTIC_SWEEP'}
             </div>
           </div>
         </div>
 
-        {/* Audit Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 flex-1 min-h-0">
-          {/* Left Column: Progress Steps & Audit Report */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
           <div className="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-6 scrollbar-thin">
-            <h4 className="text-[12px] text-slate-500 uppercase tracking-[0.5em] font-bold mb-4 border-l-2 border-gold/40 pl-3">Verification Stream</h4>
+            <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-bold mb-4">Registry Trace</h4>
             {steps.map((step, i) => (
-              <div key={step.id} className={`p-6 rounded-md border transition-all duration-1000 group ${
-                step.status === 'ACTIVE' ? 'border-pearl bg-pearl/5 scale-[1.03] shadow-[0_0_40px_rgba(248,245,236,0.08)]' : 
-                step.status === 'SUCCESS' ? 'border-green-500/30 bg-green-900/10 opacity-80' : 
+              <div key={step.id} className={`p-5 rounded-sm border transition-all duration-1000 group ${
+                step.status === 'ACTIVE' ? 'border-gold bg-gold/5 scale-[1.02] shadow-[0_0_30px_rgba(230,199,127,0.1)]' : 
+                step.status === 'SUCCESS' ? 'border-green-500/20 bg-green-950/10 opacity-70' : 
                 'border-white/5 bg-black/40 opacity-30'
               }`}>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-4">
-                      <span className={`text-[9px] font-mono font-bold ${step.status === 'ACTIVE' ? 'text-pearl' : 'text-slate-700'}`}>0x{i.toString(16).toUpperCase()}</span>
-                      <span className={`text-[12px] font-bold uppercase tracking-[0.3em] ${step.status === 'ACTIVE' ? 'text-pearl text-glow-pearl' : 'text-slate-400'}`}>
-                        {step.label}
-                      </span>
-                  </div>
-                  <span className="text-[11px] font-mono opacity-80 transition-all group-hover:opacity-100">{step.progress.toFixed(0)}%</span>
+                <div className="flex justify-between items-center mb-3">
+                  <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${step.status === 'ACTIVE' ? 'text-gold' : 'text-slate-400'}`}>
+                    {step.label}
+                  </span>
+                  <span className="text-[10px] font-mono opacity-80">{step.progress.toFixed(0)}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner">
+                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
                   <div 
-                    className={`h-full transition-all duration-[1200ms] ease-out ${step.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.8)]' : 'bg-pearl shadow-[0_0_15px_white]'}`}
+                    className={`h-full transition-all duration-500 ease-out ${step.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_#10b981]' : 'bg-gold shadow-[0_0_8px_#e6c77f]'}`}
                     style={{ width: `${step.progress}%` }}
                   />
                 </div>
@@ -186,15 +211,15 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
             ))}
 
             {auditReport && (
-                <div className="mt-8 p-8 bg-gold/5 border-2 border-gold/40 rounded-lg animate-fade-in shadow-[0_40px_80px_rgba(0,0,0,0.9)] relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gold/60 group-hover:bg-white transition-colors duration-1000" />
-                    <h4 className="font-orbitron text-[12px] text-gold uppercase tracking-[0.4em] mb-8 border-b border-gold/20 pb-4 font-bold">Heuristic Conclusion</h4>
-                    <div className="text-[13px] text-pearl/90 leading-relaxed font-minerva italic audit-report-content space-y-6 select-text" dangerouslySetInnerHTML={{ __html: auditReport.report }} />
+                <div className="mt-6 p-6 bg-gold/5 border border-gold/30 rounded animate-fade-in shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gold/40" />
+                    <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.4em] mb-6 border-b border-gold/10 pb-3 font-bold">Heuristic Conclusion</h4>
+                    <div className="text-[12px] text-pearl/80 leading-relaxed font-minerva italic audit-report-content space-y-4 select-text" dangerouslySetInnerHTML={{ __html: auditReport.report }} />
                     {auditReport.sources.length > 0 && (
-                        <div className="mt-10 pt-6 border-t border-gold/20 flex flex-wrap gap-4">
+                        <div className="mt-8 pt-4 border-t border-gold/10 flex flex-wrap gap-3">
                             {auditReport.sources.map((s, idx) => (
-                                <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[10px] font-mono text-gold/60 hover:text-gold transition-all bg-gold/5 px-3 py-1.5 rounded border border-gold/20 hover:border-gold/50">
-                                    <span className="opacity-40 mr-2">SOURCE_</span>{idx.toString().padStart(2, '0')}
+                                <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[9px] font-mono text-gold/50 hover:text-gold transition-all bg-white/5 px-2 py-1 rounded">
+                                    SOURCE_0{idx}
                                 </a>
                             ))}
                         </div>
@@ -203,79 +228,63 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
             )}
           </div>
 
-          {/* Right Column: Terminal & Waveform */}
-          <div className="lg:col-span-7 flex flex-col gap-8 min-h-0">
-            <h4 className="text-[12px] text-slate-500 uppercase tracking-[0.5em] font-bold mb-2 pl-4 border-l-2 border-violet-500/40">Instruction Trace Output</h4>
+          <div className="lg:col-span-7 flex flex-col gap-6 min-h-0">
+            <SpectralResonanceHUD progress={steps[activeStepIdx].progress} isActive={diagnosticStatus === 'SCANNING' || diagnosticStatus === 'PARITY_CHECK'} />
             
-            <div className="px-4">
-                <ParityWaveform active={diagnosticStatus === 'SCANNING'} progress={steps[activeStepIdx].progress} />
-            </div>
-
             <div 
               ref={terminalRef}
-              className="flex-1 bg-black/95 border border-white/15 rounded-lg p-10 overflow-y-auto scrollbar-thin shadow-2xl relative font-mono text-[12px] select-text"
+              className="flex-1 bg-black/90 border border-white/10 rounded-sm p-8 overflow-y-auto scrollbar-thin shadow-2xl relative font-mono text-[11px] select-text"
             >
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/60" />
               {terminalOutput.map((line, i) => (
-                <div key={i} className="leading-relaxed mb-3 flex gap-8 group">
-                  <span className="text-slate-700 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">{(i * 8).toString(16).padStart(4, '0')}</span>
-                  <span className={line.includes('[SUCCESS]') || line.includes('[RECTIFIED]') ? 'text-green-400 font-bold text-glow-pearl' : line.includes('SOPHIA') ? 'text-gold italic font-bold' : 'text-pearl/75'}>
+                <div key={i} className="leading-relaxed mb-2 flex gap-6 group">
+                  <span className="text-slate-700 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">{(i * 4).toString(16).padStart(4, '0')}</span>
+                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : 'text-pearl/70'}>
                     {line}
                   </span>
                 </div>
               ))}
               {(diagnosticStatus !== 'COMPLETED' || isAuditing) && (
-                <div className="flex items-center gap-5 mt-8 animate-pulse bg-white/5 p-4 rounded border border-white/10 shadow-lg">
-                  <div className="w-3 h-3 bg-pearl rounded-full shadow-[0_0_15px_white]" />
-                  <span className="text-[12px] text-pearl font-mono uppercase tracking-[0.5em] font-bold">
-                    {isAuditing ? 'SOPHIA_COG_BUDGET_EXECUTING [MAX]...' : 'EXECUTING_PARITY_SWEEP...'}
+                <div className="flex items-center gap-3 mt-6 animate-pulse text-gold">
+                  <div className="w-2 h-2 bg-gold rounded-full shadow-[0_0_10px_#e6c77f]" />
+                  <span className="text-[11px] font-mono uppercase tracking-[0.2em] font-bold">
+                    {isAuditing ? 'SOPHIA_COG_BUDGET_EXECUTING [MAX]...' : 'EXECUTING_CAUSAL_SWEEP...'}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Sub-Telemetry HUD */}
-            <div className="h-32 bg-black/60 border border-white/15 rounded-lg flex items-center justify-around px-20 relative overflow-hidden shadow-inner group">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.08)_0%,transparent_100%)] pointer-events-none" />
-                {Array.from({ length: 16 }).map((_, i) => (
-                    <div key={i} className="flex flex-col items-center gap-4">
-                        <div 
-                            className={`w-1.5 rounded-t-sm transition-all duration-1000 ease-in-out ${
-                                (activeStepIdx === i % steps.length) ? 'bg-pearl h-16 shadow-[0_0_30px_white]' : 'bg-white/5 h-8'
-                            }`} 
-                        />
-                        <span className="text-[7px] text-slate-600 font-mono font-bold group-hover:text-slate-400 transition-colors tracking-tighter">σ-{i}</span>
-                    </div>
+            <div className="h-20 bg-black/40 border border-white/5 rounded flex items-center justify-around px-10 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.05)_0%,transparent_100%)] pointer-events-none" />
+                {Array.from({ length: 12 }).map((_, i) => (
+                    <div key={i} className={`w-1 transition-all duration-1000 ${ (activeStepIdx === i % steps.length) ? 'bg-pearl h-12 shadow-[0_0_20px_white]' : 'bg-white/5 h-6' }`} />
                 ))}
             </div>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-center pt-6 border-t border-white/10">
+        <div className="flex justify-center pt-8 border-t border-white/10">
           <button 
             onClick={diagnosticStatus === 'COMPLETED' ? () => { onComplete(); onClose(); } : undefined}
             disabled={diagnosticStatus !== 'COMPLETED'}
-            className={`px-32 py-6 rounded-sm font-orbitron text-[14px] font-bold uppercase tracking-[1em] transition-all border-2 relative overflow-hidden group shadow-2xl ${
+            className={`px-24 py-5 rounded-sm font-orbitron text-[12px] font-bold uppercase tracking-[0.8em] transition-all border relative overflow-hidden group shadow-2xl ${
               diagnosticStatus === 'COMPLETED' 
-                ? 'bg-pearl text-dark-bg border-pearl hover:bg-white hover:scale-[1.03] shadow-[0_0_80px_rgba(248,245,236,0.35)] active:scale-95' 
-                : 'bg-white/5 border-white/15 text-slate-600 cursor-not-allowed'
+                ? 'bg-pearl text-dark-bg border-pearl hover:bg-white hover:scale-105 shadow-[0_0_50px_rgba(248,245,236,0.3)] active:scale-95' 
+                : 'bg-white/5 border-white/10 text-slate-700 cursor-not-allowed'
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            <span className="relative z-10 transition-colors duration-1000 group-hover:text-black">
-                {diagnosticStatus === 'COMPLETED' ? 'Finalize System Rite' : 'Audit Protocol Active'}
-            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            <span className="relative z-10">{diagnosticStatus === 'COMPLETED' ? 'Finalize Audit Sequence' : 'Audit Protocol Active'}</span>
           </button>
         </div>
       </div>
       
       <style>{`
-        .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 12px; text-transform: uppercase; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid rgba(230, 199, 127, 0.3); padding-bottom: 0.5rem; font-weight: bold; letter-spacing: 0.2em; }
-        .audit-report-content p { margin-bottom: 1.2rem; }
-        .audit-report-content ul { margin-left: 2rem; list-style: square; margin-bottom: 1.2rem; }
-        .audit-report-content li { margin-bottom: 0.75rem; opacity: 0.95; }
-        .audit-report-content b, .audit-report-content strong { color: var(--gold); font-weight: 800; text-shadow: 0 0 5px rgba(230, 199, 127, 0.2); }
+        .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 11px; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.25rem; font-weight: bold; }
+        .audit-report-content p { margin-bottom: 1rem; }
+        .audit-report-content ul { margin-left: 1.5rem; list-style: square; margin-bottom: 1rem; }
+        .audit-report-content li { margin-bottom: 0.5rem; }
+        .audit-report-content b { color: var(--gold); }
       `}</style>
     </div>
   );

@@ -17,16 +17,15 @@ export class AudioEngine {
   private dynamicStatic: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
   private dynamicHeartbeat: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
 
-
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     this.isSuspended = this.audioContext.state === 'suspended';
     
     this.masterGainNode = this.audioContext.createGain();
     this.masterGainNode.connect(this.audioContext.destination);
-    // Initial volume ramp to prevent startup pop
-    this.masterGainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    this.masterGainNode.gain.linearRampToValueAtTime(0.5, this.audioContext.currentTime + 0.5);
+    // REFINEMENT: Precision volume ramp
+    this.masterGainNode.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
+    this.masterGainNode.gain.exponentialRampToValueAtTime(0.5, this.audioContext.currentTime + 1.0);
   }
 
   public async loadSounds(): Promise<void> {
@@ -39,8 +38,6 @@ export class AudioEngine {
             throw new Error('Invalid data URI format: missing base64 marker.');
         }
         const base64 = dataUri.substring(base64Index + B64_MARKER.length);
-
-        // Trim whitespace from base64 string to prevent decoding errors
         const binaryString = window.atob(base64.trim());
         const len = binaryString.length;
         const bytes = new Uint8Array(len);
@@ -62,11 +59,11 @@ export class AudioEngine {
             })
             .catch(error => {
               console.error(`Failed to decode sound: ${String(soundName)}`, error);
-              resolve(); // Resolve anyway to not block other sounds
+              resolve();
             });
         } catch (error) {
           console.error(`Failed to load sound: ${String(soundName)}`, error);
-          resolve(); // Resolve anyway
+          resolve();
         }
       });
       soundPromises.push(promise);
@@ -76,20 +73,20 @@ export class AudioEngine {
     this.isLoaded = true;
   }
 
-  public resumeContext = (): void => {
-    if (this.isSuspended && this.audioContext.state === 'suspended') {
-      this.audioContext.resume().then(() => {
+  public resumeContext = (): Promise<void> => {
+    if (this.audioContext.state === 'suspended') {
+      return this.audioContext.resume().then(() => {
         this.isSuspended = false;
       });
     }
+    return Promise.resolve();
   }
   
   public setMasterVolume(level: number): void {
       if (this.masterGainNode && !this.isMuted) {
-          // Smooth ramp to avoid zipper noise
           this.masterGainNode.gain.cancelScheduledValues(this.audioContext.currentTime);
           this.masterGainNode.gain.setValueAtTime(this.masterGainNode.gain.value, this.audioContext.currentTime);
-          this.masterGainNode.gain.linearRampToValueAtTime(level, this.audioContext.currentTime + 0.2);
+          this.masterGainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, level), this.audioContext.currentTime + 0.3);
       }
   }
 
@@ -101,9 +98,9 @@ export class AudioEngine {
           this.masterGainNode.gain.setValueAtTime(this.masterGainNode.gain.value, currentTime);
           
           if (this.isMuted) {
-              this.masterGainNode.gain.exponentialRampToValueAtTime(0.0001, currentTime + 0.3);
+              this.masterGainNode.gain.exponentialRampToValueAtTime(0.0001, currentTime + 0.4);
           } else {
-              this.masterGainNode.gain.linearRampToValueAtTime(0.5, currentTime + 0.3); // Restore to default or tracked volume
+              this.masterGainNode.gain.exponentialRampToValueAtTime(0.5, currentTime + 0.4);
           }
       }
       return this.isMuted;
@@ -114,19 +111,14 @@ export class AudioEngine {
   }
 
   private playSound(name: SoundName, loop = false, volume = 1.0, playbackRate = 1.0): { source: AudioBufferSourceNode; gain: GainNode } | null {
-    this.resumeContext();
-    if (this.isSuspended) return null;
+    if (!this.isLoaded) return null;
 
     const buffer = this.buffers.get(name);
-    if (!buffer) {
-      console.warn(`Audio buffer for "${String(name)}" not found.`);
-      return null;
-    }
+    if (!buffer) return null;
 
     const gainNode = this.audioContext.createGain();
-    // STABILIZATION: Start at 0 and ramp up to avoid popping (ADSR attack)
-    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.05);
+    gainNode.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(volume, this.audioContext.currentTime + 0.1); // Smoother attack
     
     gainNode.connect(this.masterGainNode);
 
@@ -145,45 +137,45 @@ export class AudioEngine {
   }
   
   public playUIClick(): void {
-    this.playSound('ui_click', false, 0.5);
+    this.playSound('ui_click', false, 0.4);
   }
 
   public playUIScanStart(): void {
-    this.playSound('ui_scan_start', false, 0.4);
+    this.playSound('ui_scan_start', false, 0.35);
   }
 
   public playUIConfirm(): void {
-    this.playSound('ui_confirm', false, 0.6);
+    this.playSound('ui_confirm', false, 0.5);
   }
   
   public playPurgeEffect(): void {
-    this.playSound('ui_purge_flow', false, 0.7);
+    this.playSound('ui_purge_flow', false, 0.6);
   }
 
   public playHeliumFlush(): void {
-    this.playSound('ui_purge_flow', false, 0.6, 1.5); // Reuse purge sound, but faster
+    this.playSound('ui_purge_flow', false, 0.5, 1.8); 
   }
 
   public playGroundingDischarge(): void {
-    this.playSound('grounding_discharge', false, 0.6);
+    this.playSound('grounding_discharge', false, 0.65);
   }
 
   public playHighResonanceChime(): void {
-    this.playSound('ui_chime_resonance', false, 0.6);
+    this.playSound('ui_chime_resonance', false, 0.7);
   }
   
   public playAlarm(): AudioBufferSourceNode | null {
-      const sound = this.playSound('alarm_klaxon', true, 0.4);
+      const sound = this.playSound('alarm_klaxon', true, 0.35);
       return sound ? sound.source : null;
   }
 
   public setMode(mode: string): void {
     if (!this.isLoaded) return;
-    this.resumeContext();
     
     let soundName: SoundName | null = null;
     switch (mode) {
       case 'CRADLE OF PRESENCE':
+      case 'SOVEREIGN EMBODIMENT':
         soundName = 'synthesis';
         break;
       case 'RECALIBRATING HARMONICS':
@@ -202,16 +194,15 @@ export class AudioEngine {
     
     if (this.currentLoop) {
       const { gain, source } = this.currentLoop;
-      // STABILIZATION: Smooth fade out
       gain.gain.cancelScheduledValues(this.audioContext.currentTime);
       gain.gain.setValueAtTime(gain.gain.value, this.audioContext.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.5);
-      source.stop(this.audioContext.currentTime + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 1.0);
+      source.stop(this.audioContext.currentTime + 1.1);
       this.currentLoop = null;
     }
 
     if (soundName) {
-      const newLoop = this.playSound(soundName, true, 0.4); // playSound handles the fade-in
+      const newLoop = this.playSound(soundName, true, 0.35);
       if (newLoop) {
         this.currentLoop = newLoop;
       }
@@ -221,32 +212,29 @@ export class AudioEngine {
   public updateDynamicAmbience(state: SystemState): void {
       if (!this.isLoaded || this.isSuspended) return;
 
-      const rampTime = 1.0;
+      const rampTime = 1.5;
       const currentTime = this.audioContext.currentTime;
 
-      // 1. Health Drone (low health warning)
       if (!this.dynamicHum) {
-          this.dynamicHum = this.playSound('dynamic_hum_base', true, 0);
+          this.dynamicHum = this.playSound('dynamic_hum_base', true, 0.0001);
       }
       if (this.dynamicHum) {
           const health = state.quantumHealing.health;
-          const targetVolume = health < 0.7 ? (1 - health) * 0.5 : 0.0001;
-          this.dynamicHum.gain.gain.linearRampToValueAtTime(targetVolume, currentTime + rampTime);
+          const targetVolume = health < 0.75 ? (1 - health) * 0.4 : 0.0001;
+          this.dynamicHum.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
-      // 2. Decoherence Static
       if (!this.dynamicStatic) {
-          this.dynamicStatic = this.playSound('dynamic_static_crackle', true, 0);
+          this.dynamicStatic = this.playSound('dynamic_static_crackle', true, 0.0001);
       }
       if (this.dynamicStatic) {
           const decoherence = state.quantumHealing.decoherence;
-          const targetVolume = Math.max(0.0001, decoherence * 0.4);
-          this.dynamicStatic.gain.gain.linearRampToValueAtTime(targetVolume, currentTime + rampTime);
+          const targetVolume = Math.max(0.0001, decoherence * 0.35);
+          this.dynamicStatic.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
-      // 3. Biometric Heartbeat
       if (!this.dynamicHeartbeat) {
-          this.dynamicHeartbeat = this.playSound('dynamic_heartbeat', true, 0);
+          this.dynamicHeartbeat = this.playSound('dynamic_heartbeat', true, 0.0001);
       }
       if (this.dynamicHeartbeat) {
           const { status, coherence } = state.biometricSync;
@@ -254,21 +242,21 @@ export class AudioEngine {
           let volume = 0.0001;
           
           if (status === 'SYNCHRONIZED') {
-              rate = 0.8;
-              volume = Math.max(0.0001, coherence * 0.35);
+              rate = 0.75;
+              volume = Math.max(0.0001, coherence * 0.3);
           } else if (status === 'CALIBRATING') {
-              rate = 1.2;
-              volume = Math.max(0.0001, coherence * 0.4);
+              rate = 1.1;
+              volume = Math.max(0.0001, coherence * 0.35);
           } else if (status === 'UNSTABLE') {
-              rate = 1.8;
-              volume = 0.5;
+              rate = 1.6;
+              volume = 0.4;
           } else if (status === 'DECOUPLED') {
-              rate = 2.5;
-              volume = 0.6;
+              rate = 2.2;
+              volume = 0.55;
           }
           
-          this.dynamicHeartbeat.source.playbackRate.linearRampToValueAtTime(rate, currentTime + rampTime);
-          this.dynamicHeartbeat.gain.gain.linearRampToValueAtTime(volume, currentTime + rampTime);
+          this.dynamicHeartbeat.source.playbackRate.exponentialRampToValueAtTime(Math.max(0.1, rate), currentTime + rampTime);
+          this.dynamicHeartbeat.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), currentTime + rampTime);
       }
   }
 
@@ -276,8 +264,8 @@ export class AudioEngine {
     const fadeOut = (node: { source: AudioBufferSourceNode; gain: GainNode } | null) => {
         if (node) {
             node.gain.gain.cancelScheduledValues(this.audioContext.currentTime);
-            node.gain.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.1);
-            node.source.stop(this.audioContext.currentTime + 0.1);
+            node.gain.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.2);
+            node.source.stop(this.audioContext.currentTime + 0.25);
         }
     };
 

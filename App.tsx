@@ -154,6 +154,12 @@ const App: React.FC = () => {
     setCurrentPage(19); // Redirect to optimization terminal for visual verification
   };
 
+  const handleDeploySuccess = () => {
+      audioEngine.current?.playHighResonanceChime();
+      addLogEntry(LogType.SYSTEM, "VERCEL_PUSH: Successful. Establishing Live Production environment.");
+      setCurrentPage(14); // Transition to System Summary (Live Status)
+  };
+
   const renderPage = useCallback(() => {
       switch (currentPage) {
           case 1: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
@@ -172,7 +178,7 @@ const App: React.FC = () => {
           case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine.current} />;
           case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} />;
-          case 17: return <DeploymentManifest systemState={systemState} />;
+          case 17: return <DeploymentManifest systemState={systemState} onDeploySuccess={handleDeploySuccess} />;
           case 18: return <VeoFluxSynthesizer systemState={systemState} />;
           case 19: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;

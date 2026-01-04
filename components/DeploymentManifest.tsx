@@ -1,9 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SystemState } from '../types';
 
 interface DeploymentManifestProps {
   systemState: SystemState;
+  onDeploySuccess: () => void;
 }
+
+const PUSH_LOGS = [
+    "Initializing Vercel build-container [Node.js 20.x]...",
+    "Scanning local reality-lattice for component tree-shaking...",
+    "Detected: Minerva Cognitive Engine v1.2.6",
+    "Detected: Protocol Charon (Live API Bridge)",
+    "Compiling TypeScript causal logic into optimized JS...",
+    "Mapping /api routes to Serverless Edge Functions...",
+    "Injecting STRIPE_SECRET_KEY into production env...",
+    "Established secure handshake with Gemini 3 Pro clusters...",
+    "Compressing high-resonance bloom shaders...",
+    "Uploading aetheric assets to Global Edge CDN...",
+    "Propagating DNS: resonance.aetherios.ai...",
+    "Establishing Parity Lock at 1.617 GHz...",
+    "Finalizing Deployment Hash: 0x99_RESONANCE_PROD"
+];
 
 const ManifestItem: React.FC<{ label: string; status: 'LOCKED' | 'READY' | 'PENDING'; detail: string }> = ({ label, status, detail }) => (
     <div className="bg-black/40 border border-white/5 p-6 rounded flex items-center justify-between group hover:border-gold/30 transition-all duration-500">
@@ -23,8 +40,12 @@ const ManifestItem: React.FC<{ label: string; status: 'LOCKED' | 'READY' | 'PEND
     </div>
 );
 
-export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemState }) => {
+export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemState, onDeploySuccess }) => {
     const [loadingProgress, setLoadingProgress] = useState(0);
+    const [isPushing, setIsPushing] = useState(false);
+    const [pushLogs, setPushLogs] = useState<string[]>([]);
+    const [pushProgress, setPushProgress] = useState(0);
+    const logEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -33,8 +54,63 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (logEndRef.current) logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }, [pushLogs]);
+
+    const handleInitializePush = async () => {
+        setIsPushing(true);
+        setPushProgress(0);
+        setPushLogs(["INITIATING PRODUCTION PUSH TO VERCEL EDGE..."]);
+
+        for (let i = 0; i < PUSH_LOGS.length; i++) {
+            await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
+            setPushLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${PUSH_LOGS[i]}`]);
+            setPushProgress(((i + 1) / PUSH_LOGS.length) * 100);
+        }
+
+        await new Promise(r => setTimeout(r, 1000));
+        setIsPushing(false);
+        onDeploySuccess();
+    };
+
     return (
         <div className="w-full h-full flex flex-col gap-10 animate-fade-in relative overflow-hidden pb-20">
+            {/* Push Animation Overlay */}
+            {isPushing && (
+                <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 overflow-hidden">
+                    <div className="max-w-3xl w-full flex flex-col gap-10 animate-fade-in">
+                        <div className="flex justify-between items-end border-b border-white/10 pb-6">
+                            <div>
+                                <h3 className="font-orbitron text-2xl text-pearl uppercase tracking-tighter font-bold">Vercel Edge Synchronization</h3>
+                                <p className="text-gold font-mono text-[9px] uppercase tracking-[0.4em] mt-2 animate-pulse">Status: Uploading_Causal_Lattice</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="font-orbitron text-4xl text-pearl font-bold">{pushProgress.toFixed(0)}%</span>
+                            </div>
+                        </div>
+
+                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                                className="h-full bg-gold transition-all duration-300 shadow-[0_0_20px_rgba(230,199,127,0.5)]"
+                                style={{ width: `${pushProgress}%` }}
+                            />
+                        </div>
+
+                        <div className="bg-black border border-white/5 p-8 rounded-sm h-80 overflow-y-auto font-mono text-[11px] text-slate-400 scrollbar-thin shadow-2xl">
+                             {pushLogs.map((log, i) => (
+                                 <div key={i} className="mb-2 animate-fade-in">
+                                     <span className="text-slate-700 mr-4">{(i * 42).toString(16).padStart(4, '0')}</span>
+                                     <span className={log.includes('Parity Lock') ? 'text-cyan-400' : log.includes('Hash') ? 'text-gold' : ''}>{log}</span>
+                                 </div>
+                             ))}
+                             <div className="terminal-cursor" />
+                             <div ref={logEndRef} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col gap-4 border-b border-white/10 pb-10 relative z-10">
                 <div className="flex items-center gap-6">
                     <div className="w-12 h-12 bg-gold/5 border border-gold/20 flex items-center justify-center font-orbitron text-gold text-2xl animate-pulse">!</div>
@@ -128,7 +204,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                 </div>
                 <button 
                     className="px-16 py-4 bg-gold text-dark-bg font-orbitron text-[12px] font-bold uppercase tracking-[0.6em] hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(230,199,127,0.3)] active:scale-95"
-                    onClick={() => window.open('https://vercel.com/new', '_blank')}
+                    onClick={handleInitializePush}
                 >
                     Initialize Push
                 </button>

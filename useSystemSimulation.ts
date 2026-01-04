@@ -222,10 +222,10 @@ export const useSystemSimulation = (
         let newRepairRate = 0.003;
         let newAxiom = prev.governanceAxiom;
         
-        const diagnosticJitter = diagnosticMode ? (Math.random() - 0.5) * 0.06 : 0;
+        // REFINEMENT: Non-linear jitter based on current decoherence
+        const diagnosticJitter = diagnosticMode ? (Math.random() - 0.5) * (0.06 + newDecoherence * 0.1) : 0;
         let resonanceModifier = Math.max(0, Math.min(1, prev.resonanceFactorRho + diagnosticJitter));
         
-        // Performance Telemetry Calculation
         const newPerformance: PerformanceTelemetry = {
             logicalLatency: 0.0001 + (newDecoherence * 0.005),
             visualParity: 1.0 - (newDecoherence * 0.1),
@@ -235,63 +235,63 @@ export const useSystemSimulation = (
         };
 
         if (optimizationActive) {
-            newDecoherence = Math.max(0, newDecoherence - 0.12);
-            newHealth = Math.min(1.0, newHealth + 0.08);
-            if (Math.random() > 0.4) newLesions = Math.max(0, newLesions - 1);
-            resonanceModifier = Math.min(1, resonanceModifier + 0.05);
-            newShield = Math.min(1, newShield + 0.05);
+            newDecoherence = Math.max(0, newDecoherence - 0.15); // Faster recovery
+            newHealth = Math.min(1.0, newHealth + 0.1);
+            if (Math.random() > 0.3) newLesions = Math.max(0, newLesions - 1);
+            resonanceModifier = Math.min(1, resonanceModifier + 0.08);
+            newShield = Math.min(1, newShield + 0.08);
         }
 
-        const entropyModifier = isGrounded ? 0.04 : (orbMode === 'GROUNDING' ? 0.15 : 1.0);
-        const shieldProtection = newShield * 0.85;
+        const entropyModifier = isGrounded ? 0.02 : (orbMode === 'GROUNDING' ? 0.12 : 1.0);
+        const shieldProtection = newShield * 0.9; // Refined protection coefficient
 
         if (Math.random() < params.decoherenceChance * entropyModifier && !optimizationActive) {
-            newDecoherence += (0.02 * (1 - shieldProtection));
+            newDecoherence += (0.03 * (1 - shieldProtection));
         }
-        if (Math.random() < params.lesionChance * entropyModifier && newShield < 0.25) {
+        if (Math.random() < params.lesionChance * entropyModifier && newShield < 0.2) {
             newLesions += 1;
         }
 
-        if (newDecoherence < 0.08 && resonanceModifier > 0.92) {
-            newShield = Math.min(1, newShield + 0.006);
+        if (newDecoherence < 0.05 && resonanceModifier > 0.95) {
+            newShield = Math.min(1, newShield + 0.01); // Faster shield regen at peak
         } else if (!optimizationActive) {
-            newShield = Math.max(0, newShield - (newDecoherence * 0.008));
+            newShield = Math.max(0, newShield - (newDecoherence * 0.01));
         }
 
-        if (newDecoherence < 0.15 && newLesions === 0) {
-            newHealth = Math.min(1, newHealth + 0.002 * resonanceModifier);
+        if (newDecoherence < 0.1 && newLesions === 0) {
+            newHealth = Math.min(1, newHealth + 0.003 * resonanceModifier);
         }
-        newDecoherence = Math.max(0, newDecoherence - (0.0015 + (resonanceModifier * 0.0025)));
+        newDecoherence = Math.max(0, newDecoherence - (0.002 + (resonanceModifier * 0.003)));
 
         switch (orbMode) {
             case 'REPAIR':
-                newRepairRate = 0.12;
-                if (newLesions > 0 && Math.random() > 0.55) newLesions -= 1;
-                newDecoherence = Math.max(0, newDecoherence - 0.06);
+                newRepairRate = 0.15;
+                if (newLesions > 0 && Math.random() > 0.5) newLesions -= 1;
+                newDecoherence = Math.max(0, newDecoherence - 0.08);
                 break;
             case 'GROUNDING':
-                newDecoherence = Math.max(0, newDecoherence - 0.09);
-                newHealth = Math.min(1, newHealth + 0.012);
-                newShield = Math.min(1, newShield + 0.025);
+                newDecoherence = Math.max(0, newDecoherence - 0.1);
+                newHealth = Math.min(1, newHealth + 0.015);
+                newShield = Math.min(1, newShield + 0.03);
                 break;
             case 'SYNTHESIS':
-                newRepairRate = 0.06;
+                newRepairRate = 0.08;
                 break;
             case 'OFFLINE':
-                newHealth -= 0.0015;
-                newShield = Math.max(0, newShield - 0.012);
+                newHealth -= 0.002;
+                newShield = Math.max(0, newShield - 0.015);
                 break;
         }
 
-        newHealth = Math.max(0, Math.min(1, newHealth + newRepairRate - (newDecoherence * 0.006) - (newLesions * 0.012)));
+        newHealth = Math.max(0, Math.min(1, newHealth + newRepairRate - (newDecoherence * 0.008) - (newLesions * 0.015)));
         
-        if (newHealth < 0.08 || newLesions > 9) {
+        if (newHealth < 0.05 || newLesions > 12) {
             newAxiom = 'SYSTEM COMPOSURE FAILURE';
-        } else if (newHealth < 0.35) {
+        } else if (newHealth < 0.3) {
             newAxiom = 'REGENERATIVE CYCLE';
-        } else if (newDecoherence > 0.55) {
+        } else if (newDecoherence > 0.6) {
             newAxiom = 'RECALIBRATING HARMONICS';
-        } else if (newHealth > 0.92 && newDecoherence < 0.04) {
+        } else if (newHealth > 0.95 && newDecoherence < 0.03) {
             newAxiom = 'SOVEREIGN EMBODIMENT';
         } else {
             newAxiom = 'CRADLE OF PRESENCE';
@@ -299,45 +299,45 @@ export const useSystemSimulation = (
 
         const newPillars = { ...prev.pillars };
         (Object.keys(newPillars) as PillarId[]).forEach(id => {
-            if (Math.random() > 0.996 && !optimizationActive) {
-                newPillars[id] = { ...newPillars[id], activation: Math.max(0.15, newPillars[id].activation - 0.004) };
+            if (Math.random() > 0.995 && !optimizationActive) {
+                newPillars[id] = { ...newPillars[id], activation: Math.max(0.1, newPillars[id].activation - 0.005) };
             } else if (optimizationActive) {
-                newPillars[id] = { ...newPillars[id], activation: Math.min(1.0, newPillars[id].activation + 0.015) };
+                newPillars[id] = { ...newPillars[id], activation: Math.min(1.0, newPillars[id].activation + 0.02) };
             }
         });
 
         const newTriforce = { ...prev.supanovaTriforce };
-        newTriforce.phiEnergy = Math.min(1, Math.max(0.15, newTriforce.phiEnergy + (Math.random() - 0.5) * 0.008));
-        newTriforce.psiEnergy = Math.min(1, Math.max(0.15, newTriforce.psiEnergy + (Math.random() - 0.5) * 0.008));
-        newTriforce.omegaEnergy = Math.min(1, Math.max(0.15, newTriforce.omegaEnergy + (Math.random() - 0.5) * 0.008));
+        newTriforce.phiEnergy = Math.min(1, Math.max(0.1, newTriforce.phiEnergy + (Math.random() - 0.5) * 0.01));
+        newTriforce.psiEnergy = Math.min(1, Math.max(0.1, newTriforce.psiEnergy + (Math.random() - 0.5) * 0.01));
+        newTriforce.omegaEnergy = Math.min(1, Math.max(0.1, newTriforce.omegaEnergy + (Math.random() - 0.5) * 0.01));
         const avgEnergy = (newTriforce.phiEnergy + newTriforce.psiEnergy + newTriforce.omegaEnergy) / 3;
-        newTriforce.stability = avgEnergy * (1 - newDecoherence * 0.25);
-        newTriforce.output = avgEnergy * 32.4; 
+        newTriforce.stability = avgEnergy * (1 - newDecoherence * 0.3);
+        newTriforce.output = avgEnergy * 35.5; 
         
-        if (newTriforce.stability < 0.12) newTriforce.state = SupanovaTriforceState.SUPERNOVA;
+        if (newTriforce.stability < 0.1) newTriforce.state = SupanovaTriforceState.SUPERNOVA;
         else if (prev.breathCycle === 'INHALE') newTriforce.state = SupanovaTriforceState.CHARGING;
         else newTriforce.state = SupanovaTriforceState.STABLE;
 
         const newLyran = { ...prev.lyranConcordance };
         if (orbMode === 'CONCORDANCE' || optimizationActive) {
-            newLyran.alignmentDrift = Math.max(0, newLyran.alignmentDrift - 0.04);
-            newLyran.connectionStability = Math.min(1, newLyran.connectionStability + 0.04);
+            newLyran.alignmentDrift = Math.max(0, newLyran.alignmentDrift - 0.05);
+            newLyran.connectionStability = Math.min(1, newLyran.connectionStability + 0.05);
         } else {
-            newLyran.alignmentDrift = Math.min(1, newLyran.alignmentDrift + (Math.random() * 0.00025)); 
+            newLyran.alignmentDrift = Math.min(1, newLyran.alignmentDrift + (Math.random() * 0.0003)); 
         }
 
         const pillarAverage = (Object.values(newPillars) as PillarData[]).reduce<number>((acc, p) => acc + p.activation, 0) / 3;
-        const resonanceRho = optimizationActive ? Math.min(1.0, resonanceModifier + 0.08) : (pillarAverage * 0.4 + newTriforce.stability * 0.4 + newLyran.connectionStability * 0.2);
+        const resonanceRho = optimizationActive ? Math.min(1.0, resonanceModifier + 0.1) : (pillarAverage * 0.3 + newTriforce.stability * 0.5 + newLyran.connectionStability * 0.2);
         
         let newDrift = prev.temporalCoherenceDrift;
-        newDrift += (newDecoherence * 0.00015) - (resonanceRho * 0.0006); 
+        newDrift += (newDecoherence * 0.0002) - (resonanceRho * 0.0008); 
         newDrift = Math.max(0, Math.min(1, newDrift));
 
         const coherenceScore = (resonanceRho + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
-        if (coherenceScore < 0.78) coherenceStatus = 'RESONATING';
-        if (coherenceScore < 0.48) coherenceStatus = 'DECOHERING';
-        if (coherenceScore < 0.18) coherenceStatus = 'CRITICAL';
+        if (coherenceScore < 0.75) coherenceStatus = 'RESONATING';
+        if (coherenceScore < 0.45) coherenceStatus = 'DECOHERING';
+        if (coherenceScore < 0.15) coherenceStatus = 'CRITICAL';
 
         return {
           ...prev,
@@ -347,7 +347,7 @@ export const useSystemSimulation = (
             health: newHealth,
             lesions: newLesions,
             repairRate: newRepairRate,
-            status: newHealth > 0.9 ? "STABLE" : newHealth > 0.4 ? "REPAIRING" : "DAMAGED",
+            status: newHealth > 0.92 ? "STABLE" : newHealth > 0.45 ? "REPAIRING" : "DAMAGED",
             decoherence: newDecoherence,
             stabilizationShield: newShield,
           },
@@ -360,7 +360,7 @@ export const useSystemSimulation = (
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,
-              entropyFlux: (newDecoherence * 0.4) + (1 - resonanceRho) * 0.6,
+              entropyFlux: (newDecoherence * 0.3) + (1 - resonanceRho) * 0.7,
               phaseSync: resonanceRho * (1 - newLyran.alignmentDrift),
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceRho,
               status: coherenceStatus
