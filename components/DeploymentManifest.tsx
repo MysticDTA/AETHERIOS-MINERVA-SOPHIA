@@ -8,20 +8,16 @@ interface DeploymentManifestProps {
 }
 
 const PUSH_LOGS = [
-    "Initializing Vercel build-container [Node.js 20.x]...",
-    "Cloning repository from GitHub [main branch]...",
-    "Scanning local reality-lattice for component tree-shaking...",
-    "Detected: Minerva Cognitive Engine v1.3.0",
-    "Detected: Protocol Charon (Live API Bridge)",
-    "Compiling TypeScript causal logic into optimized JS...",
-    "Mapping /api routes to Serverless Edge Functions...",
-    "Injecting process.env.API_KEY into production env...",
-    "Injecting process.env.STRIPE_SECRET_KEY into gateway...",
-    "Established secure handshake with Gemini 3 Pro clusters...",
-    "Compressing high-resonance bloom shaders...",
-    "Uploading aetheric assets to Global Edge CDN...",
-    "Propagating DNS: resonance.aetherios.ai...",
-    "Finalizing Deployment Hash: 0x99_RADIANT_PROD"
+    "INITIALIZING_VERCEL_CONDUIT [NODE_20_LTS]...",
+    "CLONING_GITHUB_LATTICE [REF: MAIN]...",
+    "VERIFYING_CAUSAL_INTEGRITY_HASH...",
+    "COMPILING_MINERVA_SOPHIA_V1.3.1...",
+    "INJECTING_SECRET_SHARDS [API_KEY, STRIPE_SK]...",
+    "MAPPING_EDGE_FUNCTIONS_TO_REGIONS [GLOBAL]...",
+    "OPTIMIZING_AETHER_ASSET_CDN...",
+    "PROPAGATING_DNS_RECORDS [RESONANCE_PROD]...",
+    "FINALIZING_DEPLOYMENT_ENCRYPTION...",
+    "HANDSHAKE_COMPLETE: NODE_ONLINE_AT_THE_EDGE"
 ];
 
 const ManifestItem: React.FC<{ label: string; status: 'LOCKED' | 'READY' | 'PENDING'; detail: string }> = ({ label, status, detail }) => (
@@ -52,7 +48,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
     useEffect(() => {
         const interval = setInterval(() => {
             setLoadingProgress(prev => prev < 100 ? prev + 1 : 100);
-        }, 30);
+        }, 20);
         return () => clearInterval(interval);
     }, []);
 
@@ -63,50 +59,52 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
     const handleInitializePush = async () => {
         setIsPushing(true);
         setPushProgress(0);
-        setPushLogs(["INITIATING PRODUCTION PUSH TO VERCEL EDGE..."]);
+        setPushLogs(["[SYSTEM] ESTABLISHING_GITHUB_VERCEL_PARITY..."]);
 
         for (let i = 0; i < PUSH_LOGS.length; i++) {
-            await new Promise(r => setTimeout(r, 300 + Math.random() * 600));
+            await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
             setPushLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${PUSH_LOGS[i]}`]);
             setPushProgress(((i + 1) / PUSH_LOGS.length) * 100);
         }
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
         setIsPushing(false);
         onDeploySuccess();
     };
 
     return (
         <div className="w-full h-full flex flex-col gap-10 animate-fade-in relative overflow-hidden pb-20">
-            {/* Push Animation Overlay */}
+            {/* Cinematic Push Animation Overlay */}
             {isPushing && (
-                <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 overflow-hidden">
-                    <div className="max-w-3xl w-full flex flex-col gap-10 animate-fade-in">
-                        <div className="flex justify-between items-end border-b border-white/10 pb-6">
+                <div className="fixed inset-0 z-[2000] bg-[#020202] backdrop-blur-3xl flex flex-col items-center justify-center p-12 overflow-hidden">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.3)_0%,transparent_70%)]" />
+                    <div className="max-w-4xl w-full flex flex-col gap-10 animate-fade-in relative z-10">
+                        <div className="flex justify-between items-end border-b border-white/10 pb-8">
                             <div>
-                                <h3 className="font-orbitron text-2xl text-pearl uppercase tracking-tighter font-bold">Vercel Edge Synchronization</h3>
-                                <p className="text-gold font-mono text-[9px] uppercase tracking-[0.4em] mt-2 animate-pulse">Status: Syncing_Causal_Lattice_to_GitHub</p>
+                                <h3 className="font-orbitron text-3xl text-pearl uppercase tracking-tighter font-bold text-glow-pearl">Vercel Deployment Chain</h3>
+                                <p className="text-gold font-mono text-[10px] uppercase tracking-[0.5em] mt-3 animate-pulse">Status: Synchronizing_Causal_Nodes_to_Edge</p>
                             </div>
                             <div className="text-right">
-                                <span className="font-orbitron text-4xl text-pearl font-bold">{pushProgress.toFixed(0)}%</span>
+                                <span className="font-orbitron text-5xl text-pearl font-bold drop-shadow-[0_0_20px_white]">{pushProgress.toFixed(0)}%</span>
                             </div>
                         </div>
 
-                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner">
+                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden shadow-inner">
                             <div 
-                                className="h-full bg-gold transition-all duration-300 shadow-[0_0_20px_rgba(230,199,127,0.5)]"
+                                className="h-full bg-gradient-to-r from-violet-600 to-gold transition-all duration-300 shadow-[0_0_30px_rgba(230,199,127,0.5)]"
                                 style={{ width: `${pushProgress}%` }}
                             />
                         </div>
 
-                        <div className="bg-black border border-white/5 p-8 rounded-sm h-80 overflow-y-auto font-mono text-[11px] text-slate-400 scrollbar-thin shadow-2xl">
+                        <div className="bg-[#050505] border border-white/10 p-10 rounded-sm h-[450px] overflow-y-auto font-mono text-[12px] text-slate-400 scrollbar-thin shadow-2xl relative group">
+                             <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl font-bold uppercase tracking-widest">PUSH</div>
                              {pushLogs.map((log, i) => (
-                                 <div key={i} className="mb-2 animate-fade-in">
-                                     <span className="text-slate-700 mr-4">{(i * 42).toString(16).padStart(4, '0')}</span>
-                                     <span className={log.includes('process.env') ? 'text-cyan-400' : log.includes('Hash') ? 'text-gold' : ''}>{log}</span>
+                                 <div key={i} className="mb-3 animate-fade-in flex gap-6 group-hover:text-slate-200 transition-colors">
+                                     <span className="text-slate-800 font-bold">{(i * 128).toString(16).padStart(4, '0')}</span>
+                                     <span className={log.includes('SECRET') ? 'text-cyan-400 font-bold' : log.includes('COMPLETE') ? 'text-gold' : ''}>{log}</span>
                                  </div>
                              ))}
-                             <div className="terminal-cursor" />
+                             {pushProgress < 100 && <div className="w-2 h-4 bg-gold animate-blink mt-2" />}
                              <div ref={logEndRef} />
                         </div>
                     </div>
@@ -114,91 +112,110 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
             )}
 
             <div className="flex flex-col gap-4 border-b border-white/10 pb-10 relative z-10">
-                <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 bg-gold/5 border border-gold/20 flex items-center justify-center font-orbitron text-gold text-2xl animate-pulse">!</div>
-                    <div>
-                        <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-bold">Vercel Readiness Manifest</h2>
-                        <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] mt-2">Continuous Deployment Authorization // Radiant v1.3.0</p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-8">
+                        <div className="w-16 h-16 bg-gold/5 border border-gold/40 flex items-center justify-center font-orbitron text-gold text-3xl animate-pulse shadow-[0_0_30px_rgba(255,215,0,0.1)]">!</div>
+                        <div>
+                            <h2 className="font-orbitron text-5xl text-pearl tracking-tighter uppercase font-extrabold text-glow-pearl">Vercel Readiness Manifest</h2>
+                            <p className="text-slate-500 uppercase tracking-[0.6em] text-[11px] mt-3 font-bold">Continuous Integration Protocol // Production_Lock v1.3.1</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 bg-black/40 border border-white/5 px-6 py-3 rounded-full">
+                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+                         <span className="font-mono text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Git_Hook: CONNECTED</span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 relative z-10">
-                <div className="lg:col-span-8 flex flex-col gap-6 overflow-y-auto pr-4 scrollbar-thin">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 flex-1 min-h-0 relative z-10">
+                <div className="lg:col-span-8 flex flex-col gap-6 overflow-y-auto pr-6 scrollbar-thin">
                     <ManifestItem 
                         label="Source_Control_GitHub" 
                         status="LOCKED" 
-                        detail="Repository parity verified. Webhook trigger active for Vercel CI/CD pipeline." 
+                        detail="Repository synchronization verified. Vercel Webhook active for 'main' branch triggers." 
                     />
                     <ManifestItem 
-                        label="Edge_Serverless_Mapping" 
-                        status="LOCKED" 
-                        detail="vercel.json rules locked. /api endpoints mapped to Node.js 20.x runtime." 
-                    />
-                    <ManifestItem 
-                        label="Environment_Variable_Buffer" 
+                        label="Runtime_Environment_Node" 
                         status="READY" 
-                        detail="Awaiting API_KEY and STRIPE_SK injection in Vercel project settings." 
+                        detail="Node.js 20.x runtime mapping complete. All dependency trees pruned and optimized." 
                     />
                     <ManifestItem 
-                        label="Global_CDN_Propagation" 
+                        label="Edge_Gateway_Causal" 
                         status="LOCKED" 
-                        detail="Static assets and bloom shaders prepared for multi-region edge delivery." 
+                        detail="vercel.json security headers and sub-route rewrites established for high-resonance delivery." 
+                    />
+                    <ManifestItem 
+                        label="Secret_Shard_Injection" 
+                        status="PENDING" 
+                        detail="Awaiting final handshake to inject API_KEY and STRIPE_SK into the production cluster." 
                     />
                 </div>
 
-                <div className="lg:col-span-4 flex flex-col gap-6">
-                    <div className="bg-dark-surface/60 border border-white/10 p-8 rounded-xl flex flex-col gap-6 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold">EDGE</div>
-                        <h4 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-widest font-bold">Vercel Metadata</h4>
-                        <div className="space-y-4 font-mono text-[11px]">
-                            <div className="flex justify-between border-b border-white/5 pb-2">
-                                <span className="text-slate-500">RUNTIME</span>
-                                <span className="text-green-500">VERCEL_EDGE</span>
+                <div className="lg:col-span-4 flex flex-col gap-8">
+                    <div className="bg-dark-surface/80 border border-white/10 p-10 rounded-2xl flex flex-col gap-8 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-7xl uppercase font-extrabold select-none pointer-events-none">EDGE</div>
+                        <h4 className="font-orbitron text-[12px] text-gold uppercase tracking-[0.4em] font-bold border-b border-gold/20 pb-4">Architectural Logic</h4>
+                        
+                        <div className="space-y-6 font-mono text-[11px]">
+                            <div className="flex justify-between border-b border-white/5 pb-3">
+                                <span className="text-slate-500">PLATFORM</span>
+                                <span className="text-green-500 font-bold">VERCEL_EDGE_PRO</span>
                             </div>
-                            <div className="flex justify-between border-b border-white/5 pb-2">
-                                <span className="text-slate-500">BUILD_TRIGGER</span>
-                                <span className="text-gold">GIT_PUSH</span>
+                            <div className="flex justify-between border-b border-white/5 pb-3">
+                                <span className="text-slate-500">PIPELINE</span>
+                                <span className="text-pearl">GITHUB_CI_CD</span>
                             </div>
-                            <div className="flex justify-between border-b border-white/5 pb-2">
+                            <div className="flex justify-between border-b border-white/5 pb-3">
                                 <span className="text-slate-500">VERSION</span>
-                                <span className="text-pearl">1.3.0_RADIANT</span>
+                                <span className="text-gold font-bold">1.3.1_RADIANT</span>
                             </div>
+                            <div className="flex justify-between border-b border-white/5 pb-3">
+                                <span className="text-slate-500">BUILD_STATE</span>
+                                <span className="text-pearl">OPTIMIZED_CHUNKED</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 p-5 rounded italic text-[11px] text-slate-400 leading-relaxed font-minerva border border-white/5">
+                            "The Edge deployment ensures that Minerva's logic is distributed across the planetary lattice, reducing synaptic latency to near-zero."
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-black/40 border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-6">
-                        <div className="relative w-32 h-32 flex items-center justify-center">
+                    <div className="flex-1 bg-black/40 border border-white/5 rounded-2xl p-10 flex flex-col items-center justify-center text-center gap-8 shadow-inner">
+                        <div className="relative w-40 h-40 flex items-center justify-center">
                             <svg viewBox="0 0 100 100" className="w-full h-full">
                                 <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(230, 199, 127, 0.1)" strokeWidth="0.5" />
                                 <circle 
                                     cx="50" cy="50" r="48" 
                                     fill="none" 
                                     stroke="var(--gold)" 
-                                    strokeWidth="2" 
+                                    strokeWidth="3" 
                                     strokeDasharray="301.44"
                                     strokeDashoffset={301.44 - (loadingProgress / 100) * 301.44}
                                     className="transition-all duration-100 ease-linear"
-                                    style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                                    style={{ transform: 'rotate(-90deg)', transformOrigin: 'center', filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.4))' }}
                                 />
                             </svg>
-                            <span className="absolute font-orbitron text-xl text-pearl">{loadingProgress}%</span>
+                            <span className="absolute font-orbitron text-3xl text-pearl font-bold">{loadingProgress}%</span>
                         </div>
-                        <p className="font-mono text-[9px] text-slate-500 uppercase tracking-[0.4em]">Handshake_Parity_Check</p>
+                        <div className="space-y-2">
+                             <p className="font-mono text-[10px] text-gold uppercase tracking-[0.5em] font-bold">Handshake_Parity</p>
+                             <p className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase">Local_to_Cloud_Resonance</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-auto py-8 px-10 bg-gold/5 border border-gold/30 rounded-lg flex flex-col md:flex-row justify-between items-center gap-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                <div className="flex flex-col gap-1 text-center md:text-left">
-                    <span className="text-[11px] text-gold font-bold uppercase tracking-[0.3em]">GitHub-to-Vercel Bridge Ready</span>
-                    <p className="text-[13px] font-minerva italic text-pearl/70">"You are authorized to finalize the release chain."</p>
+            <div className="mt-auto py-10 px-12 bg-gold/5 border border-gold/40 rounded-xl flex flex-col md:flex-row justify-between items-center gap-10 shadow-[0_30px_70px_rgba(0,0,0,0.8)] border-l-8">
+                <div className="flex flex-col gap-2 text-center md:text-left">
+                    <span className="text-[13px] text-gold font-bold uppercase tracking-[0.5em]">Release Authorization Protocol</span>
+                    <p className="text-[16px] font-minerva italic text-pearl/80">"Establishing the ÆTHERIOS lattice as a global production authority."</p>
                 </div>
                 <button 
-                    className="px-16 py-4 bg-gold text-dark-bg font-orbitron text-[12px] font-bold uppercase tracking-[0.6em] hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(230,199,127,0.3)] active:scale-95"
+                    className="px-20 py-6 bg-gold text-dark-bg font-orbitron text-[14px] font-extrabold uppercase tracking-[0.8em] hover:bg-white hover:scale-105 transition-all shadow-[0_0_50px_rgba(255,215,0,0.3)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed group relative overflow-hidden"
                     onClick={handleInitializePush}
                 >
-                    Finalize Release
+                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    Push_to_Production
                 </button>
             </div>
         </div>

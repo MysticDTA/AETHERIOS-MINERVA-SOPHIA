@@ -2,6 +2,12 @@
 import { LogType, UserTier } from '../types';
 
 export class ApiService {
+  private static getBaseUrl() {
+      // In production (Vercel), we rely on relative paths or a specific environment URL
+      if (typeof window === 'undefined') return process.env.FRONTEND_URL || '';
+      return ''; // Client side uses relative paths
+  }
+
   private static getHeaders(token?: string | null) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -17,38 +23,41 @@ export class ApiService {
    * Supports metadata for cross-project integration (Menerva vs Aetherios).
    */
   static async createCheckoutSession(priceId: string, token: string | null, origin: 'MENERVA' | 'AETHERIOS' = 'AETHERIOS'): Promise<{ url: string } | null> {
+    const baseUrl = this.getBaseUrl();
     try {
-      const response = await fetch('/api/payments/create-session', {
+      const response = await fetch(`${baseUrl}/api/payments/create-session`, {
         method: 'POST',
         headers: this.getHeaders(token),
         body: JSON.stringify({ 
             priceId,
             metadata: {
                 project_origin: origin,
-                causal_lock: 'true'
+                causal_lock: 'true',
+                deployment_v: '1.3.1_radiant'
             }
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Gateway unavailable.');
+        throw new Error(errorData.error || 'Gateway desynchronized.');
       }
       
       return await response.json();
     } catch (err) {
-      console.error("MINERVA_API_ERROR [Checkout]:", err);
+      console.error("MINERVA_API_ERROR [Procurement]:", err);
       return null;
     }
   }
 
   /**
    * Fetches the latest operator data from the Vercel backend.
-   * Now includes Menerva legacy points and project synchronization status.
+   * Includes high-resonance synchronization status.
    */
   static async syncOperatorProfile(token: string | null): Promise<{ tier: UserTier; tokens: number; legacyPoints: number } | null> {
+    const baseUrl = this.getBaseUrl();
     try {
-      const response = await fetch('/api/operator/profile', {
+      const response = await fetch(`${baseUrl}/api/operator/profile`, {
         method: 'GET',
         headers: this.getHeaders(token),
       });

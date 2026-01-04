@@ -1,3 +1,4 @@
+
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
@@ -66,8 +67,13 @@ const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) =>
             {parsedContent.map(section => (
                 <div key={section.id} className="bg-white/[0.01] border border-white/[0.04] rounded-sm overflow-hidden hover:border-white/[0.12] transition-all duration-700 group shadow-lg">
                     <div className="bg-white/[0.04] px-4 py-2 border-b border-white/[0.06] flex justify-between items-center">
-                        <h3 className="font-orbitron text-[9px] text-pearl/90 uppercase tracking-[0.3em] font-bold">{section.title}</h3>
-                        <div className="flex gap-1.5"><span className="w-1 h-1 bg-pearl/30 rounded-full group-hover:bg-pearl/60 transition-colors" /></div>
+                        <h3 className="font-orbitron text-[9px] text-pearl/90 uppercase tracking-[0.3em] font-bold">
+                            {section.title.includes('Recommendations') ? '🛠 ' : '🔍 '}
+                            {section.title}
+                        </h3>
+                        <div className="flex gap-1.5">
+                            <span className={`w-1 h-1 rounded-full group-hover:scale-125 transition-transform ${section.title.includes('Recommendations') ? 'bg-gold' : 'bg-pearl/30'}`} />
+                        </div>
                     </div>
                     <div className="p-4">
                         {section.type === 'p' && <p className="text-[13px] text-warm-grey/90 leading-relaxed font-minerva italic opacity-95 antialiased select-text">{section.paragraph}</p>}
@@ -75,8 +81,8 @@ const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) =>
                             <ul className="space-y-3">
                                 {section.listItems.map((item, i) => (
                                     <li key={i} className="text-[11px] text-slate-300 flex items-start gap-4 font-mono leading-relaxed group/item select-text">
-                                        <span className="text-gold/50 mt-1 text-[7px] shrink-0 group-hover/item:text-gold transition-colors">▶</span>
-                                        <span className="opacity-80 group-hover/item:opacity-100 transition-opacity">{item}</span>
+                                        <span className={`mt-1 text-[7px] shrink-0 transition-colors ${section.title.includes('Recommendations') ? 'text-gold' : 'text-gold/50 group-hover/item:text-gold'}`}>▶</span>
+                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity">{item}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -128,7 +134,6 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
       }
   }, [isLoading, analysis, setOrbMode]);
 
-  // Periodic Failure Prediction - QUOTA OPTIMIZATION: Frequency reduced to 3 minutes
   useEffect(() => {
     const interval = setInterval(() => {
         if (!isLoading && !isPredicting && sophiaEngine) {
@@ -141,10 +146,18 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
   return (
     <div className="w-full h-full bg-[#0a0a0a]/70 border border-white/[0.08] rounded-xl flex flex-col overflow-hidden relative group transition-all duration-700 shadow-2xl backdrop-blur-3xl">
       <div className="flex justify-between items-center px-6 py-5 flex-shrink-0 border-b border-white/[0.05] bg-black/40 z-20">
-        <div className="flex items-center gap-4">
-            <h3 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-[0.4em] font-bold">Heuristic Audit Terminal</h3>
-            <div className={`text-[8px] font-mono px-2 py-0.5 rounded-sm border tracking-[0.2em] ${isLoading ? 'border-gold/50 text-gold animate-pulse' : 'border-pearl/10 text-slate-600'}`}>
-                {isLoading ? 'PROCESS_BUSY' : 'SYS_READY'}
+        <div className="flex flex-col">
+            <div className="flex items-center gap-3">
+                <h3 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-[0.4em] font-bold">Heuristic Audit Terminal</h3>
+                <div className={`text-[8px] font-mono px-2 py-0.5 rounded-sm border tracking-[0.2em] ${isLoading ? 'border-gold/50 text-gold animate-pulse' : 'border-pearl/10 text-slate-600'}`}>
+                    {isLoading ? 'PROCESS_BUSY' : 'SYS_READY'}
+                </div>
+            </div>
+            <div className="flex items-center gap-2 mt-1.5">
+                <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-500 transition-all duration-1000" style={{ width: `${systemState.resonanceFactorRho * 100}%` }} />
+                </div>
+                <span className="text-[7px] font-mono text-cyan-400 uppercase">Rho_Sync: {systemState.resonanceFactorRho.toFixed(5)}</span>
             </div>
         </div>
         <div className="flex items-center gap-3">

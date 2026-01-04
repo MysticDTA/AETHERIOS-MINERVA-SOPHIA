@@ -216,7 +216,24 @@ export class SophiaEngineCore {
     
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Perform a high-level causal audit on: ${JSON.stringify(systemState)}. Identify entropic fractures. Format as HTML. Use full 32k thinking budget.`;
+      const prompt = `
+        Perform an Advanced Causal Audit on the ÆTHERIOS system.
+        Analyze the current state: ${JSON.stringify({
+            health: systemState.quantumHealing.health,
+            rho: systemState.resonanceFactorRho,
+            drift: systemState.temporalCoherenceDrift,
+            performance: systemState.performance,
+            coherence: systemState.coherenceResonance.score
+        })}.
+        
+        REQUIRED SECTIONS (Use HTML <h3> tags):
+        1. Current Coherence Summary: Provide a technical summary of the system's resonance state.
+        2. Entropic Fractures: Identify specific data points indicating decoherence or instability.
+        3. Actionable Recommendations: Provide three specific heuristic protocols the Architect should execute immediately to restore parity.
+        
+        Format as HTML. Use technical, intellectual, and authoritative language.
+        Utilize your 32,768 token thinking budget for deep reasoning before issuing recommendations.
+      `;
       const response = await ai.models.generateContentStream({
           model: 'gemini-3-pro-preview',
           contents: prompt,

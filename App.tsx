@@ -36,6 +36,7 @@ import { NeuralQuantizer } from './components/NeuralQuantizer';
 import { ResourceProcurement } from './components/ResourceProcurement';
 import { SatelliteUplink } from './components/SatelliteUplink';
 import { DeploymentManifest } from './components/DeploymentManifest';
+import { EventLog } from './components/EventLog';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -61,7 +62,7 @@ const orbModes: OrbModeConfig[] = [
 ];
 
 // Sequence for page cycling
-const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18];
+const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 22];
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
@@ -74,11 +75,36 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [logFilter, setLogFilter] = useState<LogType | 'ALL'>('ALL');
   
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
   
   const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
+
+  // Robust Error Interception
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+        addLogEntry(LogType.CRITICAL, `[RUNTIME_EXCEPTION] ${event.message} @ ${event.filename}:${event.lineno}`);
+    };
+    const handlePromiseRejection = (event: PromiseRejectionEvent) => {
+        addLogEntry(LogType.CRITICAL, `[PROMISE_REJECTION] ${event.reason?.message || event.reason}`);
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+    
+    return () => {
+        window.removeEventListener('error', handleGlobalError);
+        window.removeEventListener('unhandledrejection', handlePromiseRejection);
+    };
+  }, [addLogEntry]);
+
+  const handleComponentError = useCallback((error: Error, errorInfo: React.ErrorInfo) => {
+    addLogEntry(LogType.CRITICAL, `[COMPONENT_CRASH] ${error.message}`);
+    // Potentially log to an external service here
+    console.error("Sophia Component Error:", error, errorInfo);
+  }, [addLogEntry]);
 
   const { 
     isSessionActive, 
@@ -165,7 +191,6 @@ const App: React.FC = () => {
       
       if (isTyping) return;
 
-      // '/' to open command console
       if (e.key === '/') {
         e.preventDefault();
         setCurrentPage(4);
@@ -173,14 +198,12 @@ const App: React.FC = () => {
         addLogEntry(LogType.INFO, "Hotkey: Jump to Interaction Cradle.");
       }
 
-      // 'Ctrl+S' to trigger system scan
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         addLogEntry(LogType.INFO, "Hotkey: Initiating Heuristic Sweep.");
         handleTriggerScan();
       }
 
-      // 'Ctrl+V' to toggle vocal bridge
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
         e.preventDefault();
         if (isSessionActive) {
@@ -193,7 +216,6 @@ const App: React.FC = () => {
         }
       }
 
-      // 'Esc' to exit overlays or return to Sanctum
       if (e.key === 'Escape') {
         if (showDiagnosticScan) {
           setShowDiagnosticScan(false);
@@ -207,7 +229,6 @@ const App: React.FC = () => {
         }
       }
 
-      // '[' and ']' to cycle pages
       if (e.key === '[') {
         setCurrentPage(prev => {
           const idx = NAV_SEQUENCE.indexOf(prev);
@@ -278,33 +299,42 @@ const App: React.FC = () => {
           case 19: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
           case 20: return <CausalIngestionNexus systemState={systemState} />;
           case 21: return <MenervaBridge systemState={systemState} />;
+          case 22: return <div className="h-full"><EventLog log={systemState.log} filter={logFilter} onFilterChange={setLogFilter} /></div>;
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
       }
-  }, [currentPage, systemState, scanCompleted, orbMode, transmission, isSessionActive, userInputTranscription, sophiaOutputTranscription, transcriptionHistory, lastSystemCommand, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, clearVoiceHistory, startVoiceSession, closeVoiceSession]);
+  }, [currentPage, systemState, scanCompleted, orbMode, transmission, isSessionActive, userInputTranscription, sophiaOutputTranscription, transcriptionHistory, lastSystemCommand, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, clearVoiceHistory, startVoiceSession, closeVoiceSession, logFilter]);
 
   const appContent = !isInitialized ? (
-    <SovereignPortal onInitialize={() => { 
-        audioEngine.current?.playHighResonanceChime(); 
-        setIsInitialized(true); 
-    }} />
+    <ErrorBoundary onError={handleComponentError}>
+      <SovereignPortal onInitialize={() => { 
+          audioEngine.current?.playHighResonanceChime(); 
+          setIsInitialized(true); 
+      }} />
+    </ErrorBoundary>
   ) : (
     <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho}>
       {showDiagnosticScan && (
-        <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
+        <ErrorBoundary onError={handleComponentError}>
+          <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
+        </ErrorBoundary>
       )}
-      <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
+      <ErrorBoundary onError={handleComponentError}>
+        <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
+      </ErrorBoundary>
       <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
-        <ErrorBoundary>{renderPage()}</ErrorBoundary>
+        <ErrorBoundary onError={handleComponentError}>{renderPage()}</ErrorBoundary>
       </main>
       <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
-        <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
-            <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-            <div className="flex gap-2">
-              <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
-              <button onClick={() => setCurrentPage(20)} className="px-4 py-2 bg-pearl/10 border border-pearl/20 text-pearl font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-pearl hover:text-dark-bg transition-all">Merge_Nexus</button>
-              <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
-            </div>
-        </div>
+        <ErrorBoundary onError={handleComponentError}>
+          <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
+              <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
+              <div className="flex gap-2">
+                <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-rose-900/10 border border-rose-500/20 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">System_Logs</button>
+                <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
+                <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
+              </div>
+          </div>
+        </ErrorBoundary>
       </footer>
     </Layout>
   );

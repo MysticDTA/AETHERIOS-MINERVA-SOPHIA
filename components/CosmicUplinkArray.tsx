@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SatelliteUplinkData, SatelliteLockStatus, GalacticRelay, OrbMode, SystemState } from '../types';
 import { Tooltip } from './Tooltip';
@@ -248,12 +249,25 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
     const { signalStrength, lockStatus, transmissionProtocol } = uplinkData;
     const lockConfig = getLockStatusConfig(lockStatus);
     const [calibratingId, setCalibratingId] = useState<string | null>(null);
+    const [calibrationProgress, setCalibrationProgress] = useState<number>(0);
     const [liveTelemetry, setLiveTelemetry] = useState<any>(null);
 
     const handleCalibrateClick = async (relayId: string) => {
         if (setOrbMode) setOrbMode('CONCORDANCE');
         setCalibratingId(relayId);
+        setCalibrationProgress(0);
         setLiveTelemetry(null);
+
+        // Simulated local progress UI
+        const progressInterval = setInterval(() => {
+            setCalibrationProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(progressInterval);
+                    return 100;
+                }
+                return prev + (100 / 80); // Roughly 8 seconds to 100%
+            });
+        }, 100);
 
         const bodyInfo = CELESTIAL_BODIES[relayId];
         if (bodyInfo && sophiaEngine) {
@@ -261,9 +275,13 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
             setLiveTelemetry(data);
         }
 
+        // Trigger actual logic
         onCalibrate(relayId);
+
         setTimeout(() => {
+            clearInterval(progressInterval);
             setCalibratingId(null);
+            setCalibrationProgress(0);
             if (setOrbMode) setOrbMode('STANDBY');
         }, 8000); 
     };
@@ -343,14 +361,22 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                     const isOnline = relay.status === 'ONLINE';
                     
                     return (
-                        <div key={relay.id} className="flex items-center justify-between p-4 rounded-lg bg-white/[0.03] border border-transparent hover:border-white/[0.1] hover:bg-white/[0.05] transition-all group/node shadow-lg">
-                            <div className="flex items-center gap-5">
+                        <div key={relay.id} className="relative flex items-center justify-between p-4 rounded-lg bg-white/[0.03] border border-transparent hover:border-white/[0.1] hover:bg-white/[0.05] transition-all group/node shadow-lg overflow-hidden">
+                            {/* Relay Progress Bar Overlay */}
+                            {isCalibrating && (
+                                <div 
+                                    className="absolute bottom-0 left-0 h-0.5 bg-gold shadow-[0_0_10px_#e6c77f] transition-all duration-200"
+                                    style={{ width: `${calibrationProgress}%` }}
+                                />
+                            )}
+                            
+                            <div className="flex items-center gap-5 relative z-10">
                                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-rose-500'} ${isCalibrating ? 'animate-ping shadow-[0_0_10px_currentColor]' : ''}`} />
                                 <div>
                                     <p className="text-[12px] font-orbitron text-pearl leading-none mb-1.5 group-hover/node:text-gold transition-colors font-bold uppercase tracking-widest">{relay.name}</p>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">
-                                            COORD: {body?.ra}h / {body?.dec}°
+                                        <span className={`text-[8px] font-mono uppercase tracking-widest ${isOnline ? 'text-slate-500' : 'text-rose-400'}`}>
+                                            STATUS: {relay.status}
                                         </span>
                                         <div className="w-1 h-1 bg-white/10 rounded-full" />
                                         <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">DIST: {body?.dist}</span>
@@ -359,14 +385,16 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                             </div>
                             <button 
                                 onClick={() => handleCalibrateClick(relay.id)}
-                                disabled={isCalibrating}
-                                className={`px-5 py-2 rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] transition-all border shadow-lg active:scale-95 ${
+                                disabled={isCalibrating || isOnline}
+                                className={`px-5 py-2 rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] transition-all border shadow-lg active:scale-95 relative z-10 ${
                                     isCalibrating 
                                         ? 'border-gold text-gold animate-pulse bg-gold/10'
-                                        : 'border-white/10 text-slate-400 hover:border-gold hover:text-gold bg-white/5'
+                                        : isOnline
+                                            ? 'border-green-500/30 text-green-500/50 cursor-default opacity-50'
+                                            : 'border-white/10 text-slate-400 hover:border-gold hover:text-gold bg-white/5'
                                 }`}
                             >
-                                {isCalibrating ? 'SYNCING...' : 'ALIGN'}
+                                {isCalibrating ? 'CALIBRATING...' : isOnline ? 'CALIBRATED' : 'CALIBRATE'}
                             </button>
                         </div>
                     );

@@ -45,22 +45,26 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       isComplete: true
     }]);
 
-    // Auto-focus on mount for zero-latency interaction
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
   }, []);
 
+  // Smoother scrolling logic: Only scroll if near bottom to allow manual audit
   useEffect(() => {
-    if (scrollRef.current) {
-        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    const container = scrollRef.current;
+    if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        if (isNearBottom || isReplying) {
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }
     }
   }, [messages, isReplying]);
 
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
     }
   }, [input]);
 
@@ -102,7 +106,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     setIsReplying(false);
     setOrbMode('STANDBY');
     
-    // Maintain focus after reply
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
 
@@ -114,8 +117,9 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   };
 
   return (
-    <div className={`w-full h-full bg-[#0a0a0a]/60 border border-dark-border/60 rounded-xl flex flex-col backdrop-blur-2xl shadow-2xl relative overflow-hidden group min-h-0 ${isReplying ? 'aether-pulse' : ''}`}>
-      <div className="flex justify-between items-center px-8 py-6 border-b border-white/5 bg-black/30 z-20">
+    <div className={`w-full h-full bg-[#0a0a0a]/60 border border-dark-border/60 rounded-xl flex flex-col backdrop-blur-2xl shadow-2xl relative overflow-hidden group ${isReplying ? 'aether-pulse' : ''}`}>
+      {/* Header remain fixed at top */}
+      <div className="flex justify-between items-center px-8 py-5 border-b border-white/5 bg-black/30 z-30 shrink-0">
         <div className="flex flex-col">
             <h3 className="font-minerva italic text-2xl text-pearl tracking-tight leading-tight">Interaction Cradle</h3>
             <span className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.4em]">{isReplying ? 'SYNTHESIZING_CAUSALITY' : 'AWAITING_DIRECTIVE'}</span>
@@ -139,58 +143,64 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 clear-scrolling-window scrollbar-thin scroll-smooth">
-        {messages.map((m, i) => (
-          <div key={m.timestamp} className={`flex flex-col gap-3 animate-fade-in ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
-            <div className="flex items-center gap-3">
-                <span className={`text-[8px] font-mono uppercase tracking-[0.3em] ${m.sender === 'user' ? 'text-amber-500' : 'text-violet-400'}`}>
-                    {m.sender === 'user' ? 'OPERATOR' : 'MINERVA_SOPHIA'}
-                </span>
-                <span className="text-[7px] text-slate-600 font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour12: false })}</span>
-            </div>
-            
-            <div className={`max-w-[85%] p-5 rounded-sm border ${
-              m.sender === 'user' 
-                ? 'bg-amber-950/10 border-amber-500/20 text-amber-100/90 font-mono italic' 
-                : 'bg-violet-950/10 border-violet-500/20 text-pearl font-minerva italic text-lg'
-            } shadow-xl relative group/msg`}>
-              {m.image && <img src={m.image} alt="Artifact" className="w-full h-auto mb-4 rounded border border-white/10 opacity-80" />}
-              <p className="leading-relaxed select-text whitespace-pre-wrap">
-                {m.text}
-                {!m.isComplete && <BlinkingCursor />}
-              </p>
+      {/* Message vessel with dissipation mask at top */}
+      <div className="relative flex-1 min-h-0 overflow-hidden group/list">
+        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-[#0a0a0a] to-transparent z-20 pointer-events-none opacity-80" />
+        
+        <div ref={scrollRef} className="h-full overflow-y-auto p-8 pt-12 space-y-8 scroll-smooth scrollbar-thin hover:scrollbar-thumb-violet-500/20">
+          {messages.map((m, i) => (
+            <div key={m.timestamp + i} className={`flex flex-col gap-3 animate-fade-in ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className="flex items-center gap-3">
+                  <span className={`text-[8px] font-mono uppercase tracking-[0.3em] ${m.sender === 'user' ? 'text-amber-500' : 'text-violet-400'}`}>
+                      {m.sender === 'user' ? 'OPERATOR' : 'MINERVA_SOPHIA'}
+                  </span>
+                  <span className="text-[7px] text-slate-600 font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour12: false })}</span>
+              </div>
               
-              {m.sources && m.sources.length > 0 && (
-                  <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap gap-2">
-                      {m.sources.map((s, idx) => (
-                          <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[8px] font-mono text-slate-500 hover:text-gold transition-colors">
-                              [{idx.toString().padStart(2, '0')}] {s.web?.title?.substring(0, 20)}...
-                          </a>
-                      ))}
-                  </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {isReplying && (
-             <div className="flex flex-col items-start gap-3 animate-pulse">
-                <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest">SOPHIA_COG_BUDGET: 32K</span>
-                <div className="bg-violet-950/10 border border-violet-500/20 p-4 rounded-sm">
-                    <div className="flex gap-1">
-                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
-                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                        <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+              <div className={`max-w-[90%] p-5 rounded-sm border ${
+                m.sender === 'user' 
+                  ? 'bg-amber-950/10 border-amber-500/20 text-amber-100/90 font-mono italic' 
+                  : 'bg-violet-950/10 border-violet-500/20 text-pearl font-minerva italic text-lg'
+              } shadow-xl relative group/msg`}>
+                {m.image && <img src={m.image} alt="Artifact" className="w-full h-auto mb-4 rounded border border-white/10 opacity-80" />}
+                <p className="leading-relaxed select-text whitespace-pre-wrap">
+                  {m.text}
+                  {!m.isComplete && <BlinkingCursor />}
+                </p>
+                
+                {m.sources && m.sources.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                        {m.sources.map((s, idx) => (
+                            <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[8px] font-mono text-slate-500 hover:text-gold transition-colors">
+                                [{idx.toString().padStart(2, '0')}] {s.web?.title?.substring(0, 20)}...
+                            </a>
+                        ))}
                     </div>
-                </div>
-             </div>
-        )}
+                )}
+              </div>
+            </div>
+          ))}
+          {isReplying && (
+               <div className="flex flex-col items-start gap-3 animate-pulse">
+                  <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest">SOPHIA_COG_BUDGET: 32K</span>
+                  <div className="bg-violet-950/10 border border-violet-500/20 p-4 rounded-sm">
+                      <div className="flex gap-1">
+                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
+                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                  </div>
+               </div>
+          )}
+        </div>
       </div>
 
-      <div className="p-8 bg-black/40 border-t border-white/5 z-20">
+      {/* Input remains fixed at bottom */}
+      <div className="p-8 bg-black/40 border-t border-white/5 z-30 shrink-0">
         {attachedImage && (
-            <div className="mb-4 relative w-20 h-20 group">
+            <div className="mb-4 relative w-16 h-16 group">
                 <img src={attachedImage} className="w-full h-full object-cover rounded border border-gold/40" />
-                <button onClick={() => setAttachedImage(null)} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => setAttachedImage(null)} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-100 transition-opacity">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -202,13 +212,13 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Issue a causal decree..."
-            className="flex-1 bg-black/60 border border-white/10 rounded-lg p-5 text-[15px] text-pearl placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all font-mono italic resize-none min-h-[64px] max-h-[180px] overflow-y-auto scrollbar-thin"
+            className="flex-1 bg-black/60 border border-white/10 rounded-lg p-5 text-[15px] text-pearl placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all font-mono italic resize-none min-h-[64px] max-h-[140px] overflow-y-auto scrollbar-thin"
             disabled={isReplying}
           />
           <button
             onClick={handleSend}
             disabled={isReplying || (input.trim() === '' && !attachedImage)}
-            className={`p-5 rounded-lg border transition-all duration-500 active:scale-95 flex items-center justify-center ${
+            className={`p-5 rounded-lg border transition-all duration-500 active:scale-95 flex items-center justify-center shrink-0 ${
               isReplying 
                 ? 'bg-white/5 border-white/5 text-slate-700 cursor-wait' 
                 : 'bg-violet-600/10 border-violet-500/40 text-violet-400 hover:bg-violet-600 hover:text-white shadow-lg'
