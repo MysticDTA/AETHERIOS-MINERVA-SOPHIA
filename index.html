@@ -1,10 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>ÆTHERIOS // MINERVA SOPHIA</title>
+    <title>ÆTHERIOS // MINERVA SOPHIA v1.3.0</title>
+    <meta name="description" content="The World's Most Advanced Causal Resonance Interface. Powered by Minerva Sophia.">
     <script src="https://cdn-tailwindcss.vercel.app/"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;500;800&display=swap');
@@ -12,12 +14,12 @@
       :root {
         --pearl: #f8f5ec;
         --rose: #f4c2c2;
-        --gold: #e6c77f;
+        --gold: #ffd700; /* Shifted to Radiant Gold for v1.3.0 */
         --warm-grey: #b6b0a0;
         --aether-blue: #6d28d9;
         --aether-violet: #4c1d95;
-        --dark-bg: #050505;
-        --dark-surface: #0a0a0a;
+        --dark-bg: #020202;
+        --dark-surface: #080808;
         --dark-border: #1a1a1a;
       }
 
@@ -35,16 +37,6 @@
         text-rendering: optimizeLegibility;
       }
 
-      body::before {
-        content: '';
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle at 15% 25%, rgba(109, 40, 217, 0.06), transparent 45%),
-                    radial-gradient(circle at 85% 75%, rgba(76, 29, 149, 0.06), transparent 45%);
-        z-index: -1;
-        pointer-events: none;
-      }
-
       #root { height: 100%; display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
       
       .font-orbitron { font-family: 'Orbitron', sans-serif; }
@@ -52,24 +44,30 @@
       .font-mono { font-family: 'JetBrains Mono', monospace; }
       
       .glass-panel {
-        background: rgba(10, 10, 10, 0.7);
-        backdrop-filter: blur(24px) saturate(200%);
-        -webkit-backdrop-filter: blur(24px) saturate(200%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+        background: rgba(8, 8, 8, 0.8);
+        backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
       }
 
-      .scanline-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 1000;
-        background: linear-gradient(0deg, transparent 50%, rgba(255, 255, 255, 0.01) 50%);
-        background-size: 100% 3px;
-        animation: scanline-anim 200s linear infinite;
-        opacity: 0.15;
+      .radiant-bloom {
+        filter: drop-shadow(0 0 15px var(--gold));
       }
-      @keyframes scanline-anim { from { background-position-y: 0; } to { background-position-y: 100vh; } }
+
+      .shimmer-sweep {
+        background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 3s infinite;
+      }
+      @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+      .causal-reweaving {
+        animation: reweaving 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+      }
+      @keyframes reweaving {
+        0% { filter: blur(20px) brightness(2); transform: scale(0.95); opacity: 0; }
+        100% { filter: blur(0) brightness(1); transform: scale(1); opacity: 1; }
+      }
 
       .aether-pulse {
         animation: aether-pulse-glow 8s ease-in-out infinite;
@@ -80,28 +78,23 @@
       }
 
       .text-glow-pearl { text-shadow: 0 0 15px rgba(248, 245, 236, 0.3); }
-      .text-glow-gold { text-shadow: 0 0 18px rgba(230, 199, 127, 0.4); }
-      .text-glow-violet { text-shadow: 0 0 20px rgba(109, 40, 217, 0.5); }
-      .text-glow-cyan { text-shadow: 0 0 12px rgba(103, 232, 249, 0.5); }
+      .text-glow-gold { text-shadow: 0 0 18px rgba(255, 215, 0, 0.4); }
 
-      /* GLOBAL CRYSTAL-CLEAR SCROLLBAR */
       ::-webkit-scrollbar { width: 4px; height: 4px; }
       ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
       ::-webkit-scrollbar-thumb { 
-        background: rgba(109, 40, 217, 0.25); 
+        background: rgba(255, 215, 0, 0.15); 
         border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
       }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(109, 40, 217, 0.5); }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 215, 0, 0.3); }
 
       .tooltip { position: relative; }
       .tooltip .tooltiptext {
         visibility: hidden;
         width: 260px;
-        background-color: rgba(5, 5, 5, 0.95);
+        background-color: rgba(2, 2, 2, 0.98);
         color: var(--pearl);
         text-align: left;
-        border-radius: 2px;
         padding: 12px 18px;
         position: absolute;
         z-index: 2000;
@@ -110,57 +103,22 @@
         margin-left: -130px;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        transform: translateY(15px);
-        font-size: 11px;
-        line-height: 1.6;
-        border: 1px solid rgba(230, 199, 127, 0.3);
-        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 215, 0, 0.2);
         box-shadow: 0 15px 40px rgba(0,0,0,0.9);
-        pointer-events: none;
-        font-family: 'Inter', sans-serif;
       }
-      .tooltip-visible .tooltiptext { visibility: visible; opacity: 1; transform: translateY(0); }
+      .tooltip-visible .tooltiptext { visibility: visible; opacity: 1; }
 
-      @keyframes pulse-intense {
-        0%, 100% { opacity: 0.8; transform: scale(1); filter: brightness(1); }
-        50% { opacity: 1; transform: scale(1.02); filter: brightness(1.2); }
-      }
-      
       @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      @keyframes spin-reverse-slow { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
       
-      .animate-fade-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-      .high-resonance-glow {
-        box-shadow: 0 0 35px rgba(109, 40, 217, 0.3);
-        border-color: rgba(109, 40, 217, 0.6) !important;
-      }
-
-      .hide-scrollbar::-webkit-scrollbar { display: none; }
-      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      
-      .clear-scrolling-window {
-        overflow-anchor: none;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .terminal-cursor {
-          display: inline-block;
-          width: 8px;
-          height: 15px;
-          background: var(--gold);
-          animation: blink 1s step-end infinite;
-          vertical-align: middle;
-          margin-left: 4px;
-          box-shadow: 0 0 8px var(--gold);
-      }
-      @keyframes blink { 50% { opacity: 0; } }
-
-      .matrix-bg {
-          mask-image: linear-gradient(to bottom, black, transparent);
-          -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+      .scanline-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+        background: linear-gradient(0deg, transparent 50%, rgba(255, 255, 255, 0.01) 50%);
+        background-size: 100% 3px;
+        animation: scanline-anim 200s linear infinite;
+        opacity: 0.15;
       }
     </style>
     <script type="importmap">

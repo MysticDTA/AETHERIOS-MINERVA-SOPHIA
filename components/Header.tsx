@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { SystemStatus } from './SystemStatus';
 import { AudioEngine } from '../audio/AudioEngine';
 import { UserTier, CommsStatus } from '../types';
+import { Tooltip } from './Tooltip';
 
 interface HeaderProps {
     governanceAxiom: string;
@@ -25,7 +27,7 @@ const MODULE_PERMISSIONS: Record<number, UserTier> = {
     16: 'ARCHITECT', 5: 'ARCHITECT', 6: 'ARCHITECT', 7: 'ACOLYTE', 
     8: 'ARCHITECT', 9: 'ARCHITECT', 10: 'ARCHITECT', 11: 'ARCHITECT', 
     12: 'ARCHITECT', 13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE',
-    17: 'ACOLYTE', 18: 'SOVEREIGN' // Veo requires Sovereign
+    17: 'ACOLYTE', 18: 'SOVEREIGN'
 };
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => (
@@ -80,10 +82,12 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                     <div className="flex items-center gap-3">
                         <span className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold ${activeTier.color}`}>{activeTier.label}</span>
                         <div className="h-3 w-px bg-white/10" />
-                        <div className="flex items-center gap-2">
-                             <span className={`w-1.5 h-1.5 rounded-full ${vercelStatus === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-gold animate-pulse'}`} />
-                             <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">VERCEL_EDGE: {vercelStatus} // Node_SFO_1</span>
-                        </div>
+                        <Tooltip text="Commercial Inquiries: divinetruthascension@gmail.com">
+                            <a href="mailto:divinetruthascension@gmail.com" className="flex items-center gap-2 group/contact">
+                                <span className={`w-1.5 h-1.5 rounded-full bg-gold animate-pulse shadow-[0_0_8px_#e6c77f]`} />
+                                <span className="text-[9px] font-mono text-gold/60 group-hover/contact:text-gold uppercase tracking-widest transition-colors font-bold">Contact Architect</span>
+                            </a>
+                        </Tooltip>
                     </div>
                 </div>
 

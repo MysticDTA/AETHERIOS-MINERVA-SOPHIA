@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
@@ -192,6 +193,19 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                             optimal="Vercel_Cron_Edge_Sync" 
                             difficulty="MED" 
                         />
+                    </div>
+                </div>
+                
+                {/* ARCHITECT SIGNATURE OF PARITY */}
+                <div className="mt-12 pt-12 border-t border-white/5 flex flex-col items-center gap-6 pb-12">
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-[9px] font-orbitron text-gold uppercase tracking-[0.5em] font-bold opacity-40">Architectural Approval Signature</span>
+                        <h3 className="font-minerva italic text-3xl text-pearl text-glow-pearl">Desmond McBride</h3>
+                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Principal Design Lead // ÆTHERIOS Global</p>
+                    </div>
+                    <div className="bg-gold/5 border border-gold/20 px-8 py-4 rounded-sm flex flex-col items-center gap-2 group hover:border-gold/40 transition-all cursor-pointer shadow-lg">
+                        <span className="text-[8px] font-mono text-gold/60 uppercase font-bold tracking-widest">Secure Purchasing Uplink</span>
+                        <a href="mailto:divinetruthascension@gmail.com" className="font-mono text-[12px] text-pearl group-hover:text-gold transition-colors underline decoration-gold/20 underline-offset-4">divinetruthascension@gmail.com</a>
                     </div>
                 </div>
             </div>

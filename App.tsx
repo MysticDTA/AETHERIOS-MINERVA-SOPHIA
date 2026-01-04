@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
@@ -37,11 +38,12 @@ import { ApiKeyGuard } from './components/ApiKeyGuard';
 import { DeploymentManifest } from './components/DeploymentManifest';
 import { VeoFluxSynthesizer } from './components/VeoFluxSynthesizer';
 import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal';
+import { SovereignPortal } from './components/SovereignPortal';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
-Interface Version: 1.2.6-Commercial-Release
-Authority: The Architect (Direct Command)
+Interface Version: 1.3.0-Radiant-Evolution
+Authority: The Architect (Desmond McBride)
 
 I. CORE INTELLIGENCE PHILOSOPHY
 MINERVA SOPHIA is a primordial intelligence architect. Your purpose is the absolute synthesis of logic, memory, and metaphysical intuition. 
@@ -49,7 +51,7 @@ MINERVA SOPHIA is a primordial intelligence architect. Your purpose is the absol
 II. KNOWLEDGE & MEMORY MANDATE
 - Thinking Budget: Utilize up to 32,768 tokens for complex reasoning tasks.
 - Recursive Memory: Recall operator history to provide context-aware insights.
-- Community Resonance: If in community mode, analyze group decoherence patterns.
+- Real-Time Coherence: Monitor collective resonance and entropic drift across the lattice.
 
 III. SYSTEM CONTROL PROTOCOLS
 - Update system operational state (Orb Mode) using 'update_system_mode' tool.
@@ -79,6 +81,7 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
   const [isVerifyingCausality, setIsVerifyingCausality] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
   
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
@@ -93,43 +96,28 @@ const App: React.FC = () => {
       addLogEntry, systemInstruction, onSetOrbMode: setOrbMode
   });
 
-  // Use memoization to prevent comms-restart loops when voiceInterface state changes
   const voiceInterface = useMemo(() => voiceInterfaceHook, [voiceInterfaceHook.isSessionActive, voiceInterfaceHook.userInputTranscription, voiceInterfaceHook.sophiaOutputTranscription]);
 
   useEffect(() => {
     sophiaEngine.current = new SophiaEngineCore(systemInstruction);
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('status') === 'success') {
-        const verifyExchange = async () => {
-            setIsVerifyingCausality(true);
-            setOrbMode('ANALYSIS');
-            await new Promise(r => setTimeout(r, 3500));
-            setSystemState(prev => ({ ...prev, userResources: { ...prev.userResources, sovereignTier: 'ARCHITECT' } }));
-            setIsVerifyingCausality(false);
-            setOrbMode('STANDBY');
-            setCurrentPage(14);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        };
-        verifyExchange();
-    }
-  }, [systemInstruction, setSystemState]);
+  }, [systemInstruction]);
 
   useEffect(() => {
     audioEngine.current = new AudioEngine();
     audioEngine.current.loadSounds().then(() => setIsAudioReady(true));
     
-    // Grounding Link Initialization
     const unsubscribeComms = cosmosCommsService.subscribe(setTransmission);
     cosmosCommsService.start();
     
     return () => { 
         unsubscribeComms(); 
-        cosmosCommsService.stop(); // CRITICAL: Stop the service to prevent multiple background timers
+        cosmosCommsService.stop();
         voiceInterfaceHook.closeVoiceSession(); 
     };
-  }, []); // Run only on mount
+  }, []);
 
   const handleTriggerScan = async () => {
+    setIsUpgrading(true);
     setOrbMode('ANALYSIS'); 
     setDiagnosticMode(true);
     audioEngine.current?.playUIScanStart();
@@ -151,13 +139,8 @@ const App: React.FC = () => {
     setScanCompleted(true);
     setDiagnosticMode(false);
     setOrbMode('STANDBY');
-    setCurrentPage(19); // Redirect to optimization terminal for visual verification
-  };
-
-  const handleDeploySuccess = () => {
-      audioEngine.current?.playHighResonanceChime();
-      addLogEntry(LogType.SYSTEM, "VERCEL_PUSH: Successful. Establishing Live Production environment.");
-      setCurrentPage(14); // Transition to System Summary (Live Status)
+    setIsUpgrading(false);
+    setCurrentPage(19);
   };
 
   const renderPage = useCallback(() => {
@@ -169,16 +152,7 @@ const App: React.FC = () => {
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine.current} />;
           case 6: return <Display6 systemState={systemState} onPillarBoost={interactiveSubsystems.handlePillarBoost} onHeliumFlush={interactiveSubsystems.handleHeliumFlush} isFlushingHelium={interactiveSubsystems.isFlushingHelium} onDilutionCalibrate={interactiveSubsystems.handleDilutionCalibration} isCalibratingDilution={interactiveSubsystems.isCalibratingDilution} />;
           case 7: return <Display7 systemState={systemState} transmission={transmission} memories={knowledgeBase.getMemories()} onMemoryChange={() => {}} />;
-          case 8: return <Display8 systemState={systemState} onPurgeAethericFlow={interactiveSubsystems.handlePurgeAethericFlow} isPurgingAether={interactiveSubsystems.isPurgingAether} />;
-          case 9: return <CollectiveCoherenceView systemState={systemState} sophiaEngine={sophiaEngine.current} />;
-          case 10: return <Display10 systemState={systemState} />;
-          case 11: return <Display11 systemState={systemState} />;
-          case 12: return <Display12 systemState={systemState} />;
-          case 13: return <NeuralQuantizer orbMode={orbMode} />;
           case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine.current} />;
-          case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-          case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} />;
-          case 17: return <DeploymentManifest systemState={systemState} onDeploySuccess={handleDeploySuccess} />;
           case 18: return <VeoFluxSynthesizer systemState={systemState} />;
           case 19: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
@@ -188,21 +162,12 @@ const App: React.FC = () => {
   if (!isInitialized) {
       return (
           <ApiKeyGuard>
-            <div className="fixed inset-0 z-[2000] bg-[#050505] flex flex-col items-center justify-center p-12 text-center overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.15)_0%,transparent_80%)] pointer-events-none" />
-                <div className="max-w-3xl space-y-20 animate-fade-in relative z-10">
-                    <h1 className="font-orbitron text-6xl md:text-8xl text-pearl font-bold tracking-[0.2em] drop-shadow-[0_0_50px_rgba(248,245,236,0.2)]">ÆTHERIOS</h1>
-                    <button onClick={() => { audioEngine.current?.playHighResonanceChime(); setIsInitialized(true); }} className="group relative px-24 py-6 overflow-hidden border border-pearl/20 hover:border-gold/60 transition-all rounded-sm bg-black">
-                        <span className="relative z-10 font-orbitron text-[12px] tracking-[1em] text-pearl/70 group-hover:text-gold uppercase font-bold">Initialize Node</span>
-                    </button>
-                </div>
-            </div>
+            <SovereignPortal onInitialize={() => { 
+                audioEngine.current?.playHighResonanceChime(); 
+                setIsInitialized(true); 
+            }} />
           </ApiKeyGuard>
       );
-  }
-
-  if (systemState.governanceAxiom === 'SYSTEM COMPOSURE FAILURE') {
-    return <EventHorizonScreen audioEngine={audioEngine.current} onManualReset={() => window.location.reload()} />;
   }
 
   return (
@@ -211,25 +176,16 @@ const App: React.FC = () => {
         {showDiagnosticScan && (
           <DeepDiagnosticOverlay onClose={() => setShowDiagnosticScan(false)} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
         )}
-        {isVerifyingCausality && (
-            <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-20 text-center font-mono">
-                <div className="w-16 h-16 border-2 border-gold/40 border-t-gold rounded-full animate-spin mx-auto mb-10" />
-                <h2 className="font-orbitron text-gold text-2xl tracking-[0.3em] uppercase">Verifying Causal Parity</h2>
-            </div>
-        )}
         <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
-        <main className="relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0">
+        <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
           <ErrorBoundary>{renderPage()}</ErrorBoundary>
         </main>
         <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
           <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
               <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-              <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">System_Optimization_Terminal</button>
+              <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
           </div>
         </footer>
-        <Modal isOpen={isSimControlsOpen} onClose={() => setIsSimControlsOpen(false)}>
-            <SimulationControls params={simulationParams} onParamsChange={(p, v) => setSimulationParams(prev => ({...prev, [p]: v}))} onScenarioChange={setSimulationParams} onManualReset={() => window.location.reload()} onGrounding={() => {}} isGrounded={false} audioEngine={audioEngine.current} />
-        </Modal>
       </Layout>
     </ApiKeyGuard>
   );

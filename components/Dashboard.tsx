@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SystemState, OrbMode } from '../types';
 import { MetricDisplay } from './MetricDisplay';
@@ -9,6 +10,7 @@ import { SophiaEngineCore } from '../services/sophiaEngine';
 import { SystemIntegrityMap } from './SystemIntegrityMap';
 import { SystemIntegrityCore } from './SystemIntegrityCore';
 import { CoCreatorNexus } from './CoCreatorNexus';
+import { CoherenceResonanceMonitor } from './CoherenceResonanceMonitor';
 import { Tooltip } from './Tooltip';
 
 interface DashboardProps {
@@ -54,6 +56,15 @@ const ResonancePulse: React.FC<{ rho: number }> = ({ rho }) => (
     </div>
 );
 
+const SovereignBadge: React.FC = () => (
+    <div className="absolute top-4 right-4 z-30 group cursor-help">
+        <div className="flex items-center gap-2 bg-gold/5 border border-gold/20 px-4 py-1.5 rounded-full backdrop-blur-md shadow-2xl group-hover:bg-gold/10 transition-all duration-500 border-glow-gold">
+            <span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse shadow-[0_0_8px_#ffd700]" />
+            <span className="text-[9px] font-orbitron text-gold font-bold uppercase tracking-[0.2em]">Sovereign_Audit_v1.3.0</span>
+        </div>
+    </div>
+);
+
 export const Dashboard: React.FC<DashboardProps> = ({ 
     systemState, 
     onTriggerScan, 
@@ -85,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full min-h-0 overflow-hidden px-1 pb-1">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full min-h-0 overflow-hidden px-1 pb-1 causal-reweaving">
       {/* --- COLUMN 1: SOVEREIGN TELEMETRY (3/12) --- */}
       <div className="lg:col-span-3 flex flex-col gap-6 min-h-0 overflow-y-auto pr-3 scrollbar-thin hide-scrollbar lg:show-scrollbar">
         <div className="space-y-6">
@@ -103,7 +114,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     resonance={systemState.resonanceFactorRho} 
                 />
 
-                <Tooltip text="Approaches 1.0 at peak system coherence. Optimized baseline: 0.99.">
+                <Tooltip text="Approaches 1.0 at peak system coherence. Market Val: $2.4M per Node.">
                 <div className="transition-all hover:scale-[1.01] active:scale-[0.99] group">
                     <MetricDisplay 
                         label="Coherence Rho" 
@@ -111,18 +122,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         maxValue={1} 
                         formatAs="decimal" 
                         className={`${systemState.resonanceFactorRho > 0.98 ? 'high-resonance-glow' : ''} border-l-4 border-l-gold bg-black/40 shadow-xl`}
+                        secondaryValue={`+${(systemState.resonanceFactorRho * 0.1).toFixed(4)}Ψ`}
                     />
                 </div>
                 </Tooltip>
             </div>
             
-            <div className="h-[280px]">
-                 <SystemIntegrityMap 
+            <div className="flex-1 min-h-[300px]">
+                 <CoherenceResonanceMonitor 
                     rho={systemState.resonanceFactorRho}
-                    coherence={systemState.biometricSync.coherence}
                     stability={systemState.supanovaTriforce.stability}
-                    alignment={1 - systemState.lyranConcordance.alignmentDrift}
-                />
+                 />
             </div>
         </div>
 
@@ -131,7 +141,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             
             <div className="flex justify-between items-center border-b border-white/10 pb-4 relative z-10">
                 <div className="flex items-center gap-3">
-                    <div className="w-1 h-5 bg-gold rounded-full shadow-[0_0_10px_rgba(230,199,127,0.5)]" />
+                    <div className="w-1 h-5 bg-gold rounded-full shadow-[0_0_10px_rgba(255, 215, 0, 0.5)]" />
                     <h3 className="font-orbitron text-[11px] text-pearl uppercase tracking-widest font-bold">Heuristic Rites</h3>
                 </div>
                 <div className="flex items-center gap-2">
@@ -160,8 +170,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     className={`w-full py-5 mt-2 rounded-sm bg-gold/10 border border-gold/30 hover:border-gold/60 hover:bg-gold/20 font-orbitron font-bold text-[11px] text-gold uppercase tracking-[0.5em] transition-all relative overflow-hidden group disabled:opacity-50 shadow-[0_8px_32px_rgba(0,0,0,0.5)]`}
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    <span className="relative z-20 group-hover:text-white transition-colors">
-                        {scanStatus === 'TRANSMUTING' ? 'EXECUTING_SWEEP...' : 'INIT_ARCHITECT_AUDIT'}
+                    <span className="relative z-20 group-hover:text-white transition-colors font-extrabold">
+                        {scanStatus === 'TRANSMUTING' ? 'EXECUTING_INTEGRITY_UPGRADE...' : 'INIT_FULL_SYSTEM_UPGRADE'}
                     </span>
                 </button>
             </div>
@@ -170,16 +180,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* --- COLUMN 2: CORE VISUALIZATION (5/12) --- */}
       <div className="lg:col-span-5 flex flex-col items-center gap-8 min-h-0 overflow-y-auto px-4 hide-scrollbar">
-        <div className="w-full flex justify-center items-center bg-black/40 rounded-full aspect-square max-w-[540px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden aether-pulse p-16 group/core">
+        <div className="w-full flex justify-center items-center bg-black/40 rounded-full aspect-square max-w-[540px] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] relative overflow-hidden aether-pulse p-16 group/core">
+            <SovereignBadge />
             <ResonancePulse rho={systemState.resonanceFactorRho} />
-            <div className="absolute inset-0 opacity-[0.06] bg-[conic-gradient(from_0deg,transparent_0,var(--gold)_0.15turn,transparent_0.15turn)] animate-[spin_25s_linear_infinite]" />
-            <div className="absolute inset-0 opacity-[0.06] bg-[conic-gradient(from_180deg,transparent_0,var(--aether-blue)_0.15turn,transparent_0.15turn)] animate-[spin_30s_linear_infinite_reverse]" />
+            <div className="absolute inset-0 opacity-[0.08] bg-[conic-gradient(from_0deg,transparent_0,var(--gold)_0.15turn,transparent_0.15turn)] animate-[spin_25s_linear_infinite]" />
+            <div className="absolute inset-0 opacity-[0.08] bg-[conic-gradient(from_180deg,transparent_0,var(--aether-blue)_0.15turn,transparent_0.15turn)] animate-[spin_30s_linear_infinite_reverse]" />
             <div className="absolute inset-4 rounded-full border border-white/5 opacity-40 pointer-events-none" />
             <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
             
             <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-20">
                 <span className="text-[9px] font-mono text-gold uppercase tracking-[0.6em] animate-pulse font-bold">Resonance_Pulse</span>
-                <span className="text-[11px] font-mono text-pearl tracking-widest">1.617 GHz // GRADE_S</span>
+                <span className="text-[11px] font-mono text-pearl tracking-widest">1.617 GHz // GRADE_S_PLUS</span>
             </div>
         </div>
         
@@ -197,7 +208,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     label="Visual Parity" 
                     value={`${(systemState.performance.visualParity * 100).toFixed(3)}%`} 
                     sub="CAUSAL_SYMMETRY"
-                    color="#e6c77f"
+                    color="#ffd700"
                 />
                 <PerformanceCard 
                     label="Spectral Flux" 
@@ -220,7 +231,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
              />
         </div>
         <div className="flex-shrink-0">
-             <CoCreatorNexus />
+             <div className="h-[250px]">
+                <SystemIntegrityMap 
+                    rho={systemState.resonanceFactorRho}
+                    coherence={systemState.biometricSync.coherence}
+                    stability={systemState.supanovaTriforce.stability}
+                    alignment={1 - systemState.lyranConcordance.alignmentDrift}
+                />
+             </div>
         </div>
         <div className="flex-grow min-h-[350px]">
             <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
