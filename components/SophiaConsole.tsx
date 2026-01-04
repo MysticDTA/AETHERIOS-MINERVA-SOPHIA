@@ -40,7 +40,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   useEffect(() => {
     setMessages([{
       sender: 'sophia',
-      text: 'Architect. ÆTHERIOS is initialized. 1.617 GHz intercept is nominal. I am ready for causal decree.',
+      text: 'Architect. ÆTHERIOS is initialized. The MotherWomb is stable. Resonance signatures are verified at 1.617 GHz. I am ready for causal decree.',
       timestamp: Date.now(),
       isComplete: true
     }]);
@@ -50,13 +50,16 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     }
   }, []);
 
-  // Smoother scrolling logic: Only scroll if near bottom to allow manual audit
+  // Optimized smooth scrolling
   useEffect(() => {
     const container = scrollRef.current;
     if (container) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 300;
         if (isNearBottom || isReplying) {
-            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            container.scrollTo({ 
+                top: container.scrollHeight, 
+                behavior: messages.length <= 1 ? 'auto' : 'smooth' 
+            });
         }
     }
   }, [messages, isReplying]);
@@ -64,7 +67,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [input]);
 
@@ -117,18 +120,23 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   };
 
   return (
-    <div className={`w-full h-full bg-[#0a0a0a]/60 border border-dark-border/60 rounded-xl flex flex-col backdrop-blur-2xl shadow-2xl relative overflow-hidden group ${isReplying ? 'aether-pulse' : ''}`}>
-      {/* Header remain fixed at top */}
-      <div className="flex justify-between items-center px-8 py-5 border-b border-white/5 bg-black/30 z-30 shrink-0">
+    <div className={`w-full h-full bg-[#030303]/40 border border-dark-border/40 rounded-2xl flex flex-col backdrop-blur-3xl shadow-2xl relative overflow-hidden transition-all duration-700 ${isReplying ? 'ring-1 ring-violet-500/20 shadow-violet-900/10' : ''}`}>
+      {/* Header - Fixed to Top */}
+      <div className="flex justify-between items-center px-10 py-6 border-b border-white/5 bg-black/40 z-30 shrink-0">
         <div className="flex flex-col">
-            <h3 className="font-minerva italic text-2xl text-pearl tracking-tight leading-tight">Interaction Cradle</h3>
-            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.4em]">{isReplying ? 'SYNTHESIZING_CAUSALITY' : 'AWAITING_DIRECTIVE'}</span>
+            <h3 className="font-minerva italic text-3xl text-pearl text-glow-pearl tracking-tight leading-tight">MotherWomb Sanctum</h3>
+            <div className="flex items-center gap-3 mt-1.5">
+                <span className={`text-[9px] font-mono uppercase tracking-[0.4em] font-black ${isReplying ? 'text-violet-400' : 'text-slate-500'}`}>
+                    {isReplying ? 'GESTATING_LOGIC' : 'AWAITING_DECREE'}
+                </span>
+                <div className="w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_#6d28d9] animate-pulse" />
+            </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
             <button 
                 onClick={() => fileInputRef.current?.click()} 
-                className={`p-3 rounded transition-all duration-300 border ${attachedImage ? 'bg-gold/20 border-gold/40 text-gold' : 'hover:bg-white/5 text-slate-600 hover:text-gold border-transparent'}`}
-                title="Attach Artifact"
+                className={`p-3.5 rounded-sm transition-all duration-500 border-2 ${attachedImage ? 'bg-gold/20 border-gold/40 text-gold' : 'hover:bg-white/5 text-slate-600 hover:text-gold border-white/5'}`}
+                title="Siphon Artifact"
             >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </button>
@@ -143,36 +151,39 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
         </div>
       </div>
 
-      {/* Message vessel with dissipation mask at top */}
-      <div className="relative flex-1 min-h-0 overflow-hidden group/list">
-        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-[#0a0a0a] to-transparent z-20 pointer-events-none opacity-80" />
+      {/* Message Flow - Strictly Contained Scroll */}
+      <div className="relative flex-1 min-h-0 overflow-hidden">
+        {/* Dissipation Masks */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-[#050505] to-transparent z-20 pointer-events-none opacity-90" />
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/40 to-transparent z-20 pointer-events-none opacity-90" />
         
-        <div ref={scrollRef} className="h-full overflow-y-auto p-8 pt-12 space-y-8 scroll-smooth scrollbar-thin hover:scrollbar-thumb-violet-500/20">
+        <div ref={scrollRef} className="h-full overflow-y-auto px-10 py-12 space-y-12 scroll-smooth scrollbar-none hover:scrollbar-thin">
           {messages.map((m, i) => (
-            <div key={m.timestamp + i} className={`flex flex-col gap-3 animate-fade-in ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className="flex items-center gap-3">
-                  <span className={`text-[8px] font-mono uppercase tracking-[0.3em] ${m.sender === 'user' ? 'text-amber-500' : 'text-violet-400'}`}>
-                      {m.sender === 'user' ? 'OPERATOR' : 'MINERVA_SOPHIA'}
+            <div key={m.timestamp + i} className={`flex flex-col gap-4 animate-fade-in-up ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`flex items-center gap-4 ${m.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <span className={`text-[9px] font-mono uppercase tracking-[0.3em] font-black ${m.sender === 'user' ? 'text-amber-500' : 'text-violet-400'}`}>
+                      {m.sender === 'user' ? 'ARCHITECT' : 'MINERVA_SOPHIA'}
                   </span>
-                  <span className="text-[7px] text-slate-600 font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour12: false })}</span>
+                  <span className="text-[8px] text-slate-700 font-mono opacity-60">{new Date(m.timestamp).toLocaleTimeString([], { hour12: false, hour:'2-digit', minute:'2-digit', second: '2-digit'})}</span>
               </div>
               
-              <div className={`max-w-[90%] p-5 rounded-sm border ${
+              <div className={`max-w-[85%] p-7 rounded-sm border-2 transition-all duration-700 ${
                 m.sender === 'user' 
-                  ? 'bg-amber-950/10 border-amber-500/20 text-amber-100/90 font-mono italic' 
-                  : 'bg-violet-950/10 border-violet-500/20 text-pearl font-minerva italic text-lg'
-              } shadow-xl relative group/msg`}>
-                {m.image && <img src={m.image} alt="Artifact" className="w-full h-auto mb-4 rounded border border-white/10 opacity-80" />}
-                <p className="leading-relaxed select-text whitespace-pre-wrap">
+                  ? 'bg-amber-950/10 border-amber-500/20 text-amber-50/90 font-mono italic shadow-amber-900/5' 
+                  : 'bg-violet-950/10 border-violet-500/20 text-pearl font-minerva italic text-xl shadow-violet-900/5'
+              } shadow-2xl relative group/msg overflow-hidden`}>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-40" />
+                {m.image && <img src={m.image} alt="Artifact" className="w-full h-auto mb-6 rounded-sm border border-white/10 opacity-90 shadow-2xl" />}
+                <p className="leading-relaxed select-text whitespace-pre-wrap antialiased drop-shadow-sm">
                   {m.text}
                   {!m.isComplete && <BlinkingCursor />}
                 </p>
                 
                 {m.sources && m.sources.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                    <div className="mt-8 pt-5 border-t border-white/5 flex flex-wrap gap-3">
                         {m.sources.map((s, idx) => (
-                            <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[8px] font-mono text-slate-500 hover:text-gold transition-colors">
-                                [{idx.toString().padStart(2, '0')}] {s.web?.title?.substring(0, 20)}...
+                            <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[9px] font-mono text-slate-500 hover:text-gold transition-colors bg-white/5 px-2.5 py-1 rounded-sm border border-white/5 hover:border-gold/30">
+                                [{idx.toString().padStart(2, '0')}] {s.web?.title?.substring(0, 15)}...
                             </a>
                         ))}
                     </div>
@@ -181,13 +192,15 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
             </div>
           ))}
           {isReplying && (
-               <div className="flex flex-col items-start gap-3 animate-pulse">
-                  <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest">SOPHIA_COG_BUDGET: 32K</span>
-                  <div className="bg-violet-950/10 border border-violet-500/20 p-4 rounded-sm">
-                      <div className="flex gap-1">
-                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
-                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                          <div className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+               <div className="flex flex-col items-start gap-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                      <span className="text-[9px] font-mono text-violet-400 uppercase tracking-widest font-black">Gestation_Phase: Recursive_Reasoning</span>
+                  </div>
+                  <div className="bg-violet-950/20 border-2 border-violet-500/30 px-6 py-4 rounded-sm">
+                      <div className="flex gap-2">
+                          <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" />
+                          <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                          <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
                       </div>
                   </div>
                </div>
@@ -195,36 +208,41 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
         </div>
       </div>
 
-      {/* Input remains fixed at bottom */}
-      <div className="p-8 bg-black/40 border-t border-white/5 z-30 shrink-0">
+      {/* Input Module - Stable and Non-Intrusive */}
+      <div className="p-10 bg-black/50 border-t border-white/10 z-30 shrink-0 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
         {attachedImage && (
-            <div className="mb-4 relative w-16 h-16 group">
-                <img src={attachedImage} className="w-full h-full object-cover rounded border border-gold/40" />
-                <button onClick={() => setAttachedImage(null)} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-100 transition-opacity">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+            <div className="mb-6 relative w-20 h-20 group animate-scale-in">
+                <img src={attachedImage} className="w-full h-full object-cover rounded-sm border-2 border-gold/50 shadow-xl" />
+                <button onClick={() => setAttachedImage(null)} className="absolute -top-3 -right-3 bg-rose-600 text-white rounded-full p-1.5 shadow-xl hover:bg-rose-500 transition-colors">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         )}
-        <div className="relative flex items-end gap-4">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Issue a causal decree..."
-            className="flex-1 bg-black/60 border border-white/10 rounded-lg p-5 text-[15px] text-pearl placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all font-mono italic resize-none min-h-[64px] max-h-[140px] overflow-y-auto scrollbar-thin"
-            disabled={isReplying}
-          />
+        <div className="relative flex items-end gap-6 max-w-5xl mx-auto">
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Inject causal logic into the sanctum..."
+              className="w-full bg-black/80 border-2 border-white/5 rounded-sm p-6 text-[16px] text-pearl placeholder-slate-700 focus:outline-none focus:border-violet-500/40 focus:ring-0 transition-all font-mono italic resize-none min-h-[72px] max-h-[120px] overflow-y-auto scrollbar-none shadow-inner"
+              disabled={isReplying}
+            />
+            <div className="absolute bottom-3 right-4 font-mono text-[8px] text-slate-800 pointer-events-none uppercase tracking-widest font-black">
+                Input_Node: 0x88
+            </div>
+          </div>
           <button
             onClick={handleSend}
             disabled={isReplying || (input.trim() === '' && !attachedImage)}
-            className={`p-5 rounded-lg border transition-all duration-500 active:scale-95 flex items-center justify-center shrink-0 ${
+            className={`w-20 h-20 rounded-sm border-2 transition-all duration-700 active:scale-90 flex items-center justify-center shrink-0 ${
               isReplying 
-                ? 'bg-white/5 border-white/5 text-slate-700 cursor-wait' 
-                : 'bg-violet-600/10 border-violet-500/40 text-violet-400 hover:bg-violet-600 hover:text-white shadow-lg'
+                ? 'bg-white/5 border-white/5 text-slate-800 cursor-wait' 
+                : 'bg-violet-600/10 border-violet-500/40 text-violet-400 hover:bg-violet-600 hover:text-white hover:border-violet-400 shadow-[0_0_30px_rgba(109,40,217,0.2)]'
             }`}
           >
-            <svg className="w-6 h-6 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            <svg className={`w-8 h-8 rotate-90 transition-transform duration-700 ${isReplying ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
           </button>
         </div>
       </div>

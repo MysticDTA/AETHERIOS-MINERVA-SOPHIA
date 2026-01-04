@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dashboard } from './components/Dashboard';
-import { SystemState, OrbMode, OrbModeConfig, TransmissionState, LogType } from './types';
+import { SystemState, OrbMode, OrbModeConfig, TransmissionState, LogType, UserTier } from './types';
 import { AudioEngine } from './components/audio/AudioEngine';
 import { Layout } from './components/Layout';
 import { Header } from './components/Header';
@@ -38,7 +38,7 @@ import { SatelliteUplink } from './components/SatelliteUplink';
 import { DeploymentManifest } from './components/DeploymentManifest';
 import { EventLog } from './components/EventLog';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
-import { SYSTEM_NODES } from './Registry';
+import { SYSTEM_NODES, TIER_REGISTRY } from './Registry';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -56,6 +56,41 @@ const orbModes: OrbModeConfig[] = [
   { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation.' }
 ];
 
+const AscensionOverlay: React.FC<{ tier: UserTier; onComplete: () => void }> = ({ tier, onComplete }) => {
+    useEffect(() => {
+        const t = setTimeout(onComplete, 4000);
+        return () => clearTimeout(t);
+    }, [onComplete]);
+
+    const tierConfig = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
+
+    return (
+        <div className="fixed inset-0 z-[5000] bg-white animate-ascension-bloom flex flex-col items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-10 animate-fade-in delay-700">
+                <div className="w-px h-32 bg-black/20 animate-scale-y" />
+                <h2 className="font-orbitron text-black text-2xl tracking-[1em] font-black uppercase">Tier_Ascension</h2>
+                <div className="flex flex-col items-center">
+                    <span className="font-minerva italic text-6xl text-black/90">{tierConfig.label}</span>
+                    <p className="font-mono text-[10px] text-black/40 mt-4 tracking-widest uppercase">Resonance Signature Verified</p>
+                </div>
+                <div className="w-px h-32 bg-black/20 animate-scale-y-reverse" />
+            </div>
+            <style>{`
+                @keyframes ascension-bloom {
+                    0% { opacity: 0; background: black; }
+                    20% { opacity: 1; background: white; }
+                    80% { opacity: 1; background: white; }
+                    100% { opacity: 0; background: transparent; }
+                }
+                .animate-ascension-bloom { animation: ascension-bloom 4s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+                @keyframes scale-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+                .animate-scale-y { animation: scale-y 1s ease-out forwards; transform-origin: top; }
+                .animate-scale-y-reverse { animation: scale-y 1s ease-out forwards; transform-origin: bottom; }
+            `}</style>
+        </div>
+    );
+};
+
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
   const [scanCompleted, setScanCompleted] = useState(false);
@@ -67,12 +102,25 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isAscending, setIsAscending] = useState(false);
   const [logFilter, setLogFilter] = useState<LogType | 'ALL'>('ALL');
   
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
   
-  const { systemState, setSystemState, addLogEntry, setDiagnosticMode, setGrounded } = useSystemSimulation(simulationParams, orbMode);
+  const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
+
+  // Catch tier changes for the Ascension Protocol
+  const lastTierRef = useRef<UserTier>(systemState.userResources.sovereignTier);
+  useEffect(() => {
+      const currentTier = systemState.userResources.sovereignTier;
+      if (lastTierRef.current !== currentTier && isInitialized) {
+          setIsAscending(true);
+          audioEngine.current?.playAscensionChime();
+          addLogEntry(LogType.SYSTEM, `CAUSAL_ASCENSION: User promoted to ${currentTier} status.`);
+          lastTierRef.current = currentTier;
+      }
+  }, [systemState.userResources.sovereignTier, isInitialized, addLogEntry]);
 
   useEffect(() => {
     sophiaEngine.current = new SophiaEngineCore(systemInstruction);
@@ -186,6 +234,7 @@ const App: React.FC = () => {
             <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
           </ErrorBoundary>
         )}
+        {isAscending && <AscensionOverlay tier={systemState.userResources.sovereignTier} onComplete={() => setIsAscending(false)} />}
         <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
         <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
           <ErrorBoundary>{pageContent}</ErrorBoundary>

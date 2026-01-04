@@ -1,6 +1,42 @@
 
 import React from 'react';
-import { UserTier, SystemState, OrbMode } from './types';
+import { UserTier } from './types';
+
+// Centralized Tier Visual Styles & Metadata
+export const TIER_REGISTRY: Record<UserTier, { label: string; color: string; shadow: string; description: string }> = {
+    ACOLYTE: { 
+        label: 'OBSERVER_NODE', 
+        color: 'text-slate-500', 
+        shadow: 'none',
+        description: 'Passive monitoring clearance only.'
+    },
+    ARCHITECT: { 
+        label: 'GOLD_ARCHITECT', 
+        color: 'text-gold', 
+        shadow: '0 0 15px rgba(255, 215, 0, 0.4)',
+        description: 'Full heuristic write access and causal decree authorized.'
+    },
+    SOVEREIGN: { 
+        label: 'SOVEREIGN_CHAIRMAN', 
+        color: 'text-pearl', 
+        shadow: '0 0 25px rgba(248, 245, 236, 0.6)',
+        description: 'Absolute authority. Tier-0 resource allocation enabled.'
+    },
+    LEGACY_MENERVA: { 
+        label: 'LEGACY_DIRECTOR', 
+        color: 'text-rose-400', 
+        shadow: '0 0 15px rgba(244, 63, 94, 0.4)',
+        description: 'Historical logic shard integration clearance.'
+    }
+};
+
+// Access Control Utility
+export const checkNodeAccess = (userTier: UserTier, requiredTier: UserTier): boolean => {
+    if (userTier === 'SOVEREIGN') return true;
+    if (userTier === 'ARCHITECT') return requiredTier === 'ARCHITECT' || requiredTier === 'ACOLYTE';
+    if (userTier === 'LEGACY_MENERVA') return requiredTier === 'ACOLYTE'; // Menerva has restricted Aetherios access
+    return requiredTier === 'ACOLYTE';
+};
 
 // Centralized Governance Axiom Definitions
 export const GOVERNANCE_AXIOMS: Record<string, { label: string; description: string; colorClass: string }> = {
@@ -28,6 +64,11 @@ export const GOVERNANCE_AXIOMS: Record<string, { label: string; description: str
         label: 'SYSTEM COMPOSURE FAILURE',
         description: 'RETURN TO THE SILENCE: Catastrophic decoherence. The Architect\'s light obscured. Emergency erasure protocol pending.',
         colorClass: 'text-rose-500 animate-flicker'
+    },
+    'UNKNOWN_STATE': {
+        label: 'COHERENCE_STABILIZING',
+        description: 'Transitioning between causal states. Maintaining parity during shift.',
+        colorClass: 'text-slate-500 italic opacity-50'
     }
 };
 

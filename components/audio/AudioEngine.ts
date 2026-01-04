@@ -1,3 +1,4 @@
+
 import { soundMap } from '../sounds';
 import { SystemState } from '../../types';
 
@@ -118,7 +119,7 @@ export class AudioEngine {
 
     const gainNode = this.audioContext.createGain();
     gainNode.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(volume, this.audioContext.currentTime + 0.1); // Smoother attack
+    gainNode.gain.exponentialRampToValueAtTime(volume, this.audioContext.currentTime + 0.1); 
     
     gainNode.connect(this.masterGainNode);
 
@@ -147,6 +148,11 @@ export class AudioEngine {
   public playUIConfirm(): void {
     this.playSound('ui_confirm', false, 0.5);
   }
+
+  public playAscensionChime(): void {
+      this.playSound('ui_chime_resonance', false, 1.0, 0.5);
+      this.playSound('synthesis', false, 0.4, 2.0);
+  }
   
   public playPurgeEffect(): void {
     this.playSound('ui_purge_flow', false, 0.6);
@@ -174,7 +180,7 @@ export class AudioEngine {
     
     let soundName: SoundName | null = null;
     switch (mode) {
-      case 'CRADLE OF PRESENCE':
+      case 'CRADE OF PRESENCE':
       case 'SOVEREIGN EMBODIMENT':
         soundName = 'synthesis';
         break;

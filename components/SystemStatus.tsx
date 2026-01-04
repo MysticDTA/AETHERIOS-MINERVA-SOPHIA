@@ -10,11 +10,8 @@ interface SystemStatusProps {
 }
 
 export const SystemStatus: React.FC<SystemStatusProps> = React.memo(({ mode, lesions, isHeaderVersion = false }) => {
-    const axiomConfig = GOVERNANCE_AXIOMS[mode] || {
-        label: mode,
-        description: "Current operational state of the ÆTHERIOS system.",
-        colorClass: 'text-pearl'
-    };
+    // Recommendation 3: Use robust lookup with high-parity fallback
+    const axiomConfig = GOVERNANCE_AXIOMS[mode] || GOVERNANCE_AXIOMS['UNKNOWN_STATE'];
 
     const baseClass = "w-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-aether backdrop-blur-sm";
     const textAlignment = isHeaderVersion ? 'md:text-right' : 'text-center';
@@ -34,6 +31,12 @@ export const SystemStatus: React.FC<SystemStatusProps> = React.memo(({ mode, les
             )}
             <style>{`
                 .border-glow-aether { border-color: rgba(109, 40, 217, 0.2); }
+                .animate-flicker { animation: flicker 0.15s infinite; }
+                @keyframes flicker {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.8; }
+                    100% { opacity: 1; }
+                }
             `}</style>
         </div>
     );

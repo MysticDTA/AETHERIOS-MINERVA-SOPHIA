@@ -34,7 +34,7 @@ export const Display11: React.FC<Display11Props> = ({ systemState }) => {
              <div className="flex items-center gap-6">
                  <div className="w-1 h-10 bg-gold rounded-full shadow-[0_0_12px_gold]" />
                  <p className="text-[14px] font-minerva italic text-pearl/70 leading-relaxed">
-                    "Operator Note: High temporal drift (>0.05) indicates potential timeline divergence. Initialize a Causal Audit to resync local chronons with the prime reality matrix."
+                    "Operator Note: High temporal drift (&gt;0.05) indicates potential timeline divergence. Initialize a Causal Audit to resync local chronons with the prime reality matrix."
                  </p>
              </div>
          </div>

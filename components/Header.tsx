@@ -3,7 +3,7 @@ import React from 'react';
 import { UserTier, CommsStatus } from '../types';
 import { SystemStatus } from './SystemStatus';
 import { AudioEngine } from './audio/AudioEngine';
-import { SYSTEM_NODES } from '../Registry';
+import { SYSTEM_NODES, TIER_REGISTRY, checkNodeAccess } from '../Registry';
 
 interface HeaderProps {
     governanceAxiom: string;
@@ -16,46 +16,41 @@ interface HeaderProps {
     transmissionStatus?: CommsStatus;
 }
 
-const TIER_CONFIG: Record<UserTier, { label: string; color: string; shadow: string }> = {
-    ACOLYTE: { label: 'OBSERVER_NODE', color: 'text-slate-500', shadow: 'none' },
-    ARCHITECT: { label: 'GOLD_ARCHITECT', color: 'text-gold', shadow: '0 0 15px rgba(255, 215, 0, 0.4)' },
-    SOVEREIGN: { label: 'SOVEREIGN_CHAIRMAN', color: 'text-pearl', shadow: '0 0 25px rgba(248, 245, 236, 0.6)' },
-    LEGACY_MENERVA: { label: 'LEGACY_DIRECTOR', color: 'text-rose-400', shadow: '0 0 15px rgba(244, 63, 94, 0.4)' }
+const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
+    const config = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
+    const isHighTier = tier === 'ARCHITECT' || tier === 'SOVEREIGN';
+
+    return (
+        <button 
+            onClick={onClick}
+            className={`w-14 h-14 rounded-sm border-2 flex items-center justify-center transition-all duration-700 hover:scale-110 group relative ${
+                tier === 'ACOLYTE' ? 'border-slate-800 bg-slate-900/50' : 
+                tier === 'ARCHITECT' ? 'border-gold bg-gold/5 shadow-[0_0_20px_rgba(255,215,0,0.15)]' : 
+                tier === 'SOVEREIGN' ? 'border-pearl bg-pearl/5 shadow-[0_0_30px_rgba(248,245,236,0.2)]' :
+                'border-rose-400 bg-rose-400/5 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+            }`}
+        >
+            <svg className={`w-7 h-7 ${tier === 'ACOLYTE' ? 'text-slate-600' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-dark-bg ${
+                !isHighTier ? 'bg-slate-700' : 'bg-gold animate-pulse shadow-[0_0_12px_rgba(255,215,0,0.9)]'
+            }`} />
+        </button>
+    );
 };
 
-const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => (
-    <button 
-        onClick={onClick}
-        className={`w-14 h-14 rounded-sm border-2 flex items-center justify-center transition-all duration-700 hover:scale-110 group relative ${
-            tier === 'ACOLYTE' ? 'border-slate-800 bg-slate-900/50' : 
-            tier === 'ARCHITECT' ? 'border-gold bg-gold/5 shadow-[0_0_20px_rgba(255,215,0,0.15)]' : 'border-pearl bg-pearl/5 shadow-[0_0_30px_rgba(248,245,236,0.2)]'
-        }`}
-    >
-        <svg className={`w-7 h-7 ${tier === 'ACOLYTE' ? 'text-slate-600' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-dark-bg ${
-            tier === 'ACOLYTE' ? 'bg-slate-700' : 'bg-gold animate-pulse shadow-[0_0_12px_rgba(255,215,0,0.9)]'
-        }`} />
-    </button>
-);
-
 export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
-    const activeTier = TIER_CONFIG[userTier] || TIER_CONFIG['ACOLYTE'];
-
-    const canUserAccess = (requiredTier: UserTier) => {
-        if (userTier === 'SOVEREIGN') return true;
-        if (userTier === 'ARCHITECT') return requiredTier === 'ARCHITECT' || requiredTier === 'ACOLYTE';
-        return requiredTier === 'ACOLYTE';
-    };
+    const activeTier = TIER_REGISTRY[userTier] || TIER_REGISTRY['ACOLYTE'];
 
     const handlePageChange = (pageId: number, requiredTier: UserTier) => {
-        if (canUserAccess(requiredTier)) {
+        if (checkNodeAccess(userTier, requiredTier)) {
             if (pageId !== currentPage) {
                 audioEngine?.playHighResonanceChime();
                 onPageChange(pageId);
             }
         } else {
+            // Provide auditory feedback for rejected access
             audioEngine?.playEffect('renewal'); 
         }
     }
@@ -79,7 +74,8 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
 
                 <nav className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 pr-6">
                     {SYSTEM_NODES.map(node => {
-                        const disabled = !canUserAccess(node.requiredTier);
+                        const hasAccess = checkNodeAccess(userTier, node.requiredTier);
+                        const disabled = !hasAccess;
                         const isSpecialNode = node.isAudit || node.isShield || node.isLogs;
                         const commsAlert = (node.id === 7) && isTransmissionActive;
 

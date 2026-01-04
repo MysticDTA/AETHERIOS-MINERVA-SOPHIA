@@ -69,6 +69,19 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
         setHandshakeStep(1);
     };
 
+    // Simulated ascension for demo purposes
+    const handleSimulateAscension = (id: UserTier) => {
+        addLogEntry(LogType.SYSTEM, `DEBUG_DIRECTIVE: Manual tier override to ${id} authorized.`);
+        setSystemState(prev => ({
+            ...prev,
+            userResources: {
+                ...prev.userResources,
+                sovereignTier: id,
+                cradleTokens: prev.userResources.cradleTokens + 5000
+            }
+        }));
+    };
+
     const handleFinalizePayment = async () => {
         setHandshakeStep(2);
         const tierMatch = TIER_CARDS.find(t => t.id === procuringId);
@@ -184,14 +197,24 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                                             </div>
                                         ))}
                                     </div>
-                                    <button 
-                                        onClick={() => handleInitializePayment(tier.id)}
-                                        disabled={isActive || procuringId !== null}
-                                        className={`w-full py-5 rounded-sm font-orbitron text-[11px] font-black uppercase tracking-[0.6em] transition-all border-2 relative overflow-hidden group/btn active:scale-95 ${isActive ? 'bg-white/10 border-white/20 text-slate-500 cursor-not-allowed' : 'bg-gold text-dark-bg border-gold hover:bg-white hover:border-white shadow-[0_0_40px_rgba(255,215,0,0.3)]'}`}
-                                    >
-                                        <div className="absolute inset-0 bg-white/40 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                        <span className="relative z-10">{isActive ? 'VAULT_ACTIVE' : 'Liquidate_Capital'}</span>
-                                    </button>
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={() => handleInitializePayment(tier.id)}
+                                            disabled={isActive || procuringId !== null}
+                                            className={`w-full py-5 rounded-sm font-orbitron text-[11px] font-black uppercase tracking-[0.6em] transition-all border-2 relative overflow-hidden group/btn active:scale-95 ${isActive ? 'bg-white/10 border-white/20 text-slate-500 cursor-not-allowed' : 'bg-gold text-dark-bg border-gold hover:bg-white hover:border-white shadow-[0_0_40px_rgba(255,215,0,0.3)]'}`}
+                                        >
+                                            <div className="absolute inset-0 bg-white/40 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                                            <span className="relative z-10">{isActive ? 'VAULT_ACTIVE' : 'Liquidate_Capital'}</span>
+                                        </button>
+                                        {!isActive && (
+                                            <button 
+                                                onClick={() => handleSimulateAscension(tier.id as UserTier)}
+                                                className="text-[8px] font-mono text-slate-700 hover:text-gold uppercase tracking-widest transition-colors mt-1"
+                                            >
+                                                [Bypass_Wait] :: Simulate_Ascension
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}
