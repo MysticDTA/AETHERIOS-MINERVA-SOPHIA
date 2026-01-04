@@ -68,16 +68,23 @@ class CosmosCommsService {
         if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
 
         // PRODUCTION OPTIMIZATION: Default to 15-minute cycles for background telemetry
-        const baseDelay = isError ? 300000 * Math.pow(2, this.retryCount) : 900000; 
-        const jitter = Math.random() * 60000;
+        const baseDelay = isError ? 30000 * Math.pow(2, this.retryCount) : 900000; 
+        const jitter = Math.random() * 30000;
         const delay = Math.min(baseDelay + jitter, 3600000); // Cap at 1 hour
 
         this.nextMessageTimeout = window.setTimeout(() => this.beginTransmission(), delay);
     }
 
     private async beginTransmission() {
-        if (this.isFetching) return;
+        if (this.isFetching || !this.isRunning) return;
         
+        // AUDIT CHECK: Verify API key availability before proceeding
+        if (!process.env.API_KEY) {
+            console.warn("[AUDIT] Grounding Link: API key not yet injected. Retrying in synchronized cycle...");
+            this.scheduleNextTransmission(true);
+            return;
+        }
+
         this.isFetching = true;
         this.currentState = {
             ...this.currentState,
@@ -91,7 +98,6 @@ class CosmosCommsService {
         this.emit();
 
         try {
-            if (!process.env.API_KEY) throw new Error("No API Key configured");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
             const prompt = `
@@ -101,8 +107,6 @@ class CosmosCommsService {
                 Return JSON: {"source": "Observatory/Satellite Name", "text": "Technical summary with real units like km/s, nT, or MeV", "metric": "Key value like Kp-Index"}
             `;
             
-            // INTELLECTUAL OPTIMIZATION: Switched to Flash model for lightweight background telemetry 
-            // to preserve Pro-tier quota for the primary Causal Engine.
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview', 
                 contents: prompt,
@@ -137,16 +141,15 @@ class CosmosCommsService {
             this.startDecoding(); 
 
         } catch (error: any) {
-            console.error("Grounding Link Failure:", error);
+            console.error("Grounding Link Parity Error:", error);
             this.isFetching = false;
             
             let statusMsg: CommsStatus = 'SIGNAL LOST';
             if (error?.status === 'RESOURCE_EXHAUSTED' || error?.message?.includes('429')) {
-                statusMsg = 'SIGNAL LOST';
-                this.currentState.message = "Grounding link quota exhausted. Causal Damping in effect. Re-synchronizing after field stabilization (5m+)...";
+                this.currentState.message = "Grounding link quota exhausted. Causal Damping in effect. Re-synchronizing after field stabilization...";
                 this.retryCount++;
             } else {
-                this.currentState.message = "Grounding link to NASA/NOAA data stream interrupted. Re-establishing parity...";
+                this.currentState.message = "Grounding link desynchronized. Re-establishing carrier wave...";
             }
 
             this.currentState.source = "SYSTEM_ERROR";

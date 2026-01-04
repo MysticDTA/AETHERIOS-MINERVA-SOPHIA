@@ -62,7 +62,7 @@ const orbModes: OrbModeConfig[] = [
 ];
 
 // Sequence for page cycling
-const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 22];
+const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 22];
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
@@ -102,7 +102,6 @@ const App: React.FC = () => {
 
   const handleComponentError = useCallback((error: Error, errorInfo: React.ErrorInfo) => {
     addLogEntry(LogType.CRITICAL, `[COMPONENT_CRASH] ${error.message}`);
-    // Potentially log to an external service here
     console.error("Sophia Component Error:", error, errorInfo);
   }, [addLogEntry]);
 
@@ -151,12 +150,18 @@ const App: React.FC = () => {
     audioEngine.current.loadSounds().then(() => setIsAudioReady(true));
     
     const unsubscribeComms = cosmosCommsService.subscribe(setTransmission);
-    cosmosCommsService.start();
     
     return () => { 
         unsubscribeComms(); 
         cosmosCommsService.stop();
     };
+  }, []);
+
+  const handleInitializeNode = useCallback(() => {
+      audioEngine.current?.playHighResonanceChime(); 
+      setIsInitialized(true); 
+      // [AUDIT] Only start background telemetry after initialization
+      cosmosCommsService.start();
   }, []);
 
   const handleTriggerScan = useCallback(async () => {
@@ -306,10 +311,7 @@ const App: React.FC = () => {
 
   const appContent = !isInitialized ? (
     <ErrorBoundary onError={handleComponentError}>
-      <SovereignPortal onInitialize={() => { 
-          audioEngine.current?.playHighResonanceChime(); 
-          setIsInitialized(true); 
-      }} />
+      <SovereignPortal onInitialize={handleInitializeNode} />
     </ErrorBoundary>
   ) : (
     <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho}>

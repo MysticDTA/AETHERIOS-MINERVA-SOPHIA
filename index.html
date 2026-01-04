@@ -20,7 +20,7 @@
         --aether-violet: #4c1d95;
         --dark-bg: #020202;
         --dark-surface: #080808;
-        --dark-border: #1a1a1a;
+        --dark-border: rgba(255, 255, 255, 0.08);
       }
 
       * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,11 +41,17 @@
       .font-minerva { font-family: 'Playfair Display', serif; }
       .font-mono { font-family: 'JetBrains Mono', monospace; }
       
+      /* Smooth Scrolling and Custom Scrollbar */
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.1); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 215, 0, 0.3); }
+
       .causal-reweaving {
         animation: reweaving 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
       }
       @keyframes reweaving {
-        0% { filter: blur(20px) brightness(2); transform: scale(0.95); opacity: 0; }
+        0% { filter: blur(20px) brightness(2); transform: scale(0.98); opacity: 0; }
         100% { filter: blur(0) brightness(1); transform: scale(1); opacity: 1; }
       }
 
@@ -53,8 +59,8 @@
         animation: aether-pulse-glow 8s ease-in-out infinite;
       }
       @keyframes aether-pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(109, 40, 217, 0.1); }
-        50% { box-shadow: 0 0 45px rgba(109, 40, 217, 0.25); }
+        0%, 100% { box-shadow: 0 0 20px rgba(109, 40, 217, 0.05); }
+        50% { box-shadow: 0 0 45px rgba(109, 40, 217, 0.15); }
       }
 
       .scanline-overlay {
@@ -62,9 +68,21 @@
         top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none;
         z-index: 1000;
-        background: linear-gradient(0deg, transparent 50%, rgba(255, 255, 255, 0.01) 50%);
-        background-size: 100% 3px;
-        opacity: 0.15;
+        background: linear-gradient(0deg, transparent 50%, rgba(255, 255, 255, 0.005) 50%);
+        background-size: 100% 4px;
+        opacity: 0.1;
+      }
+
+      /* Glassmorphism Classes */
+      .glass-panel {
+        background: rgba(8, 8, 8, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--dark-border);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .glass-panel:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(8, 8, 8, 0.7);
       }
     </style>
     <script type="importmap">

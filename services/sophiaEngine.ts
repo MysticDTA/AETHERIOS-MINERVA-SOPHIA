@@ -56,9 +56,7 @@ export class SophiaEngineCore {
     this.systemInstruction = MINERVA_SOPHIA_SYSTEM_PROMPT + "\n" + systemInstruction;
   }
 
-  private getChatSession(): Chat | null {
-    if (this.chat) return this.chat;
-    
+  private getFreshChatSession(): Chat | null {
     const apiKey = process.env.API_KEY;
     if (!apiKey) return null;
 
@@ -68,7 +66,6 @@ export class SophiaEngineCore {
           model: 'gemini-3-pro-preview',
           config: {
             systemInstruction: this.systemInstruction,
-            // FIX: Removed googleSearch from chat tools to comply with "Only tools: googleSearch is permitted" grounding rule when other tools are present.
             tools: [
                 { functionDeclarations: [initiateAuditDeclaration] }
             ],
@@ -183,7 +180,8 @@ export class SophiaEngineCore {
           }
           onSources(aggregatedSources);
       } else {
-          const activeChat = this.getChatSession();
+          // Always refresh chat session to ensure it uses the latest API key context
+          const activeChat = this.chat || this.getFreshChatSession();
           if (!activeChat) throw new Error("Chat initialization failure");
           
           const stream = await activeChat.sendMessageStream({ message: fullPrompt });
@@ -218,20 +216,22 @@ export class SophiaEngineCore {
     try {
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `
-        Execute a Real-Time Coherence Resonance Audit.
-        Current State: ${JSON.stringify({
+        Execute a Sovereign Causal Analysis on the ÆTHERIOS lattice.
+        Current State Telemetry: ${JSON.stringify({
             rho: systemState.resonanceFactorRho,
             health: systemState.quantumHealing.health,
             drift: systemState.temporalCoherenceDrift,
-            performance: systemState.performance
+            performance: systemState.performance,
+            coherence: systemState.coherenceResonance.score
         })}.
         
-        REQUIRED SECTIONS (Use HTML <h3>):
-        1. Resonant Symmetry Report: Technical summary of current parity.
-        2. Entropy Flux Vectors: Identify sources of decoherence.
-        3. Strategic Directives: Specific heuristic maneuvers for the Architect.
+        REQUIRED ARCHITECTURAL SECTIONS (Use HTML <h3> tags):
+        1. System Coherence Summary: Provide a technical, high-level summary of the current resonance state.
+        2. Entropic Anomaly Vectors: Identify specific areas of decoherence or data drift.
+        3. Strategic Actionable Recommendations: Detail three specific heuristic protocols the Architect should execute immediately to restore or optimize parity.
         
-        Leverage your 32k thinking budget for deep architectural reasoning.
+        Format as semantically structured HTML. Tone: Authoritative, Intellectual, Esoteric.
+        Leverage your 32,768 token thinking budget for extreme depth.
       `;
       const response = await ai.models.generateContentStream({
           model: 'gemini-3-pro-preview',
@@ -287,7 +287,6 @@ export class SophiaEngineCore {
     } catch (e) { return null; }
   }
 
-  // FIX: Added missing getComplexStrategy method to satisfy the useSophiaCore hook requirements.
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy | null> {
     const apiKey = process.env.API_KEY;
     if (!apiKey) return null;

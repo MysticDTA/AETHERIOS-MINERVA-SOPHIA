@@ -13,20 +13,28 @@ const SCAN_STEPS = [
     { id: 'sovereign', label: 'Validating Radiant Sovereignty' }
 ];
 
-const HeuristicGrid: React.FC = () => {
-    const [bits, setBits] = useState<string[]>(new Array(32).fill('0'));
+const SynapticLogicTrace: React.FC = () => {
+    const [streams, setStreams] = useState<{ id: number; bits: string; opacity: number }[]>([]);
+    
     useEffect(() => {
         const interval = setInterval(() => {
-            setBits(prev => prev.map(() => Math.random() > 0.5 ? '1' : '0'));
-        }, 1500);
+            const newStream = {
+                id: Date.now(),
+                bits: Array.from({length: 12}).map(() => Math.random() > 0.5 ? '1' : '0').join(''),
+                opacity: 1
+            };
+            setStreams(prev => [newStream, ...prev].slice(0, 10));
+        }, 300);
         return () => clearInterval(interval);
     }, []);
 
     return (
-        <div className="grid grid-cols-8 gap-1.5 p-4 bg-black/40 rounded border border-white/5 font-mono text-[8px] text-cyan-400/40 h-12 mb-8 overflow-hidden select-none shadow-inner">
-            {bits.map((bit, i) => (
-                <div key={i} className={`flex items-center justify-center transition-all duration-1000 ${bit === '1' ? 'opacity-100 text-pearl scale-110' : 'opacity-20 scale-90'}`}>
-                    {bit}
+        <div className="flex flex-col gap-1 font-mono text-[8px] text-cyan-400/40 h-24 mb-10 overflow-hidden select-none italic">
+            {streams.map((s, i) => (
+                <div key={s.id} className="transition-all duration-1000 flex gap-4" style={{ opacity: 1 - (i / 10) }}>
+                    <span className="text-slate-700">0x{(s.id % 0xFFFF).toString(16).padStart(4, '0')}</span>
+                    <span className="tracking-[0.5em]">{s.bits}</span>
+                    <span className="text-gold/30">REASONING_PATH_TRACE_ACTIVE</span>
                 </div>
             ))}
         </div>
@@ -63,26 +71,35 @@ const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) =>
     if (parsedContent.length === 0) return null;
 
     return (
-        <div className="space-y-6 animate-fade-in py-2">
+        <div className="space-y-12 animate-fade-in py-6">
             {parsedContent.map(section => (
-                <div key={section.id} className="bg-white/[0.01] border border-white/[0.04] rounded-sm overflow-hidden hover:border-white/[0.12] transition-all duration-700 group shadow-lg">
-                    <div className="bg-white/[0.04] px-4 py-2 border-b border-white/[0.06] flex justify-between items-center">
-                        <h3 className="font-orbitron text-[9px] text-pearl/90 uppercase tracking-[0.3em] font-bold">
-                            {section.title.includes('Recommendations') ? '🛠 ' : '🔍 '}
+                <div key={section.id} className="bg-white/[0.01] border border-white/[0.05] rounded-sm overflow-hidden hover:border-white/[0.1] transition-all duration-1000 group">
+                    <div className="bg-white/[0.02] px-8 py-4 border-b border-white/[0.04] flex justify-between items-center">
+                        <h3 className="font-orbitron text-[9px] text-gold uppercase tracking-[0.4em] font-black flex items-center gap-4">
+                            <span className="w-1 h-4 bg-gold rounded-full shadow-[0_0_10px_#ffd700]" />
                             {section.title}
                         </h3>
-                        <div className="flex gap-1.5">
-                            <span className={`w-1 h-1 rounded-full group-hover:scale-125 transition-transform ${section.title.includes('Recommendations') ? 'bg-gold' : 'bg-pearl/30'}`} />
+                        <div className="flex gap-1">
+                             <div className="w-0.5 h-3 bg-white/10" />
+                             <div className="w-0.5 h-3 bg-white/10" />
                         </div>
                     </div>
-                    <div className="p-4">
-                        {section.type === 'p' && <p className="text-[13px] text-warm-grey/90 leading-relaxed font-minerva italic opacity-95 antialiased select-text">{section.paragraph}</p>}
-                        {section.type === 'ul' && (
-                            <ul className="space-y-3">
+                    <div className="p-8">
+                        {section.type === 'p' && (
+                            <p className="text-[15px] text-pearl/80 leading-relaxed font-minerva italic select-text antialiased">
+                                {section.paragraph}
+                            </p>
+                        )}
+                        {(section.type === 'ul' || section.type === 'ol') && (
+                            <ul className="space-y-6">
                                 {section.listItems.map((item, i) => (
-                                    <li key={i} className="text-[11px] text-slate-300 flex items-start gap-4 font-mono leading-relaxed group/item select-text">
-                                        <span className={`mt-1 text-[7px] shrink-0 transition-colors ${section.title.includes('Recommendations') ? 'text-gold' : 'text-gold/50 group-hover/item:text-gold'}`}>▶</span>
-                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity">{item}</span>
+                                    <li key={i} className="text-[13px] text-slate-300 flex items-start gap-6 font-mono leading-relaxed group/item select-text">
+                                        <span className="mt-1 text-[8px] text-slate-600 font-bold tracking-tighter opacity-40 group-hover/item:opacity-100 transition-opacity">
+                                            ({(i + 1).toString().padStart(2, '0')})
+                                        </span>
+                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity border-l border-white/5 pl-6 py-0.5">
+                                            {item}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
@@ -101,15 +118,14 @@ interface SystemAnalysisProps {
 }
 
 export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sophiaEngine, setOrbMode }) => {
-  const { analysis, sources, prediction, isLoading, isPredicting, error, runAnalysis, runPrediction } = useSophiaCore(sophiaEngine, systemState);
+  const { analysis, isLoading, isPredicting, prediction, error, runAnalysis } = useSophiaCore(sophiaEngine, systemState);
   const [activeStep, setActiveStep] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const wasBusy = useRef(false);
 
   useEffect(() => {
     if (isLoading && scrollContainerRef.current) {
         const container = scrollContainerRef.current;
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
         if (isNearBottom) {
             container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
         }
@@ -118,118 +134,95 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
 
   useEffect(() => {
     if (isLoading && !analysis) {
-        const interval = setInterval(() => setActiveStep(prev => (prev + 1) % SCAN_STEPS.length), 2200);
+        const interval = setInterval(() => setActiveStep(prev => (prev + 1) % SCAN_STEPS.length), 1500);
         return () => clearInterval(interval);
     }
   }, [isLoading, analysis]);
 
-  useEffect(() => {
-      if (isLoading) {
-          wasBusy.current = true;
-          if (!analysis && setOrbMode) setOrbMode('ANALYSIS');
-          else if (setOrbMode) setOrbMode('SYNTHESIS');
-      } else if (wasBusy.current && setOrbMode) {
-          wasBusy.current = false;
-          setOrbMode('STANDBY');
-      }
-  }, [isLoading, analysis, setOrbMode]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-        if (!isLoading && !isPredicting && sophiaEngine) {
-            runPrediction();
-        }
-    }, 180000); 
-    return () => clearInterval(interval);
-  }, [isLoading, isPredicting, sophiaEngine, runPrediction]);
-
   return (
-    <div className="w-full h-full bg-[#0a0a0a]/70 border border-white/[0.08] rounded-xl flex flex-col overflow-hidden relative group transition-all duration-700 shadow-2xl backdrop-blur-3xl">
-      <div className="flex justify-between items-center px-6 py-5 flex-shrink-0 border-b border-white/[0.05] bg-black/40 z-20">
-        <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-                <h3 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-[0.4em] font-bold">Heuristic Audit Terminal</h3>
-                <div className={`text-[8px] font-mono px-2 py-0.5 rounded-sm border tracking-[0.2em] ${isLoading ? 'border-gold/50 text-gold animate-pulse' : 'border-pearl/10 text-slate-600'}`}>
-                    {isLoading ? 'PROCESS_BUSY' : 'SYS_READY'}
+    <div className="w-full h-full glass-panel rounded-2xl flex flex-col overflow-hidden relative group transition-all duration-1000 shadow-2xl">
+      {/* HEADER SECTION */}
+      <div className="flex justify-between items-center px-10 py-8 flex-shrink-0 border-b border-white/[0.05] bg-black/20 z-20">
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-5">
+                <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.6em] font-black">Heuristic Audit</h3>
+                <div className={`text-[8px] font-mono px-3 py-1 rounded-full border tracking-[0.3em] font-black transition-all ${isLoading ? 'border-gold text-gold animate-pulse' : 'border-pearl/10 text-slate-700'}`}>
+                    {isLoading ? 'EXECUTING_32K_REASONING' : 'NODE_STABLE'}
                 </div>
             </div>
-            <div className="flex items-center gap-2 mt-1.5">
-                <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-cyan-500 transition-all duration-1000" style={{ width: `${systemState.resonanceFactorRho * 100}%` }} />
+            <div className="flex items-center gap-4">
+                <div className="w-32 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-400/60 transition-all duration-1000" style={{ width: `${systemState.resonanceFactorRho * 100}%` }} />
                 </div>
-                <span className="text-[7px] font-mono text-cyan-400 uppercase">Rho_Sync: {systemState.resonanceFactorRho.toFixed(5)}</span>
+                <span className="text-[8px] font-mono text-cyan-400/60 uppercase font-black tracking-widest">Resonance: {(systemState.resonanceFactorRho * 100).toFixed(2)}%</span>
             </div>
-        </div>
-        <div className="flex items-center gap-3">
-             <span className="text-[7px] font-mono text-slate-500 uppercase">1.617 GHz Intercept</span>
-             <div className={`w-2 h-2 rounded-full transition-all duration-500 ${systemState.resonanceFactorRho > 0.9 ? 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]' : 'bg-slate-700'}`} />
         </div>
       </div>
 
+      {/* RESULTS AREA */}
       <div 
         ref={scrollContainerRef} 
-        className="flex-grow min-h-0 overflow-y-auto px-6 py-5 relative z-10 clear-scrolling-window select-text scrollbar-thin"
+        className="flex-grow min-h-0 overflow-y-auto px-10 py-8 relative z-10 select-text scrollbar-thin flex flex-col"
       >
         {error && (
-            <div className="mb-4 bg-rose-950/20 border border-rose-500/40 p-3 rounded text-[10px] text-rose-300 font-mono">
-                [SYSTEM_ERROR] {error}
+            <div className="mb-8 bg-rose-950/10 border border-rose-500/30 p-5 rounded-sm text-[11px] text-rose-300 font-mono flex items-center gap-5 animate-pulse">
+                <span className="text-xl">!</span>
+                <p>[CAUSAL_ERROR] {error}</p>
             </div>
         )}
 
-        <div className="mb-8 h-64">
+        <div className="mb-10 flex-shrink-0 min-h-[260px]">
             <HeuristicFailurePredictor prediction={prediction} isLoading={isPredicting} />
         </div>
 
-        {isLoading && !analysis ? (
-          <div className="h-full flex flex-col items-center">
-            <HeuristicGrid />
-            <div className="w-full space-y-6 px-4">
-                {SCAN_STEPS.map((step, i) => (
-                    <div key={step.id} className={`flex items-center justify-between text-[10px] font-mono transition-all duration-[1200ms] ${i === activeStep ? 'opacity-100 text-pearl' : i < activeStep ? 'opacity-40 text-pearl' : 'opacity-5 text-slate-500'}`}>
-                        <div className="flex items-center gap-4">
-                            <span className="w-4 font-bold">{i < activeStep ? '✔' : i === activeStep ? '⟳' : '○'}</span>
-                            <span className="uppercase tracking-[0.2em]">{step.label}</span>
+        <div className="flex-grow">
+            {isLoading && !analysis ? (
+              <div className="h-full flex flex-col py-10 animate-fade-in">
+                <SynapticLogicTrace />
+                <div className="space-y-6 w-full max-w-sm">
+                    {SCAN_STEPS.map((step, i) => (
+                        <div key={step.id} className={`flex items-center justify-between text-[11px] font-mono transition-all duration-1000 ${i === activeStep ? 'opacity-100 text-pearl translate-x-2' : i < activeStep ? 'opacity-40 text-gold' : 'opacity-10 text-slate-700'}`}>
+                            <div className="flex items-center gap-6">
+                                <span className="w-6 font-black text-center">{i < activeStep ? '✔' : i === activeStep ? '⟳' : '○'}</span>
+                                <span className="uppercase tracking-[0.3em] font-bold">{step.label}</span>
+                            </div>
+                            <span className="text-[8px] opacity-40">{i < activeStep ? 'DONE' : i === activeStep ? 'PROC' : 'WAIT'}</span>
                         </div>
-                        <span className="tracking-widest text-[8px] opacity-40">{i < activeStep ? 'DONE' : i === activeStep ? 'CALC' : 'WAIT'}</span>
+                    ))}
+                </div>
+              </div>
+            ) : analysis ? (
+                <div className="pb-20 max-w-4xl mx-auto">
+                    <RenderedAnalysis htmlContent={analysis} />
+                </div>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-24 border border-dashed border-white/5 rounded-xl mt-4 group-hover:opacity-60 transition-opacity duration-[2000ms]">
+                    <div className="w-20 h-20 border border-white/10 rounded-full flex items-center justify-center mb-10 relative">
+                        <div className="absolute inset-0 border-t-gold border rounded-full animate-spin-slow" />
+                        <span className="font-orbitron text-2xl text-white opacity-40 italic">Σ</span>
                     </div>
-                ))}
-            </div>
-          </div>
-        ) : analysis ? (
-            <div className="pb-10">
-                <RenderedAnalysis htmlContent={analysis} />
-                {sources && sources.length > 0 && (
-                    <div className="mt-12 pt-6 border-t border-white/10 flex flex-wrap gap-3">
-                        {sources.map((s, idx) => (
-                            <a key={idx} href={s.web?.uri} target="_blank" rel="noreferrer" className="text-[9px] font-mono text-slate-500 hover:text-gold bg-white/[0.02] border border-white/[0.05] hover:border-gold/30 px-3 py-1.5 rounded transition-all group/link">
-                                <span className="mr-2 opacity-30 group-hover:opacity-100">[{idx.toString().padStart(2, '0')}]</span>
-                                {s.web?.title?.substring(0, 32) || 'CAUSAL_DATA_NODE'}...
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </div>
-        ) : (
-            <div className="text-center h-full flex flex-col items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity duration-1000 mt-12">
-                <p className="text-[11px] text-warm-grey font-orbitron uppercase tracking-[0.6em] mb-4">Awaiting Causal Command</p>
-                <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                <p className="text-[8px] font-mono text-slate-600 mt-4 tracking-widest uppercase">Protocol: Minerva_Audit_V1.2.6</p>
-            </div>
-        )}
+                    <p className="text-[12px] text-warm-grey font-orbitron uppercase tracking-[1em] mb-4">Awaiting Directive</p>
+                    <p className="text-[9px] font-mono text-slate-700 mt-6 tracking-widest uppercase text-center max-w-xs leading-relaxed italic">
+                        Node siphoning active. Execute audit to stabilize the local lattice.
+                    </p>
+                </div>
+            )}
+        </div>
       </div>
 
-      <div className="p-6 bg-black/45 border-t border-white/[0.08] flex-shrink-0 z-20">
+      {/* FOOTER ACTIONS */}
+      <div className="p-10 bg-black/40 border-t border-white/[0.05] flex-shrink-0 z-20">
         <button 
           onClick={runAnalysis} 
           disabled={isLoading || !sophiaEngine} 
-          className="w-full py-5 rounded-sm bg-violet-950/20 hover:bg-violet-900/50 border border-violet-500/30 hover:border-violet-500/80 text-pearl/80 hover:text-white font-orbitron font-bold text-[11px] uppercase tracking-[0.6em] transition-all disabled:opacity-10 group/btn shadow-xl active:scale-[0.98]"
+          className="w-full py-6 rounded-sm bg-violet-600/5 hover:bg-violet-600/20 border border-violet-500/10 hover:border-violet-500/40 text-pearl/60 hover:text-white font-orbitron font-black text-[12px] uppercase tracking-[1em] transition-all disabled:opacity-20 active:scale-[0.99] relative overflow-hidden group/btn"
         >
-            {isLoading ? 'EXECUTING_AUDIT...' : analysis ? 'RE-INITIATE_PARITY_SCAN' : 'EXECUTE_HEURISTIC_SWEEP'}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-[2000ms]" />
+            <span className="relative z-10">
+                {isLoading ? 'ANALYZING_LATTICE_PARITY...' : 'EXECUTE_HEURISTIC_SWEEP'}
+            </span>
         </button>
       </div>
-
-      <div className="absolute inset-x-0 top-16 h-10 bg-gradient-to-b from-[#0a0a0a]/80 to-transparent pointer-events-none z-10" />
-      <div className="absolute inset-x-0 bottom-28 h-10 bg-gradient-to-t from-[#0a0a0a]/80 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
