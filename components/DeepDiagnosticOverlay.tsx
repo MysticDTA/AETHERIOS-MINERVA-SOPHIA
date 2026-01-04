@@ -34,9 +34,9 @@ const SCAN_TELEMETRY = [
   "Finalizing Golden Ratio frequency alignment...",
 ];
 
-const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean }> = ({ progress, isActive }) => {
+const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean; systemRho: number }> = ({ progress, isActive, systemRho }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [history] = useState<number[]>(new Array(60).fill(0));
+    const [history] = useState<number[]>(new Array(60).fill(systemRho));
 
     useEffect(() => {
         if (!isActive) return;
@@ -55,7 +55,7 @@ const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean }> = 
             for (let j = 0; j < h; j += 20) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(w, j); ctx.stroke(); }
 
             const noise = (1 - progress / 100) * 40;
-            const rho = 0.99 - (noise / 100);
+            const rho = systemRho - (noise / 1000);
             
             history.push(rho);
             if (history.length > 60) history.shift();
@@ -65,7 +65,7 @@ const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean }> = 
             ctx.beginPath();
             history.forEach((val, i) => {
                 const x = (i / 60) * w;
-                const jitter = (Math.random() - 0.5) * noise;
+                const jitter = (Math.random() - 0.5) * (noise * 0.1);
                 const y = h - (val * h * 0.8) + jitter;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
@@ -80,15 +80,15 @@ const SpectralResonanceHUD: React.FC<{ progress: number; isActive: boolean }> = 
         };
         const handle = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(handle);
-    }, [isActive, progress, history]);
+    }, [isActive, progress, history, systemRho]);
 
     return (
         <div className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-32 group shadow-inner">
             <div className="absolute top-2 left-4 font-mono text-[8px] text-gold uppercase tracking-[0.4em] font-bold opacity-60">Resonance_Spectral_Waterfall</div>
             <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-80" />
             <div className="absolute bottom-2 right-4 text-right">
-                <p className="text-[7px] text-slate-600 uppercase">Rho_Coefficient</p>
-                <p className="font-orbitron text-xs text-pearl">{(0.99 - (1 - progress/100) * 0.4).toFixed(6)}</p>
+                <p className="text-[7px] text-slate-600 uppercase">Current_Sync_Rho</p>
+                <p className="font-orbitron text-xs text-pearl">{(systemRho - (1 - progress/100) * 0.1).toFixed(6)}</p>
             </div>
         </div>
     );
@@ -137,7 +137,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
       }
 
       setDiagnosticStatus('PARITY_CHECK');
-      setTerminalOutput(prev => [...prev, "--- ALL MODULES VERIFIED & HARMONIZED ---", "ESTABLISHING GLOBAL PARITY LOCK AT 1.617 GHz..."]);
+      setTerminalOutput(prev => [...prev, "--- ALL MODULES VERIFIED & HARMONIZED ---", `ESTABLISHING GLOBAL PARITY LOCK AT ${systemState.resonanceFactorRho.toFixed(4)} GHz...`]);
       await new Promise(r => setTimeout(r, 1500));
       setDiagnosticStatus('COMPLETED');
     };
@@ -215,7 +215,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-6 min-h-0">
-            <SpectralResonanceHUD progress={steps[activeStepIdx].progress} isActive={diagnosticStatus === 'SCANNING' || diagnosticStatus === 'PARITY_CHECK'} />
+            <SpectralResonanceHUD progress={steps[activeStepIdx].progress} isActive={diagnosticStatus === 'SCANNING' || diagnosticStatus === 'PARITY_CHECK'} systemRho={systemState.resonanceFactorRho} />
             
             <div 
               ref={terminalRef}

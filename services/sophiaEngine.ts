@@ -109,7 +109,7 @@ export class SophiaEngineCore {
     if (!process.env.API_KEY) return null;
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Context: ${context}. State: ${JSON.stringify({rho: systemState.resonanceFactorRho, health: systemState.quantumHealing.health})}. Return JSON: {"alert": "Title", "recommendation": "Technical protocol"}`;
+        const prompt = `Context: ${context}. State: ${JSON.stringify({rho: systemState.resonanceFactorRho, health: systemState.quantumHealing.health, drift: systemState.temporalCoherenceDrift})}. Return JSON: {"alert": "Title", "recommendation": "Technical protocol"}`;
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: prompt,
@@ -128,7 +128,7 @@ export class SophiaEngineCore {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
-            contents: `Summarize system state: Rho=${systemState.resonanceFactorRho}. Tone: High Intellectual. Max 60 words.`,
+            contents: `Summarize system state: Rho=${systemState.resonanceFactorRho}, Temporal Drift=${systemState.temporalCoherenceDrift}. Tone: High Intellectual. Max 60 words.`,
             config: { thinkingConfig: { thinkingBudget: 16000 } }
         });
         return response.text || "Synthesis Failure.";
@@ -141,7 +141,10 @@ export class SophiaEngineCore {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
-            contents: `Execute deep causal audit. Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}. Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
+            contents: `Execute deep causal audit. 
+            Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Decoherence=${systemState.quantumHealing.decoherence}. 
+            Identify specific fractures in the institutional lattice. 
+            Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
             config: { thinkingConfig: { thinkingBudget: 32768 } }
         });
         return { report: response.text || "Audit failed.", sources: [] };
@@ -160,7 +163,7 @@ export class SophiaEngineCore {
         return;
     }
     try {
-        const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}. 
+        const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Temporal Coherence Drift=${systemState.temporalCoherenceDrift}. 
         Format your response using semantic HTML tags: <h3> for section titles, <p> for paragraphs, <ul> and <li> for lists. 
         Focus on causal implications and intellectual depth. Analyze the lattice integrity and resonant synergy.`;
         
@@ -191,6 +194,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
+                thinkingConfig: { thinkingBudget: 8000 },
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -228,7 +232,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 16000 },
+                thinkingConfig: { thinkingBudget: 24000 },
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -271,6 +275,7 @@ export class SophiaEngineCore {
             config: {
                 tools: [{ googleSearch: {} }],
                 responseMimeType: "application/json",
+                thinkingConfig: { thinkingBudget: 4000 },
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {

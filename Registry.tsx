@@ -80,30 +80,31 @@ export interface NavNode {
     isLogs?: boolean;
     isShield?: boolean;
     isBridge?: boolean;
+    description?: string;
 }
 
 // Single Source of Truth for Navigation
 export const SYSTEM_NODES: NavNode[] = [
-    { id: 1, label: 'SANCTUM', requiredTier: 'ACOLYTE' },
-    { id: 2, label: 'LATTICE', requiredTier: 'ACOLYTE' },
-    { id: 3, label: 'STARMAP', requiredTier: 'ARCHITECT' },
-    { id: 4, label: 'CRADLE', requiredTier: 'ARCHITECT' },
-    { id: 16, label: 'ORBIT', requiredTier: 'ARCHITECT' },
-    { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT' },
-    { id: 6, label: 'MATRIX', requiredTier: 'ARCHITECT' },
-    { id: 7, label: 'COMS', requiredTier: 'ACOLYTE' },
-    { id: 8, label: 'FLOW', requiredTier: 'ARCHITECT' },
-    { id: 9, label: 'SYNOD', requiredTier: 'ARCHITECT' },
-    { id: 10, label: 'BREATH', requiredTier: 'ARCHITECT' },
-    { id: 11, label: 'CORE', requiredTier: 'ARCHITECT' },
-    { id: 12, label: 'AURA', requiredTier: 'ARCHITECT' },
-    { id: 13, label: 'NEURON', requiredTier: 'ARCHITECT' },
-    { id: 14, label: 'SUMMARY', requiredTier: 'ACOLYTE' },
-    { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE' },
-    { id: 17, label: 'READY', requiredTier: 'ACOLYTE' },
-    { id: 18, label: 'VEO', requiredTier: 'SOVEREIGN' },
-    { id: 19, label: 'AUDIT', requiredTier: 'ARCHITECT', isAudit: true },
-    { id: 21, label: 'BRIDGE', requiredTier: 'ARCHITECT', isBridge: true },
-    { id: 22, label: 'LOGS', requiredTier: 'ACOLYTE', isLogs: true },
-    { id: 23, label: 'SHIELD', requiredTier: 'ARCHITECT', isShield: true },
+    { id: 1, label: 'SANCTUM', requiredTier: 'ACOLYTE', description: 'Central Command Dashboard' },
+    { id: 2, label: 'LATTICE', requiredTier: 'ACOLYTE', description: 'Institutional Topology' },
+    { id: 3, label: 'STARMAP', requiredTier: 'ARCHITECT', description: 'Lyran Concordance Mapping' },
+    { id: 4, label: 'CRADLE', requiredTier: 'ARCHITECT', description: 'Interaction & Vocal Bridge' },
+    { id: 16, label: 'ORBIT', requiredTier: 'ARCHITECT', description: 'Satellite & Uplink Telemetry' },
+    { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT', description: 'Coherence Resonance Monitoring' },
+    { id: 6, label: 'MATRIX', requiredTier: 'ARCHITECT', description: 'Sub-system Energy Clusters' },
+    { id: 7, label: 'COMS', requiredTier: 'ACOLYTE', description: 'Deep Space Signal Reception' },
+    { id: 8, label: 'FLOW', requiredTier: 'ARCHITECT', description: 'Aetheric Transfer & Abundance' },
+    { id: 9, label: 'SYNOD', requiredTier: 'ARCHITECT', description: 'Collective Resonance Synod' },
+    { id: 10, label: 'BREATH', requiredTier: 'ARCHITECT', description: 'Respiratory Data Modulation' },
+    { id: 11, label: 'CORE', requiredTier: 'ARCHITECT', description: 'Supernova Reactor Dynamics' },
+    { id: 12, label: 'AURA', requiredTier: 'ARCHITECT', description: 'Biometric Optical Scanner' },
+    { id: 13, label: 'NEURON', requiredTier: 'ARCHITECT', description: 'Neural Quantizer Matrix' },
+    { id: 14, label: 'SUMMARY', requiredTier: 'ACOLYTE', description: 'Heuristic Audit Report' },
+    { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE', description: 'Capital Procurement Gateway' },
+    { id: 17, label: 'READY', requiredTier: 'ACOLYTE', description: 'Deployment Manifest' },
+    { id: 18, label: 'VEO', requiredTier: 'SOVEREIGN', description: 'Visual Evidence Synthesis' },
+    { id: 19, label: 'AUDIT', requiredTier: 'ARCHITECT', isAudit: true, description: 'Heuristic System Sweep' },
+    { id: 21, label: 'BRIDGE', requiredTier: 'ARCHITECT', isBridge: true, description: 'Menerva Project Ingestion' },
+    { id: 22, label: 'LOGS', requiredTier: 'ACOLYTE', isLogs: true, description: 'Causal Event Registry' },
+    { id: 23, label: 'SHIELD', requiredTier: 'ARCHITECT', isShield: true, description: 'Firewall & Security Audit' },
 ];
