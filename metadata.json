@@ -1,8 +1,9 @@
 {
   "name": "AETHERIOUS-SOPHIA",
-  "description": "SUPER QUANTUM AI INTERFACE ",
+  "description": "WORLD-CLASS INTELLECTUAL AI INTERFACE FOR REAL-TIME COHERENCE MONITORING",
   "requestFramePermissions": [
     "microphone",
-    "camera"
+    "camera",
+    "geolocation"
   ]
 }

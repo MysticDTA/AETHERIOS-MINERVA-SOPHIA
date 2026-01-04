@@ -1,5 +1,5 @@
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children?: ReactNode;
@@ -11,8 +11,7 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: Changed from React.Component to direct Component inheritance to resolve property visibility issues
-export class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
   };
@@ -26,7 +25,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // FIX: Accessing props from the Component base class
     // Pass error details to the provided callback for robust logging
     this.props.onError?.(error, errorInfo);
     console.error("Uncaught error captured by Boundary:", error, errorInfo);
@@ -46,7 +44,6 @@ export class ErrorBoundary extends Component<Props, State> {
                 CAUSAL_ERROR: COMPONENT_RENDER_FAILURE
             </p>
              <button
-                // FIX: Accessing setState from the Component base class
                 onClick={() => this.setState({ hasError: false })}
                 className="mt-8 px-8 py-3 rounded-sm bg-rose-600/20 border border-rose-500/50 text-rose-300 font-orbitron font-bold text-[10px] uppercase tracking-[0.4em] hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95"
             >
@@ -56,7 +53,6 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // FIX: Accessing props from the Component base class
     return this.props.children;
   }
 }
