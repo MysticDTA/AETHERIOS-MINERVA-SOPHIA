@@ -60,6 +60,9 @@ const orbModes: OrbModeConfig[] = [
   { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation. Withdrawing into the generative void.' }
 ];
 
+// Sequence for page cycling
+const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18];
+
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
   const [scanCompleted, setScanCompleted] = useState(false);
@@ -77,7 +80,6 @@ const App: React.FC = () => {
   
   const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
 
-  // Initialize Vocal Bridge
   const { 
     isSessionActive, 
     userInputTranscription, 
@@ -93,7 +95,6 @@ const App: React.FC = () => {
     onSetOrbMode: setOrbMode 
   });
 
-  // Initialize Subsystem Handlers
   const {
     calibrationTargetId,
     calibrationEffect,
@@ -157,7 +158,6 @@ const App: React.FC = () => {
   // Global Hotkey Implementation
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Ignore hotkeys if the user is typing in an input, textarea or contentEditable field
       const target = e.target as HTMLElement;
       const isTyping = target.tagName === 'INPUT' || 
                        target.tagName === 'TEXTAREA' || 
@@ -165,39 +165,70 @@ const App: React.FC = () => {
       
       if (isTyping) return;
 
-      // '/' to open command console (Interaction Cradle - Page 4)
+      // '/' to open command console
       if (e.key === '/') {
         e.preventDefault();
         setCurrentPage(4);
         audioEngine.current?.playUIClick();
-        addLogEntry(LogType.INFO, "Hotkey: Opening Command Cradle.");
+        addLogEntry(LogType.INFO, "Hotkey: Jump to Interaction Cradle.");
       }
 
       // 'Ctrl+S' to trigger system scan
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        addLogEntry(LogType.INFO, "Hotkey: Initiating System Scan sequence.");
+        addLogEntry(LogType.INFO, "Hotkey: Initiating Heuristic Sweep.");
         handleTriggerScan();
       }
 
-      // 'Ctrl+V' to activate voice commands
+      // 'Ctrl+V' to toggle vocal bridge
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
         e.preventDefault();
         if (isSessionActive) {
-          addLogEntry(LogType.INFO, "Hotkey: Decoupling vocal link.");
+          addLogEntry(LogType.INFO, "Hotkey: Decoupling vocal bridge.");
           closeVoiceSession();
         } else {
-          addLogEntry(LogType.INFO, "Hotkey: Synchronizing vocal link.");
-          // Automatically switch to the interaction page if not already there
+          addLogEntry(LogType.INFO, "Hotkey: Synchronizing vocal bridge.");
           setCurrentPage(4);
           startVoiceSession();
         }
+      }
+
+      // 'Esc' to exit overlays or return to Sanctum
+      if (e.key === 'Escape') {
+        if (showDiagnosticScan) {
+          setShowDiagnosticScan(false);
+          setDiagnosticMode(false);
+          setOrbMode('STANDBY');
+          setIsUpgrading(false);
+          addLogEntry(LogType.SYSTEM, "Audit sequence aborted by operator.");
+        } else if (currentPage !== 1) {
+          setCurrentPage(1);
+          audioEngine.current?.playUIClick();
+        }
+      }
+
+      // '[' and ']' to cycle pages
+      if (e.key === '[') {
+        setCurrentPage(prev => {
+          const idx = NAV_SEQUENCE.indexOf(prev);
+          const nextIdx = (idx - 1 + NAV_SEQUENCE.length) % NAV_SEQUENCE.length;
+          return NAV_SEQUENCE[nextIdx];
+        });
+        audioEngine.current?.playUIClick();
+      }
+      if (e.key === ']') {
+        setCurrentPage(prev => {
+          const idx = NAV_SEQUENCE.indexOf(prev);
+          const nextIdx = (idx + 1) % NAV_SEQUENCE.length;
+          return NAV_SEQUENCE[nextIdx];
+        });
+        audioEngine.current?.playUIClick();
       }
     };
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [handleTriggerScan, isSessionActive, startVoiceSession, closeVoiceSession, addLogEntry]);
+  }, [handleTriggerScan, isSessionActive, startVoiceSession, closeVoiceSession, addLogEntry, showDiagnosticScan, currentPage, setDiagnosticMode]);
 
   const renderPage = useCallback(() => {
       switch (currentPage) {
@@ -251,7 +282,6 @@ const App: React.FC = () => {
       }
   }, [currentPage, systemState, scanCompleted, orbMode, transmission, isSessionActive, userInputTranscription, sophiaOutputTranscription, transcriptionHistory, lastSystemCommand, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, clearVoiceHistory, startVoiceSession, closeVoiceSession]);
 
-  // CONTENT WRAPPING LOGIC
   const appContent = !isInitialized ? (
     <SovereignPortal onInitialize={() => { 
         audioEngine.current?.playHighResonanceChime(); 
@@ -260,7 +290,7 @@ const App: React.FC = () => {
   ) : (
     <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho}>
       {showDiagnosticScan && (
-        <DeepDiagnosticOverlay onClose={() => setShowDiagnosticScan(false)} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
+        <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
       )}
       <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
       <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>

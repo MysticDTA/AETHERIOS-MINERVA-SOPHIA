@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { LogEntry, LogType, SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
@@ -43,6 +44,11 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       timestamp: Date.now(),
       isComplete: true
     }]);
+
+    // Auto-focus on mount for zero-latency interaction
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   }, []);
 
   useEffect(() => {
@@ -95,6 +101,9 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     setMessages(prev => prev.map(m => m.timestamp === currentSophiaMessageId.current ? { ...m, isComplete: true } : m));
     setIsReplying(false);
     setOrbMode('STANDBY');
+    
+    // Maintain focus after reply
+    setTimeout(() => textareaRef.current?.focus(), 50);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

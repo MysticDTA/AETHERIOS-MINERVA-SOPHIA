@@ -33,15 +33,9 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [userInputTranscription, setUserInputTranscription] = useState('');
     const [sophiaOutputTranscription, setSophiaOutputTranscription] = useState('');
-    const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>(() => {
-        try {
-            const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            return [];
-        }
-    });
+    const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>([]);
     const [lastSystemCommand, setLastSystemCommand] = useState<string | null>(null);
+    const [isHydrated, setIsHydrated] = useState(false);
     
     const sessionPromise = useRef<Promise<any> | null>(null);
     const inputAudioContext = useRef<AudioContext | null>(null);
@@ -54,10 +48,24 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const currentTurnInputRef = useRef('');
     const currentTurnOutputRef = useRef('');
 
-    // Persist history changes
+    // Handle initial hydration of history
     useEffect(() => {
+        try {
+            const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
+            if (saved) {
+                setTranscriptionHistory(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.warn("Vocal bridge history skipped.");
+        }
+        setIsHydrated(true);
+    }, []);
+
+    // Persist history changes after hydration
+    useEffect(() => {
+        if (!isHydrated) return;
         localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(transcriptionHistory));
-    }, [transcriptionHistory]);
+    }, [transcriptionHistory, isHydrated]);
 
     const clearHistory = useCallback(() => {
         setTranscriptionHistory([]);
@@ -130,7 +138,6 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                     scriptProcessor.current.connect(inputAudioContext.current.destination);
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    // Handle Tool Calls
                     if (message.toolCall?.functionCalls) {
                         for (const fc of message.toolCall.functionCalls) {
                             if (fc.name === 'update_system_mode' && fc.args) {

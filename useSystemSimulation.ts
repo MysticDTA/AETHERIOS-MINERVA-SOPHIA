@@ -146,12 +146,9 @@ export const useSystemSimulation = (
   params: { decoherenceChance: number; lesionChance: number },
   orbMode: OrbMode
 ) => {
-  const [systemState, setSystemState] = useState<SystemState>(() => {
-    try {
-        const stored = localStorage.getItem(PERSISTENCE_KEY);
-        return stored ? { ...initialSystemState, ...JSON.parse(stored) } : initialSystemState;
-    } catch (e) { return initialSystemState; }
-  });
+  // Use a stable initial state to prevent hydration mismatch
+  const [systemState, setSystemState] = useState<SystemState>(initialSystemState);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const [isGrounded, setGrounded] = useState(false);
   const [diagnosticMode, setDiagnosticMode] = useState(false);
@@ -161,8 +158,22 @@ export const useSystemSimulation = (
   const breathIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
 
+  // Load persistence data only after mount
   useEffect(() => {
     isMounted.current = true;
+    
+    try {
+        const stored = localStorage.getItem(PERSISTENCE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            setSystemState(prev => ({ ...prev, ...parsed }));
+        }
+    } catch (e) { 
+        console.warn("Persistence hydration skipped.");
+    }
+    
+    setIsLoaded(true);
+
     const syncWithBackend = async () => {
         const profile = await ApiService.syncOperatorProfile(systemState.auth.sessionToken);
         if (profile && isMounted.current) {
@@ -181,18 +192,19 @@ export const useSystemSimulation = (
   }, []);
 
   useEffect(() => {
+    if (!isLoaded) return;
     const dataToStore = {
         userResources: systemState.userResources,
         ingestedModules: systemState.ingestedModules
     };
     localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(dataToStore));
-  }, [systemState.userResources, systemState.ingestedModules]);
+  }, [systemState.userResources, systemState.ingestedModules, isLoaded]);
 
   const addLogEntry = useCallback((type: LogType, message: string) => {
     if (!isMounted.current) return;
     setSystemState(prev => ({
       ...prev,
-      log: [{ id: Math.random().toString(36).substring(7), type, message, timestamp: Date.now() }, ...prev.log].slice(0, 50) 
+      log: [{ id: `${Date.now()}-${Math.random().toString(36).substring(7)}`, type, message, timestamp: Date.now() }, ...prev.log].slice(0, 50) 
     }));
   }, []);
 
@@ -214,6 +226,7 @@ export const useSystemSimulation = (
       setSystemState(prev => {
         let newHealth = prev.quantumHealing.health;
         let newDecoherence = prev.quantumHealing.decoherence;
+        // Use a more stable random jitter
         let resonanceModifier = Math.max(0.1, Math.min(1.0, prev.resonanceFactorRho + (Math.random() - 0.5) * 0.005));
         
         const newPerformance: PerformanceTelemetry = {
