@@ -66,9 +66,11 @@ class CosmosCommsService {
         if (!this.isRunning) return;
         if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
 
-        const baseDelay = isError ? 30000 * Math.pow(2, this.retryCount) : 900000; 
-        const jitter = Math.random() * 30000;
-        const delay = Math.min(baseDelay + jitter, 3600000); // Cap at 1 hour
+        // OPTIMIZATION: If we're just waiting for a key, check every 10 seconds
+        const isWaitingForKey = !process.env.API_KEY;
+        const baseDelay = isWaitingForKey ? 10000 : (isError ? 30000 * Math.pow(2, this.retryCount) : 900000); 
+        const jitter = Math.random() * 5000;
+        const delay = Math.min(baseDelay + jitter, 3600000); 
 
         this.nextMessageTimeout = window.setTimeout(() => this.beginTransmission(), delay);
     }

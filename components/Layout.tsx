@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { MotherboardOverlay } from './MotherboardOverlay';
 import { BreathBar } from './BreathBar';
 
@@ -7,45 +8,60 @@ interface LayoutProps {
   breathCycle: 'INHALE' | 'EXHALE';
   isGrounded: boolean;
   resonanceFactor?: number;
+  drift?: number;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounded, resonanceFactor = 1.0 }) => {
-  const fieldOpacity = 0.08 + (resonanceFactor * 0.12);
-  const pulseDuration = 18 / (0.6 + resonanceFactor); 
+export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounded, resonanceFactor = 1.0, drift = 0 }) => {
   const isHighResonance = resonanceFactor > 0.95;
-  const parallaxOffset = (1 - resonanceFactor) * 20;
+  const isDecoherent = resonanceFactor < 0.6;
+  
+  // Calculate atmospheric intensities
+  const blurAmount = useMemo(() => 20 - (resonanceFactor * 10), [resonanceFactor]);
+  const grainOpacity = useMemo(() => 0.03 + (1 - resonanceFactor) * 0.05, [resonanceFactor]);
 
   return (
-    <div className={`relative min-h-screen w-full bg-[#080707] text-slate-200 font-sans antialiased flex flex-col overflow-hidden transition-all duration-[2000ms] ${isHighResonance ? 'coherence-bloom-active' : ''}`}>
-      {/* Aesthetic Grain Layer */}
-      <div className="fixed inset-0 pointer-events-none z-[1] opacity-[0.03]" style={{ backgroundImage: `url('https://grainy-gradients.vercel.app/noise.svg')` }}></div>
-
-      {/* Parallax Resonance Grid */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-[2] opacity-10 transition-transform duration-[4000ms]"
-        style={{ 
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(109, 40, 217, 0.3) 1px, transparent 0)`,
-          backgroundSize: '40px 40px',
-          transform: `translate(${parallaxOffset}px, ${parallaxOffset}px) scale(1.1)`
-        }}
-      />
-
-      {/* Dynamic Resonance Field Layer */}
-      <div 
-        className="fixed inset-0 pointer-events-none transition-all duration-[3000ms] z-0"
-        style={{
-          background: `radial-gradient(circle at 50% 40%, rgba(109, 40, 217, ${fieldOpacity * 0.5}), transparent 85%),
-                       radial-gradient(circle at 20% 80%, rgba(76, 29, 149, ${fieldOpacity * 0.3}), transparent 70%)`,
-          animation: `aurora-bg ${pulseDuration}s infinite alternate ease-in-out`
-        }}
-      />
+    <div className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}>
       
-      {/* Coherence Bloom Overlay */}
-      <div className={`fixed inset-0 pointer-events-none z-10 bg-gold/5 transition-opacity duration-[5000ms] ${isHighResonance ? 'opacity-100' : 'opacity-0'}`} style={{ mixBlendMode: 'overlay' }} />
+      {/* --- ATMOSPHERIC LAYERS --- */}
+      <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url('https://grainy-gradients.vercel.app/noise.svg')`, opacity: grainOpacity }}></div>
+
+      {/* Dynamic Aura Background */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 transition-all duration-[3000ms]"
+        style={{
+          background: `radial-gradient(circle at 50% 40%, rgba(109, 40, 217, ${0.1 * resonanceFactor}), transparent 80%),
+                       radial-gradient(circle at 80% 20%, rgba(255, 215, 0, ${0.05 * resonanceFactor}), transparent 60%)`,
+          filter: `blur(${blurAmount}px)`
+        }}
+      />
+
+      {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
+      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-4 pointer-events-none">
+          {/* Top Left: System ID */}
+          <div className="absolute top-0 left-0 p-4 flex flex-col gap-1">
+              <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Lattice_Node</span>
+              <span className="text-[10px] font-mono text-pearl/40 uppercase">0x88_SOPHIA_PRIME</span>
+          </div>
+          {/* Top Right: Real-time Drift */}
+          <div className="absolute top-0 right-0 p-4 text-right flex flex-col gap-1">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Causal_Drift</span>
+              <span className={`text-[10px] font-mono ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
+          </div>
+          {/* Bottom Left: Logic Parity */}
+          <div className="absolute bottom-0 left-0 p-4 flex flex-col gap-1">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Parity_Lock</span>
+              <span className="text-[10px] font-mono text-pearl/40 uppercase">1.617 GHz L-BAND</span>
+          </div>
+          {/* Bottom Right: Resonance Display */}
+          <div className="absolute bottom-0 right-0 p-4 text-right flex flex-col gap-1">
+              <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Rho_Synergy</span>
+              <span className="text-xl font-orbitron text-pearl text-glow-pearl leading-none">{(resonanceFactor * 100).toFixed(2)}%</span>
+          </div>
+      </div>
       
       <MotherboardOverlay />
       
-      <div className="relative z-20 flex-grow flex flex-col px-4 py-8 md:px-10 md:py-10 max-w-[1920px] mx-auto w-full h-full overflow-hidden">
+      <div className="relative z-20 flex-grow flex flex-col px-8 py-8 md:px-12 md:py-10 max-w-[2000px] mx-auto w-full h-full overflow-hidden">
         {children}
       </div>
       
@@ -53,15 +69,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
         <BreathBar cycle={breathCycle} isGrounded={isGrounded} />
       </footer>
 
-      {/* Persistence Resonance Label (A11y) */}
-      <div className="sr-only" aria-live="polite">
-        Current System Resonance: {(resonanceFactor * 100).toFixed(1)} percent. Intercepting at 1.617 GHz. {isHighResonance ? 'Peak coherence reached.' : ''}
-      </div>
-
       <style>{`
-        .coherence-bloom-active {
-            box-shadow: inset 0 0 200px rgba(109, 40, 217, 0.15);
-        }
         @keyframes aurora-bg {
             from { transform: scale(1) translate(0, 0); opacity: 0.8; }
             to { transform: scale(1.1) translate(1%, 1.5%); opacity: 1; }

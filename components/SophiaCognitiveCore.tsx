@@ -19,22 +19,34 @@ interface Insight {
 export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ systemState, orbMode, sophiaEngine, setOrbMode }) => {
     const [insight, setInsight] = useState<Insight | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [thinkingProgress, setThinkingProgress] = useState(0);
     const lastFetchTime = useRef<number>(0);
     const prevHealthRef = useRef<number>(systemState.quantumHealing.health);
-    const cooldown = 12000; 
+    const cooldown = 15000; 
 
     const health = systemState.quantumHealing.health;
     const decoherence = systemState.quantumHealing.decoherence;
     const lesions = systemState.quantumHealing.lesions;
     
     const healthDelta = health - prevHealthRef.current;
-    
     const isCritical = health < 0.6 || lesions > 1 || decoherence > 0.5;
     const isDegrading = healthDelta < -0.005;
 
     useEffect(() => {
         prevHealthRef.current = health;
     }, [health]);
+
+    // Thinking simulation for the reasoning budget
+    useEffect(() => {
+        if (isLoading) {
+            const interval = setInterval(() => {
+                setThinkingProgress(p => p < 98 ? p + Math.random() * 2 : p);
+            }, 200);
+            return () => clearInterval(interval);
+        } else {
+            setThinkingProgress(0);
+        }
+    }, [isLoading]);
     
     useEffect(() => {
         const now = Date.now();
@@ -46,92 +58,76 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
                 setOrbMode('ANALYSIS');
                 lastFetchTime.current = now;
                 
-                let trendContext = "Stable";
-                if (healthDelta < -0.01) trendContext = "Rapidly Degrading";
-                else if (healthDelta < 0) trendContext = "Slowly Degrading";
-                else if (healthDelta > 0) trendContext = "Improving";
+                let trendContext = isDegrading ? "Decoherence detected in local lattice." : "Heuristic scan requested.";
                 
-                if (lesions > 2) trendContext += ", Multiple Causal Fractures Detected";
-                if (decoherence > 0.7) trendContext += ", Severe Decoherence";
-
-                const resultJson = await sophiaEngine.getProactiveInsight(systemState, trendContext);
-                
-                if (resultJson) {
-                    try {
+                try {
+                    const resultJson = await sophiaEngine.getProactiveInsight(systemState, trendContext);
+                    if (resultJson) {
                         const parsedResult: Insight = JSON.parse(resultJson);
-                        if (parsedResult.alert && parsedResult.recommendation) {
-                            setInsight(parsedResult);
-                        } else {
-                            setInsight(null);
-                        }
-                    } catch (e) {
-                        console.error("Failed to parse proactive insight:", e);
-                        setInsight(null);
+                        setInsight(parsedResult);
                     }
-                } else {
-                    setInsight(null);
+                } catch (e) {
+                    console.error("Cognitive Core Fetch Failure:", e);
+                } finally {
+                    setIsLoading(false);
+                    setOrbMode('STANDBY'); 
                 }
-                setIsLoading(false);
-                setOrbMode('STANDBY'); 
             };
             fetchInsight();
-        } else if (!isCritical && !isDegrading && insight) {
-            setInsight(null);
         }
-    }, [systemState, sophiaEngine, isCritical, isDegrading, healthDelta, isLoading, cooldown, setOrbMode]);
+    }, [systemState, sophiaEngine, isCritical, isDegrading, isLoading, setOrbMode]);
     
     return (
-        <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-aether backdrop-blur-sm flex flex-col items-center justify-around relative overflow-hidden transition-colors duration-500 aether-pulse">
-            {/* Throne Aura */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.1)_0%,transparent_70%)] pointer-events-none" />
+        <div className="w-full h-full glass-panel p-6 rounded-2xl flex flex-col items-center justify-between relative overflow-hidden group transition-all duration-700">
+            {/* Background Grid Accent */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '15px 15px' }} />
 
-            <div className="text-center z-10">
-                <h3 className="font-minerva text-2xl text-pearl italic tracking-tight">Minerva Sophia</h3>
-                <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-violet-400 animate-ping' : 'bg-violet-600'}`} />
-                    <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">
-                        {isLoading ? 'GESTATION_ACTIVE' : 'THRONE_STABLE'}
-                    </p>
+            <div className="w-full flex justify-between items-center z-10 border-b border-white/5 pb-4">
+                <div className="flex flex-col">
+                    <h3 className="font-minerva text-xl text-pearl italic">Minerva Sophia</h3>
+                    <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Intelligence_Prime</span>
+                </div>
+                <div className="text-right">
+                    <div className={`w-2 h-2 rounded-full mx-auto ${isLoading ? 'bg-gold animate-pulse' : 'bg-green-500 shadow-[0_0_8px_#10b981]'}`} />
+                    <span className="text-[7px] font-mono text-slate-600 uppercase mt-1 block">Active_Sync</span>
                 </div>
             </div>
 
-            <div className="relative z-10 scale-90 sm:scale-100">
+            <div className="relative z-10 py-4 scale-110">
                 <AscensionOrbEngine mode={orbMode} />
             </div>
 
-            <div className={`w-full relative z-10 transition-all duration-500 ease-in-out ${insight ? 'flex-grow max-h-32' : 'h-16'}`}>
-                {insight?.alert ? (
-                    <div className="h-full bg-violet-950/40 border border-violet-500/50 rounded-lg p-3 flex flex-col items-center justify-center text-center animate-fade-in shadow-[0_0_15px_rgba(109,40,217,0.15)]">
-                        <div className="mb-2">
-                            <span className="inline-block px-2 py-0.5 rounded-sm text-[9px] font-bold bg-violet-600 text-white uppercase tracking-widest mb-1 animate-pulse">
-                                Shadow Membrane Detection
-                            </span>
-                            <p className="text-sm font-minerva italic font-bold text-violet-200 uppercase leading-tight tracking-wide">
-                                {insight.alert}
-                            </p>
+            <div className="w-full space-y-4 z-10">
+                {isLoading && (
+                    <div className="space-y-2 animate-fade-in">
+                        <div className="flex justify-between items-center text-[8px] font-mono text-gold uppercase tracking-widest">
+                            <span>Reasoning_Budget_Usage</span>
+                            <span>{thinkingProgress.toFixed(0)}%</span>
                         </div>
-                        <div className="w-full border-t border-violet-500/30 pt-2 mt-1">
-                            <p className="text-xs text-pearl leading-snug font-mono">
-                               <span className="text-violet-400 mr-1">{'>'}</span> 
-                               {insight.recommendation}
-                            </p>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden relative">
+                            <div className="h-full bg-gold logic-trace-bar transition-all duration-300" style={{ width: `${thinkingProgress}%` }} />
                         </div>
+                        <p className="text-[9px] text-slate-500 italic text-center font-mono">Exploring 32,768 causal permutations...</p>
                     </div>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-center opacity-60 bg-black/20 rounded-lg border border-white/5 p-2">
-                        <p className="text-xs text-warm-grey uppercase tracking-widest mb-1">Radiant Sovereignty</p>
-                        <div className="flex gap-1 h-1 w-16">
-                            <div className="flex-1 bg-violet-500/50 rounded-full animate-pulse" style={{ animationDelay: '0s' }} />
-                            <div className="flex-1 bg-violet-500/50 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                            <div className="flex-1 bg-violet-500/50 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                )}
+
+                {insight?.alert && !isLoading && (
+                    <div className="bg-violet-950/20 border border-violet-500/30 rounded-lg p-4 animate-fade-in shadow-xl">
+                        <div className="flex items-start gap-3">
+                            <span className="text-violet-400 mt-1">◈</span>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-[10px] font-orbitron text-violet-200 font-bold uppercase tracking-widest">{insight.alert}</p>
+                                <p className="text-[11px] text-pearl/70 leading-relaxed font-minerva italic">"{insight.recommendation}"</p>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            <style>{`
-                .border-glow-aether { border-color: rgba(109, 40, 217, 0.3); box-shadow: 0 0 15px rgba(109, 40, 217, 0.1); }
-            `}</style>
+            <div className="w-full pt-4 border-t border-white/5 flex justify-between items-center text-[8px] font-mono text-slate-600 uppercase tracking-widest z-10">
+                <span>Core: Gemini_3_Pro</span>
+                <span>Uptime: 99.98%</span>
+            </div>
         </div>
     );
 };

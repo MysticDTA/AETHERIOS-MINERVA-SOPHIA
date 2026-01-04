@@ -158,6 +158,20 @@ export const useSystemSimulation = (
   const breathIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
 
+  // LOGGING: Track Orb Mode transitions
+  useEffect(() => {
+    if (isLoaded) {
+      console.log(`[SYSTEM_TELEMETRY] Mode Transition: ${orbMode} protocol engaged.`);
+    }
+  }, [orbMode, isLoaded]);
+
+  // LOGGING: Track Core Dynamic changes (Health/Rho)
+  useEffect(() => {
+    if (isLoaded) {
+      console.debug(`[SYSTEM_TELEMETRY] Core Adjustment: Health=${systemState.quantumHealing.health.toFixed(4)}, Rho=${systemState.resonanceFactorRho.toFixed(6)}`);
+    }
+  }, [systemState.quantumHealing.health, systemState.resonanceFactorRho, isLoaded]);
+
   useEffect(() => {
     isMounted.current = true;
     try {
