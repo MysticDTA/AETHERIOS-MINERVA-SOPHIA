@@ -1,6 +1,7 @@
+
 import React, { useState, useCallback } from 'react';
 import { SystemState, LogType, PillarId } from '../../types';
-import { AudioEngine } from '../../audio/AudioEngine';
+import { AudioEngine } from '../audio/AudioEngine';
 
 const STAR_COUNT = 7; // From LyranStarMap component
 

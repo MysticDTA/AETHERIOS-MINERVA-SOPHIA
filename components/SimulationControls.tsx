@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { performanceService, PerformanceTier } from '../services/performanceService';
-import { AudioEngine } from '../audio/AudioEngine';
+import { AudioEngine } from './audio/AudioEngine';
 import { Scenario } from '../types';
 import { Tooltip } from './Tooltip';
 

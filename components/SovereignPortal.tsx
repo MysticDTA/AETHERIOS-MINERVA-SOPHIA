@@ -29,6 +29,12 @@ export const SovereignPortal: React.FC<SovereignPortalProps> = ({ onInitialize }
                 backgroundSize: '60px 60px'
             }} />
             
+            {/* Floating Release Tag */}
+            <div className={`absolute top-10 right-10 flex flex-col items-end gap-1 transition-all duration-[3000ms] ${step >= 1 ? 'opacity-100' : 'opacity-0 translate-y--4'}`}>
+                <span className="text-[8px] font-orbitron text-gold uppercase tracking-[0.4em] font-bold">Release_Milestone</span>
+                <span className="text-[14px] font-mono text-pearl bg-gold/10 border border-gold/30 px-3 py-1 rounded-sm shadow-[0_0_15px_rgba(255,215,0,0.1)]">v1.3.0 // RADIANT</span>
+            </div>
+
             <div className="max-w-4xl w-full flex flex-col items-center gap-16 px-10 relative z-10">
                 {/* Brand Identity */}
                 <div className={`flex flex-col items-center transition-all duration-[2000ms] ${step >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -89,7 +95,7 @@ export const SovereignPortal: React.FC<SovereignPortalProps> = ({ onInitialize }
             {/* Bottom Credits */}
             <div className="absolute bottom-10 left-10 flex flex-col gap-1 text-[7px] font-mono text-slate-800 uppercase tracking-[0.5em] pointer-events-none">
                 <span>Designed for Sovereign Decision Makers</span>
-                <span>Minerva Sophia v1.2.6</span>
+                <span>Radiant Evolution v1.3.0</span>
             </div>
         </div>
     );

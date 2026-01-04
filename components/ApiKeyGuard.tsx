@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface ApiKeyGuardProps {
@@ -10,7 +11,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
 
   useEffect(() => {
     const checkKey = async () => {
-      if (window.aistudio) {
+      if (typeof window !== 'undefined' && window.aistudio) {
         const selected = await window.aistudio.hasSelectedApiKey();
         setHasKey(selected);
       } else {
@@ -22,7 +23,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
   }, []);
 
   const handleSelectKey = async () => {
-    if (!window.aistudio) return;
+    if (typeof window === 'undefined' || !window.aistudio) return;
     setIsVerifying(true);
     try {
       await window.aistudio.openSelectKey();

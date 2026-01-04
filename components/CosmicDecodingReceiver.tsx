@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SystemState } from '../types';
 import { GoogleGenAI, Modality } from '@google/genai';
@@ -96,7 +97,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const prompt = `Perform an astrophysical interpretation of this data: "${message}". Explain the real-world implications for terrestrial communications or orbital safety. Max 40 words.`;
             const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
-            setAnalysisResult(response.text);
+            setAnalysisResult(response.text || null);
         } catch (e) { console.error(e); } finally { setIsAnalyzing(false); }
     };
 

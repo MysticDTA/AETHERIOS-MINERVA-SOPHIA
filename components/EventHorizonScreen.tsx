@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AudioEngine } from '../audio/AudioEngine';
+import { AudioEngine } from './audio/AudioEngine';
 
 interface EventHorizonScreenProps {
     audioEngine: AudioEngine | null;

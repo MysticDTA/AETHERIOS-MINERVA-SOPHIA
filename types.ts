@@ -1,4 +1,22 @@
+
 // Global shared types for SOPHIA DV99 / Alliance System
+
+/**
+ * Interface for AI Studio environment bridge.
+ */
+export interface AIStudio {
+  hasSelectedApiKey: () => Promise<boolean>;
+  openSelectKey: () => Promise<void>;
+}
+
+declare global {
+  interface Window {
+    // FIX: Changed from inline type to AIStudio interface to match environmental expectations and resolve declaration conflicts
+    aistudio: AIStudio;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN';
 

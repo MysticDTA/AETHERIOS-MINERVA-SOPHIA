@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SystemStatus } from './SystemStatus';
-import { AudioEngine } from '../audio/AudioEngine';
+import { AudioEngine } from './audio/AudioEngine';
 import { UserTier, CommsStatus } from '../types';
 import { Tooltip } from './Tooltip';
 

@@ -1,3 +1,4 @@
+
 import { TransmissionState, CommsStatus } from '../types';
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -122,7 +123,7 @@ class CosmosCommsService {
 
             if (!this.isRunning) return;
 
-            const jsonStr = response.text.trim();
+            const jsonStr = (response.text || '{}').trim();
             const { source, text, metric } = JSON.parse(jsonStr);
 
             this.lastTransmissionTime = Date.now();

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SystemState } from '../types';
 
@@ -8,18 +9,19 @@ interface DeploymentManifestProps {
 
 const PUSH_LOGS = [
     "Initializing Vercel build-container [Node.js 20.x]...",
+    "Cloning repository from GitHub [main branch]...",
     "Scanning local reality-lattice for component tree-shaking...",
-    "Detected: Minerva Cognitive Engine v1.2.6",
+    "Detected: Minerva Cognitive Engine v1.3.0",
     "Detected: Protocol Charon (Live API Bridge)",
     "Compiling TypeScript causal logic into optimized JS...",
     "Mapping /api routes to Serverless Edge Functions...",
-    "Injecting STRIPE_SECRET_KEY into production env...",
+    "Injecting process.env.API_KEY into production env...",
+    "Injecting process.env.STRIPE_SECRET_KEY into gateway...",
     "Established secure handshake with Gemini 3 Pro clusters...",
     "Compressing high-resonance bloom shaders...",
     "Uploading aetheric assets to Global Edge CDN...",
     "Propagating DNS: resonance.aetherios.ai...",
-    "Establishing Parity Lock at 1.617 GHz...",
-    "Finalizing Deployment Hash: 0x99_RESONANCE_PROD"
+    "Finalizing Deployment Hash: 0x99_RADIANT_PROD"
 ];
 
 const ManifestItem: React.FC<{ label: string; status: 'LOCKED' | 'READY' | 'PENDING'; detail: string }> = ({ label, status, detail }) => (
@@ -64,7 +66,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
         setPushLogs(["INITIATING PRODUCTION PUSH TO VERCEL EDGE..."]);
 
         for (let i = 0; i < PUSH_LOGS.length; i++) {
-            await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
+            await new Promise(r => setTimeout(r, 300 + Math.random() * 600));
             setPushLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${PUSH_LOGS[i]}`]);
             setPushProgress(((i + 1) / PUSH_LOGS.length) * 100);
         }
@@ -83,7 +85,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                         <div className="flex justify-between items-end border-b border-white/10 pb-6">
                             <div>
                                 <h3 className="font-orbitron text-2xl text-pearl uppercase tracking-tighter font-bold">Vercel Edge Synchronization</h3>
-                                <p className="text-gold font-mono text-[9px] uppercase tracking-[0.4em] mt-2 animate-pulse">Status: Uploading_Causal_Lattice</p>
+                                <p className="text-gold font-mono text-[9px] uppercase tracking-[0.4em] mt-2 animate-pulse">Status: Syncing_Causal_Lattice_to_GitHub</p>
                             </div>
                             <div className="text-right">
                                 <span className="font-orbitron text-4xl text-pearl font-bold">{pushProgress.toFixed(0)}%</span>
@@ -101,7 +103,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                              {pushLogs.map((log, i) => (
                                  <div key={i} className="mb-2 animate-fade-in">
                                      <span className="text-slate-700 mr-4">{(i * 42).toString(16).padStart(4, '0')}</span>
-                                     <span className={log.includes('Parity Lock') ? 'text-cyan-400' : log.includes('Hash') ? 'text-gold' : ''}>{log}</span>
+                                     <span className={log.includes('process.env') ? 'text-cyan-400' : log.includes('Hash') ? 'text-gold' : ''}>{log}</span>
                                  </div>
                              ))}
                              <div className="terminal-cursor" />
@@ -115,8 +117,8 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                 <div className="flex items-center gap-6">
                     <div className="w-12 h-12 bg-gold/5 border border-gold/20 flex items-center justify-center font-orbitron text-gold text-2xl animate-pulse">!</div>
                     <div>
-                        <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-bold">Deployment Manifest</h2>
-                        <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] mt-2">Final Pre-Flight Authorization // Node_SFO_1</p>
+                        <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-bold">Vercel Readiness Manifest</h2>
+                        <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] mt-2">Continuous Deployment Authorization // Radiant v1.3.0</p>
                     </div>
                 </div>
             </div>
@@ -124,54 +126,44 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 relative z-10">
                 <div className="lg:col-span-8 flex flex-col gap-6 overflow-y-auto pr-4 scrollbar-thin">
                     <ManifestItem 
-                        label="Cognitive_Core_Gemini_3_Pro" 
+                        label="Source_Control_GitHub" 
                         status="LOCKED" 
-                        detail="Thinking budget calibrated at 32k tokens. Heuristic audit protocols engaged." 
+                        detail="Repository parity verified. Webhook trigger active for Vercel CI/CD pipeline." 
                     />
                     <ManifestItem 
-                        label="Vocal_Bridge_Live_API" 
+                        label="Edge_Serverless_Mapping" 
                         status="LOCKED" 
-                        detail="Protocol Charon active at 24kHz. Neural gate tool-calling confirmed." 
+                        detail="vercel.json rules locked. /api endpoints mapped to Node.js 20.x runtime." 
                     />
                     <ManifestItem 
-                        label="Causal_Exchange_Stripe" 
+                        label="Environment_Variable_Buffer" 
                         status="READY" 
-                        detail="Gateway mapped. Awaiting live Secret Key injection in Vercel environment." 
+                        detail="Awaiting API_KEY and STRIPE_SK injection in Vercel project settings." 
                     />
                     <ManifestItem 
-                        label="Vercel_Edge_Gateway" 
+                        label="Global_CDN_Propagation" 
                         status="LOCKED" 
-                        detail="Serverless runtime and rewrite rules synchronized for deployment." 
-                    />
-                    <ManifestItem 
-                        label="Global_Synodal_Field" 
-                        status="READY" 
-                        detail="Resonance map coordinates verified across distributed lab nodes." 
+                        detail="Static assets and bloom shaders prepared for multi-region edge delivery." 
                     />
                 </div>
 
                 <div className="lg:col-span-4 flex flex-col gap-6">
                     <div className="bg-dark-surface/60 border border-white/10 p-8 rounded-xl flex flex-col gap-6 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold">PUSH</div>
-                        <h4 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-widest font-bold">Environment Payload</h4>
+                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold">EDGE</div>
+                        <h4 className="font-orbitron text-[11px] text-warm-grey uppercase tracking-widest font-bold">Vercel Metadata</h4>
                         <div className="space-y-4 font-mono text-[11px]">
                             <div className="flex justify-between border-b border-white/5 pb-2">
-                                <span className="text-slate-500">API_KEY</span>
-                                <span className="text-green-500">DETECTED</span>
+                                <span className="text-slate-500">RUNTIME</span>
+                                <span className="text-green-500">VERCEL_EDGE</span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
-                                <span className="text-slate-500">STRIPE_SK</span>
-                                <span className="text-gold">PENDING_ENV</span>
+                                <span className="text-slate-500">BUILD_TRIGGER</span>
+                                <span className="text-gold">GIT_PUSH</span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
-                                <span className="text-slate-500">BUILD_ID</span>
-                                <span className="text-pearl">0xCAFE_BABE_88</span>
+                                <span className="text-slate-500">VERSION</span>
+                                <span className="text-pearl">1.3.0_RADIANT</span>
                             </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-white/5">
-                            <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                                "The system is architecturally ready. Once the environmental secrets are injected into the Vercel dashboard, the bridge will transition to Live Parity."
-                            </p>
                         </div>
                     </div>
 
@@ -192,21 +184,21 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                             </svg>
                             <span className="absolute font-orbitron text-xl text-pearl">{loadingProgress}%</span>
                         </div>
-                        <p className="font-mono text-[9px] text-slate-500 uppercase tracking-[0.4em]">Parity_Optimization_Active</p>
+                        <p className="font-mono text-[9px] text-slate-500 uppercase tracking-[0.4em]">Handshake_Parity_Check</p>
                     </div>
                 </div>
             </div>
 
             <div className="mt-auto py-8 px-10 bg-gold/5 border border-gold/30 rounded-lg flex flex-col md:flex-row justify-between items-center gap-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col gap-1 text-center md:text-left">
-                    <span className="text-[11px] text-gold font-bold uppercase tracking-[0.3em]">Ready for Vercel Deployment</span>
-                    <p className="text-[13px] font-minerva italic text-pearl/70">"You are authorized to push the local lattice to the global edge."</p>
+                    <span className="text-[11px] text-gold font-bold uppercase tracking-[0.3em]">GitHub-to-Vercel Bridge Ready</span>
+                    <p className="text-[13px] font-minerva italic text-pearl/70">"You are authorized to finalize the release chain."</p>
                 </div>
                 <button 
                     className="px-16 py-4 bg-gold text-dark-bg font-orbitron text-[12px] font-bold uppercase tracking-[0.6em] hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(230,199,127,0.3)] active:scale-95"
                     onClick={handleInitializePush}
                 >
-                    Initialize Push
+                    Finalize Release
                 </button>
             </div>
         </div>

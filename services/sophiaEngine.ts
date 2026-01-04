@@ -198,7 +198,6 @@ export class SophiaEngineCore {
     } catch (error) { onError(handleApiError(error)); }
   }
 
-  // FIX: Added implementation to call onSources with extracted grounding chunks from Google Search tool.
   async getSystemAnalysis(
     systemState: SystemState,
     onChunk: (chunk: string) => void,
@@ -257,11 +256,11 @@ export class SophiaEngineCore {
             thinkingConfig: { thinkingBudget: 32768 }
         }
       });
-      return JSON.parse(response.text);
+      const text = response.text || '{}';
+      return JSON.parse(text);
     } catch (e) { return null; }
   }
 
-  // FIX: Implemented getComplexStrategy as used in components/hooks/useSophiaCore.ts.
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy | null> {
     const currentAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     if (!currentAi) return null;
@@ -300,7 +299,8 @@ export class SophiaEngineCore {
             thinkingConfig: { thinkingBudget: 32768 }
         }
       });
-      return JSON.parse(response.text);
+      const text = response.text || '{}';
+      return JSON.parse(text);
     } catch (e) { return null; }
   }
 
@@ -318,7 +318,8 @@ export class SophiaEngineCore {
                 thinkingConfig: { thinkingBudget: 16000 }
               }
           });
-          return JSON.parse(response.text);
+          const text = response.text || '{}';
+          return JSON.parse(text);
       } catch (e) { return null; }
   }
 
@@ -335,7 +336,7 @@ export class SophiaEngineCore {
               thinkingConfig: { thinkingBudget: 16000 }
             },
         });
-        return response.text;
+        return response.text || null;
     } catch (error) { return null; }
   }
 
@@ -352,7 +353,8 @@ export class SophiaEngineCore {
               thinkingConfig: { thinkingBudget: 24000 }
             }
         });
-        return JSON.parse(response.text);
+        const text = response.text || '{}';
+        return JSON.parse(text);
     } catch (e) { return null; }
   }
 }

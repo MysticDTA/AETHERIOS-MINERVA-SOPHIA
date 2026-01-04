@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from "@google/genai";
 import { LogType, OrbMode } from '../../types';
@@ -111,9 +112,9 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     // Handle Tool Calls
-                    if (message.toolCall) {
+                    if (message.toolCall?.functionCalls) {
                         for (const fc of message.toolCall.functionCalls) {
-                            if (fc.name === 'update_system_mode') {
+                            if (fc.name === 'update_system_mode' && fc.args) {
                                 const mode = fc.args.mode as OrbMode;
                                 addLogEntry(LogType.SYSTEM, `Vocal Command: Initiating ${mode} Protocol.`);
                                 setLastSystemCommand(`Bridge: ${mode}`);
@@ -133,12 +134,12 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                     }
 
                     if (message.serverContent?.inputTranscription) {
-                        const text = message.serverContent.inputTranscription.text;
+                        const text = message.serverContent.inputTranscription.text || '';
                         currentTurnInputRef.current += text;
                         setUserInputTranscription(prev => prev + text);
                     }
                     if (message.serverContent?.outputTranscription) {
-                        const text = message.serverContent.outputTranscription.text;
+                        const text = message.serverContent.outputTranscription.text || '';
                         currentTurnOutputRef.current += text;
                         setSophiaOutputTranscription(prev => prev + text);
                     }
@@ -154,7 +155,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                         setUserInputTranscription('');
                         setSophiaOutputTranscription('');
                     }
-                    const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+                    const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
                     if (base64Audio && outputAudioContext.current) {
                         nextStartTime.current = Math.max(nextStartTime.current, outputAudioContext.current.currentTime);
                         const audioBuffer = await decodeAudioData(decode(base64Audio), outputAudioContext.current, 24000, 1);
