@@ -37,6 +37,7 @@ import { ResourceProcurement } from './components/ResourceProcurement';
 import { SatelliteUplink } from './components/SatelliteUplink';
 import { DeploymentManifest } from './components/DeploymentManifest';
 import { EventLog } from './components/EventLog';
+import { SecurityShieldAudit } from './components/SecurityShieldAudit';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -61,8 +62,7 @@ const orbModes: OrbModeConfig[] = [
   { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation. Withdrawing into the generative void.' }
 ];
 
-// Sequence for page cycling
-const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 22];
+const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 23, 22];
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
@@ -82,27 +82,45 @@ const App: React.FC = () => {
   
   const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
 
-  // Robust Error Interception
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
-        addLogEntry(LogType.CRITICAL, `[RUNTIME_EXCEPTION] ${event.message} @ ${event.filename}:${event.lineno}`);
+        const source = event.filename ? ` @ ${event.filename.split('/').pop()}:${event.lineno}` : '';
+        const msg = event.message || 'Unknown Exception';
+        addLogEntry(LogType.CRITICAL, `[LATTICE_FRACTURE] ${msg}${source}`);
+        setSystemState(prev => ({
+            ...prev,
+            quantumHealing: {
+                ...prev.quantumHealing,
+                decoherence: Math.min(1, prev.quantumHealing.decoherence + 0.1),
+                health: Math.max(0, prev.quantumHealing.health - 0.05),
+                status: "DAMAGED"
+            }
+        }));
+        audioEngine.current?.playEffect('renewal');
     };
+
     const handlePromiseRejection = (event: PromiseRejectionEvent) => {
-        addLogEntry(LogType.CRITICAL, `[PROMISE_REJECTION] ${event.reason?.message || event.reason}`);
+        const reason = event.reason?.message || event.reason || 'Unknown Rejection';
+        addLogEntry(LogType.CRITICAL, `[ASYNC_DECOHERENCE] ${reason}`);
+        setSystemState(prev => ({
+            ...prev,
+            coherenceResonance: {
+                ...prev.coherenceResonance,
+                entropyFlux: Math.min(1, prev.coherenceResonance.entropyFlux + 0.05)
+            }
+        }));
     };
 
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handlePromiseRejection);
-    
     return () => {
         window.removeEventListener('error', handleGlobalError);
         window.removeEventListener('unhandledrejection', handlePromiseRejection);
     };
-  }, [addLogEntry]);
+  }, [addLogEntry, setSystemState]);
 
   const handleComponentError = useCallback((error: Error, errorInfo: React.ErrorInfo) => {
     addLogEntry(LogType.CRITICAL, `[COMPONENT_CRASH] ${error.message}`);
-    console.error("Sophia Component Error:", error, errorInfo);
   }, [addLogEntry]);
 
   const { 
@@ -148,9 +166,7 @@ const App: React.FC = () => {
   useEffect(() => {
     audioEngine.current = new AudioEngine();
     audioEngine.current.loadSounds().then(() => setIsAudioReady(true));
-    
     const unsubscribeComms = cosmosCommsService.subscribe(setTransmission);
-    
     return () => { 
         unsubscribeComms(); 
         cosmosCommsService.stop();
@@ -160,7 +176,6 @@ const App: React.FC = () => {
   const handleInitializeNode = useCallback(() => {
       audioEngine.current?.playHighResonanceChime(); 
       setIsInitialized(true); 
-      // [AUDIT] Only start background telemetry after initialization
       cosmosCommsService.start();
   }, []);
 
@@ -186,54 +201,30 @@ const App: React.FC = () => {
     setCurrentPage(19);
   };
 
-  // Global Hotkey Implementation
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      const isTyping = target.tagName === 'INPUT' || 
-                       target.tagName === 'TEXTAREA' || 
-                       target.isContentEditable;
-      
-      if (isTyping) return;
-
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
       if (e.key === '/') {
         e.preventDefault();
         setCurrentPage(4);
         audioEngine.current?.playUIClick();
-        addLogEntry(LogType.INFO, "Hotkey: Jump to Interaction Cradle.");
       }
-
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        addLogEntry(LogType.INFO, "Hotkey: Initiating Heuristic Sweep.");
         handleTriggerScan();
       }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-        e.preventDefault();
-        if (isSessionActive) {
-          addLogEntry(LogType.INFO, "Hotkey: Decoupling vocal bridge.");
-          closeVoiceSession();
-        } else {
-          addLogEntry(LogType.INFO, "Hotkey: Synchronizing vocal bridge.");
-          setCurrentPage(4);
-          startVoiceSession();
-        }
-      }
-
       if (e.key === 'Escape') {
         if (showDiagnosticScan) {
           setShowDiagnosticScan(false);
           setDiagnosticMode(false);
           setOrbMode('STANDBY');
           setIsUpgrading(false);
-          addLogEntry(LogType.SYSTEM, "Audit sequence aborted by operator.");
         } else if (currentPage !== 1) {
           setCurrentPage(1);
           audioEngine.current?.playUIClick();
         }
       }
-
       if (e.key === '[') {
         setCurrentPage(prev => {
           const idx = NAV_SEQUENCE.indexOf(prev);
@@ -251,10 +242,9 @@ const App: React.FC = () => {
         audioEngine.current?.playUIClick();
       }
     };
-
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [handleTriggerScan, isSessionActive, startVoiceSession, closeVoiceSession, addLogEntry, showDiagnosticScan, currentPage, setDiagnosticMode]);
+  }, [handleTriggerScan, showDiagnosticScan, currentPage, setDiagnosticMode]);
 
   const renderPage = useCallback(() => {
       switch (currentPage) {
@@ -304,6 +294,7 @@ const App: React.FC = () => {
           case 19: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
           case 20: return <CausalIngestionNexus systemState={systemState} />;
           case 21: return <MenervaBridge systemState={systemState} />;
+          case 23: return <SecurityShieldAudit systemState={systemState} />;
           case 22: return <div className="h-full"><EventLog log={systemState.log} filter={logFilter} onFilterChange={setLogFilter} /></div>;
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
       }
@@ -331,7 +322,8 @@ const App: React.FC = () => {
           <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
               <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
               <div className="flex gap-2">
-                <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-rose-900/10 border border-rose-500/20 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">System_Logs</button>
+                <button onClick={() => setCurrentPage(23)} className="px-4 py-2 bg-rose-950/20 border border-rose-500/40 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">Security_Shield</button>
+                <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-slate-900/10 border border-slate-500/20 text-slate-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-500 hover:text-white transition-all font-bold">System_Logs</button>
                 <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
                 <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
               </div>

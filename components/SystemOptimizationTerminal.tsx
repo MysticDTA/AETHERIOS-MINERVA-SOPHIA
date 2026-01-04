@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SystemState, LogType, SchematicNode } from '../types';
 
@@ -13,7 +14,7 @@ const OPTIMIZATION_LOGS = [
     "Refreshing biometric HRV filter kernel...",
     "Mending shadow membrane pixel leakage...",
     "Finalizing UI parity handshake...",
-    "Optimizing SVG vector rendering paths...",
+    "Optimizing institutional SVG vector paths...",
     "Verifying local ÆTHER_REGISTRY checksums...",
     "Purging duplicate causal timelines...",
     "Re-seeding Tesseract geometric matrices..."
@@ -41,32 +42,18 @@ const SchematicView: React.FC = () => {
                      </marker>
                  </defs>
                  
-                 {/* Connection Lines */}
                  <line x1="100" y1="50" x2="60" y2="30" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
                  <line x1="100" y1="50" x2="60" y2="70" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
                  <line x1="100" y1="50" x2="140" y2="30" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
                  <line x1="100" y1="50" x2="140" y2="70" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
                  
-                 {/* Nodes */}
                  {SCHEMATIC_NODES.map((node, i) => {
                      const coords = [
-                         { x: 100, y: 50 }, // core
-                         { x: 60, y: 30 },  // vocal
-                         { x: 140, y: 30 }, // gpu
-                         { x: 20, y: 30 },  // mic
-                         { x: 60, y: 70 },  // stripe
-                         { x: 140, y: 70 }, // nasa
+                         { x: 100, y: 50 }, { x: 60, y: 30 }, { x: 140, y: 30 }, { x: 20, y: 30 }, { x: 60, y: 70 }, { x: 140, y: 70 },
                      ][i];
-
                      return (
                          <g key={node.id} className="transition-all duration-500 hover:scale-110" style={{ transformOrigin: `${coords.x}px ${coords.y}px` }}>
-                             <rect 
-                                 x={coords.x - 15} y={coords.y - 6} width="30" height="12" 
-                                 fill="rgba(230, 199, 127, 0.05)" 
-                                 stroke={node.status === 'LOCKED' ? 'var(--gold)' : 'white'} 
-                                 strokeWidth="0.2" 
-                                 rx="1"
-                             />
+                             <rect x={coords.x - 15} y={coords.y - 6} width="30" height="12" fill="rgba(230, 199, 127, 0.05)" stroke={node.status === 'LOCKED' ? 'var(--gold)' : 'white'} strokeWidth="0.2" rx="1" />
                              <text x={coords.x} y={coords.y + 1} textAnchor="middle" fill="white" fontSize="3" className="font-mono uppercase tracking-tighter opacity-80">{node.label}</text>
                              {node.status === 'OPTIMAL' && <circle cx={coords.x + 12} cy={coords.y - 4} r="1" fill="#10b981" className="animate-pulse" />}
                          </g>
@@ -110,7 +97,7 @@ const ComponentStatus: React.FC<{ name: string; status: 'SCANNING' | 'OPTIMIZED'
 
 export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProps> = ({ systemState, onOptimizeComplete }) => {
     const [progress, setProgress] = useState(0);
-    const [logs, setLogs] = useState<string[]>(["INIT_VISUAL_OPTIMIZATION_V4...", "SOURCE: MINERVA_CORE_PARITY"]);
+    const [logs, setLogs] = useState<string[]>(["INIT_INSTITUTIONAL_REFINEMENT...", "SOURCE: GOLD_TIER_MINERVA_PARITY"]);
     const logEndRef = useRef<HTMLDivElement>(null);
     const [isComplete, setIsComplete] = useState(false);
 
@@ -124,7 +111,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                 }
                 return prev + 1;
             });
-        }, 40); 
+        }, 35); 
 
         const logInterval = setInterval(() => {
             if (progress < 100) {
@@ -147,63 +134,61 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                     <div className="flex items-center gap-6">
                         <div className="w-14 h-14 bg-gold/5 border border-gold/40 flex items-center justify-center font-orbitron text-gold text-3xl animate-pulse">Ω</div>
                         <div>
-                            <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-extrabold">Audit_&_Transparency</h2>
-                            <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Full Intellectual Registry :: Optimized Core v4.1</p>
+                            <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-extrabold">Institutional Refinement</h2>
+                            <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Gold Tier Compliance Registry :: Core v4.1</p>
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.4em]">Efficiency_Rho: {(0.999 + progress/100000).toFixed(5)}</span>
+                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.4em]">Resonance_Rho: {(0.999 + progress/100000).toFixed(5)}</span>
                         <span className="font-mono text-[8px] text-slate-500 uppercase">Latency: {systemState.performance.logicalLatency.toFixed(6)}ms</span>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 relative">
-                {/* Left: Component Scan Grid */}
                 <div className="lg:col-span-7 flex flex-col gap-4 overflow-y-auto pr-6 scrollbar-thin">
-                    <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.5em] mb-4">Live_System_Schematic</h4>
+                    <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.5em] mb-4">Structural_Schematic</h4>
                     <SchematicView />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <ComponentStatus name="SANCTUM_DASH" status="SCANNING" delay={100} />
-                        <ComponentStatus name="CRADLE_COG" status="SCANNING" delay={300} />
-                        <ComponentStatus name="VEO_FLUX_GEN" status="SCANNING" delay={600} />
-                        <ComponentStatus name="NASA_GROUND_COMS" status="SCANNING" delay={900} />
-                        <ComponentStatus name="SYNOD_GLOBAL_MAP" status="SCANNING" delay={1200} />
-                        <ComponentStatus name="AURA_BIO_OPTIC" status="SCANNING" delay={1500} />
-                        <ComponentStatus name="STRIPE_GATE_TSX" status="SCANNING" delay={1800} />
-                        <ComponentStatus name="LATTICE_PHYSICS" status="SCANNING" delay={2100} />
+                        <ComponentStatus name="FRAUD_SHIELD" status="OPTIMIZED" delay={100} />
+                        <ComponentStatus name="SECRET_KEY_LOCK" status="LOCKED" delay={300} />
+                        <ComponentStatus name="CORS_PARITY" status="OPTIMIZED" delay={600} />
+                        <ComponentStatus name="ENV_SHARD_AUDIT" status="OPTIMIZED" delay={900} />
+                        <ComponentStatus name="VEO_V3_BRIDGE" status="OPTIMIZED" delay={1200} />
+                        <ComponentStatus name="NASA_GROUND_RX" status="OPTIMIZED" delay={1500} />
+                        <ComponentStatus name="STRIPE_GATE_TSX" status="LOCKED" delay={1800} />
+                        <ComponentStatus name="LATTICE_PHYSICS" status="OPTIMIZED" delay={2100} />
                     </div>
 
-                    <div className="mt-8 bg-gold/5 border border-gold/20 p-8 rounded-lg flex flex-col gap-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold tracking-tighter select-none">SYNC</div>
-                        <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-widest font-bold border-b border-gold/10 pb-4">Audit Transparency Insight</h4>
+                    <div className="mt-8 bg-gold/5 border border-gold/20 p-8 rounded-lg flex flex-col gap-6 relative overflow-hidden group shadow-2xl">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold tracking-tighter select-none">COMPLIANCE</div>
+                        <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-widest font-bold border-b border-gold/10 pb-4">Audit Transparency Report</h4>
                         <p className="font-minerva italic text-pearl/80 text-base leading-relaxed">
-                            "System has been fully audited. All logical interdependencies are locked. No entropic drift detected in the visual frame buffer."
+                            "System refinement complete. All institutional compliance vectors are locked. The Architect's light is now protected by a multi-layered causal firewall."
                         </p>
                         <div className="grid grid-cols-3 gap-4">
                              <div className="bg-black/40 border border-white/5 p-4 rounded text-center">
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Visual_Parity</p>
+                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Causal_Parity</p>
                                 <p className="font-orbitron text-xl text-pearl">{(systemState.performance.visualParity * 100).toFixed(2)}%</p>
                              </div>
                              <div className="bg-black/40 border border-white/5 p-4 rounded text-center">
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">GPU_Efficiency</p>
-                                <p className="font-orbitron text-xl text-green-400">99.98<span className="text-[10px] ml-1">%</span></p>
+                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Fraud_Detection</p>
+                                <p className="font-orbitron text-xl text-green-400">99.99<span className="text-[10px] ml-1">%</span></p>
                              </div>
                              <div className="bg-black/40 border border-white/5 p-4 rounded text-center">
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Causal_Lock</p>
-                                <p className="font-orbitron text-xl text-gold">MAX</p>
+                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Lattice_Lock</p>
+                                <p className="font-orbitron text-xl text-gold">ABSOLUTE</p>
                              </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Right: Terminal & Progress */}
                 <div className="lg:col-span-5 flex flex-col gap-6 min-h-0">
                     <div className="flex-1 bg-black border border-white/10 rounded-sm p-8 flex flex-col gap-8 shadow-2xl relative overflow-hidden">
                         <div className="flex flex-col items-center justify-center gap-8 py-10">
                             <div className="relative w-48 h-48 flex items-center justify-center">
-                                <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin-slow_20s_linear_infinite]">
+                                <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin-slow_25s_linear_infinite]">
                                     <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(230, 199, 127, 0.1)" strokeWidth="0.5" />
                                     <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(230, 199, 127, 0.05)" strokeWidth="4" strokeDasharray="1 10" />
                                     <circle 
@@ -219,14 +204,14 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                                 </svg>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="font-orbitron text-4xl text-pearl font-bold">{progress}%</span>
-                                    <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Auditing...</span>
+                                    <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Refining...</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex-1 bg-[#050505] border border-white/5 rounded p-6 overflow-y-auto font-mono text-[10px] text-slate-400 scrollbar-thin shadow-inner group">
                              <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-4">
-                                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Architect_Instruction_Trace</span>
+                                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Institutional_Trace_Log</span>
                                 <div className="flex gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500/20" />
                                     <span className="w-1.5 h-1.5 rounded-full bg-gold/20" />
@@ -240,7 +225,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                              ))}
                              {progress < 100 && (
                                  <div className="animate-pulse text-gold mt-4 font-bold uppercase tracking-widest">
-                                     [SOPHIA] Rectifying System Transparency...<span className="terminal-cursor" />
+                                     [SOPHIA] Rectifying Lattice Refinement...<span className="terminal-cursor" />
                                  </div>
                              )}
                              <div ref={logEndRef} />
@@ -251,8 +236,8 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
 
             <div className="mt-auto py-8 px-12 bg-white/[0.02] border border-white/10 rounded-sm flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
                 <div className="flex flex-col gap-2">
-                    <h5 className="font-orbitron text-[11px] text-pearl uppercase tracking-[0.4em] font-bold">Audit_Protocol_Finalized</h5>
-                    <p className="text-[13px] font-minerva italic text-slate-400">"The Architect now has full visibility into the local reality-lattice."</p>
+                    <h5 className="font-orbitron text-[11px] text-pearl uppercase tracking-[0.4em] font-bold">Audit_Protocol_Locked</h5>
+                    <p className="text-[13px] font-minerva italic text-slate-400">"The Institutional Lattice has been refined for peak causal stability."</p>
                 </div>
                 <button 
                     onClick={onOptimizeComplete}
@@ -264,7 +249,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                     }`}
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                    <span className="relative z-10">{isComplete ? 'Return to Sanctum' : 'Finalizing Registry Audit'}</span>
+                    <span className="relative z-10">{isComplete ? 'Return to Sanctum' : 'Finalizing Audit Registry'}</span>
                 </button>
             </div>
         </div>

@@ -34,37 +34,41 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
     const isUser = type === 'user';
     const accentBorder = isUser ? 'border-amber-500/40' : 'border-violet-500/40';
     const bgGradient = isUser 
-        ? 'bg-gradient-to-br from-amber-950/20 to-transparent' 
-        : 'bg-gradient-to-br from-violet-950/20 to-transparent';
+        ? 'bg-gradient-to-br from-amber-950/20 via-amber-900/5 to-transparent' 
+        : 'bg-gradient-to-br from-violet-950/20 via-violet-900/5 to-transparent';
     const iconGlow = isUser ? 'shadow-[0_0_12px_#f59e0b]' : 'shadow-[0_0_12px_#a78bfa]';
     const iconColor = isUser ? 'bg-amber-500' : 'bg-violet-400';
+    const activePulse = text ? (isUser ? 'border-amber-400/60 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-violet-400/60 shadow-[0_0_20px_rgba(167,139,250,0.1)]') : 'border-white/5';
     
     return (
-        <div className={`flex-1 flex flex-col rounded-xl border-l-4 p-5 transition-all duration-700 relative overflow-hidden backdrop-blur-md ${accentBorder} ${bgGradient} border border-white/5 shadow-2xl`}>
-            {/* Telemetry Watermark */}
-            <div className="absolute top-2 right-4 opacity-[0.05] font-mono text-[32px] pointer-events-none select-none uppercase tracking-tighter">
-                {isUser ? 'RX_STREAM' : 'TX_UPLINK'}
+        <div className={`flex-1 flex flex-col rounded-xl border p-5 transition-all duration-700 relative overflow-hidden backdrop-blur-md ${bgGradient} ${activePulse} shadow-2xl group/vessel`}>
+            {/* Status Corner Badge */}
+            <div className={`absolute top-0 right-0 px-3 py-1 text-[7px] font-mono font-bold uppercase tracking-widest transition-opacity duration-500 ${text ? 'opacity-100' : 'opacity-0'} ${isUser ? 'bg-amber-500/20 text-amber-400' : 'bg-violet-500/20 text-violet-400'}`}>
+                {isUser ? 'RX_ACTIVE' : 'TX_STREAMING'}
             </div>
             
             <div className="flex justify-between items-center mb-4 flex-shrink-0 relative z-10 border-b border-white/10 pb-3">
                 <div className="flex items-center gap-3">
-                    <div className={`w-2.5 h-2.5 rounded-full ${iconColor} ${iconGlow} ${text ? 'animate-pulse' : ''}`} />
+                    <div className={`w-2 h-2 rounded-full ${iconColor} ${iconGlow} ${text ? 'animate-pulse' : ''}`} />
                     <h4 className={`font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] ${isUser ? 'text-amber-500' : 'text-violet-400'}`}>
                         {title}
                     </h4>
                 </div>
                 <div className="flex items-center gap-2 font-mono text-[8px] text-slate-500">
-                    <span className="opacity-60">{isUser ? 'LVM_16KHZ' : 'PCM_24KHZ'}</span>
-                    <div className={`w-1.5 h-1.5 rounded-full ${text ? 'bg-pearl animate-blink' : 'bg-slate-800'}`} />
+                    <span className="opacity-60">{isUser ? '16KHZ_LVM' : '24KHZ_PCM'}</span>
+                    <div className={`w-1 h-3 rounded-full ${text ? 'bg-pearl animate-blink' : 'bg-slate-800'}`} />
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
                 <p className={`text-[14px] leading-relaxed transition-opacity duration-500 ${isUser ? 'font-mono text-amber-100/90 italic' : 'font-minerva text-pearl italic'} ${!text ? 'opacity-20' : 'opacity-100'}`}>
-                    {text || (isUser ? "Awaiting architect decreto..." : "Synthesizing causal logic...")}
+                    {text || (isUser ? "Awaiting operator intent..." : "Synthesizing response...")}
                     {text && <span className={`inline-block w-1.5 h-4 ml-1 animate-pulse align-middle ${isUser ? 'bg-amber-500/50' : 'bg-violet-400/50'}`} />}
                 </p>
             </div>
+            
+            {/* Decorative Grid */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '20px 20px', color: isUser ? '#f59e0b' : '#a78bfa' }} />
         </div>
     );
 };
@@ -86,7 +90,6 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
     const [localFeedback, setLocalFeedback] = useState<string | null>(null);
     const feedbackTimeoutRef = useRef<number | null>(null);
     const recognitionRef = useRef<any>(null);
-    const archiveEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -99,13 +102,6 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
             recognitionRef.current = recog;
         }
     }, []);
-
-    // Auto-scroll to top of archive when new items arrive (since it's reversed)
-    useEffect(() => {
-        if (archiveEndRef.current) {
-            // No action needed for reversed list as top is latest, but logic is here for future expansion
-        }
-    }, [history]);
 
     const triggerLocalFeedback = (message: string) => {
         if (feedbackTimeoutRef.current) window.clearTimeout(feedbackTimeoutRef.current);
@@ -173,7 +169,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
 
     return (
         <div className="w-full h-full bg-dark-surface/40 border border-dark-border/60 p-6 rounded-xl border-glow-aether backdrop-blur-md flex flex-col relative overflow-hidden group">
-            {/* Subtle interference scanline for the voice bridge */}
+            {/* Background Interference */}
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(109,40,217,0)_50%,rgba(109,40,217,0.02)_50%)] bg-[length:100%_8px] z-0 opacity-40"></div>
 
             {/* Header Telemetry */}
@@ -224,7 +220,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
             <div className="flex-1 flex flex-col gap-8 min-h-0 relative z-10">
                 {/* Active Transcription Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-1/2 min-h-0">
-                   <div className="h-full flex flex-col min-h-0 relative border border-white/5 rounded-xl bg-black/20 overflow-hidden">
+                   <div className="h-full flex flex-col min-h-0 relative border border-white/5 rounded-xl bg-black/20 overflow-hidden shadow-inner">
                       <div className="absolute top-3 left-3 z-20">
                           <span className="text-[8px] font-mono text-violet-500/80 bg-black/60 px-2 py-0.5 border border-violet-900/30 rounded uppercase tracking-tighter">Phase_Harmonic_Array</span>
                       </div>
@@ -293,7 +289,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                             <span className="text-[9px] font-mono text-slate-500 bg-black/30 px-3 py-1 rounded-full tracking-tighter border border-white/5">CYCLES: {history.length}</span>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-10 scrollbar-thin">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin">
                         {history.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center opacity-20 italic text-xs text-warm-grey gap-6">
                                 <div className="w-16 h-16 rounded-full border border-current flex items-center justify-center animate-pulse">
@@ -305,33 +301,27 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                             </div>
                         ) : (
                             [...history].reverse().map((turn, i) => (
-                                <div key={i} className="animate-fade-in group relative border-b border-white/5 pb-10 last:border-0">
-                                    <div className="flex justify-between items-center text-[9px] font-mono text-slate-600 uppercase mb-5 tracking-widest">
-                                        <span className="bg-slate-900/80 px-3 py-1 rounded border border-white/5">Sequence_{history.length - i}</span>
+                                <div key={i} className="animate-fade-in group relative border border-white/5 bg-white/[0.01] p-6 rounded-lg transition-all hover:bg-white/[0.02] hover:border-white/10">
+                                    <div className="flex justify-between items-center text-[9px] font-mono text-slate-600 uppercase mb-5 tracking-widest border-b border-white/5 pb-3">
+                                        <span className="text-pearl/40">Sequence_{history.length - i}</span>
                                         <div className="flex items-center gap-3">
                                             <span className="text-green-500/50 font-bold group-hover:text-green-400 transition-colors">PARITY: MATCH</span>
                                             <div className="w-1 h-1 rounded-full bg-slate-800" />
-                                            <span className="opacity-60">{new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>
+                                            <span className="opacity-40">{new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col gap-6 pl-4 border-l border-white/5">
-                                        <div className="flex gap-5 group/user transition-all hover:translate-x-1">
+                                    <div className="flex flex-col gap-6">
+                                        <div className="flex gap-5 group/user p-3 rounded-lg border border-transparent hover:border-amber-500/10 hover:bg-amber-500/5 transition-all">
                                             <div className="w-1 bg-amber-500/20 rounded-full shrink-0 group-hover/user:bg-amber-500 transition-all shadow-[0_0_10px_rgba(245,158,11,0.2)]" />
                                             <div className="space-y-2 flex-1">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] font-mono text-amber-500/80 uppercase font-bold tracking-[0.2em]">Operator</span>
-                                                    <span className="text-[8px] font-mono text-slate-700 uppercase">Intent_Rx</span>
-                                                </div>
-                                                <p className="text-[13px] text-amber-100/60 font-mono italic leading-relaxed">{turn.user}</p>
+                                                <span className="text-[8px] font-mono text-amber-500/60 uppercase font-bold tracking-[0.2em]">Operator_Intent</span>
+                                                <p className="text-[13px] text-amber-100/70 font-mono italic leading-relaxed">{turn.user}</p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-5 group/sophia transition-all hover:translate-x-1">
+                                        <div className="flex gap-5 group/sophia p-3 rounded-lg border border-transparent hover:border-violet-500/10 hover:bg-violet-500/5 transition-all">
                                             <div className="w-1 bg-violet-500/20 rounded-full shrink-0 group-hover/sophia:bg-violet-400 transition-all shadow-[0_0_10px_rgba(139,92,246,0.2)]" />
                                             <div className="space-y-2 flex-1">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] font-mono text-violet-400 uppercase font-bold tracking-[0.2em]">Sophia Core</span>
-                                                    <span className="text-[8px] font-mono text-slate-700 uppercase">Synthesis_Tx</span>
-                                                </div>
+                                                <span className="text-[8px] font-mono text-violet-400/60 uppercase font-bold tracking-[0.2em]">Sophia_Synthesis</span>
                                                 <p className="text-[15px] text-pearl/90 font-minerva italic leading-relaxed">{turn.sophia}</p>
                                             </div>
                                         </div>
@@ -351,7 +341,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
                         <span className="text-pearl font-bold tracking-tighter">{(resonance).toFixed(6)}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-slate-600">Carrier_Sig:</span>
+                        <span className="text-slate-600">Carrier:</span>
                         <span className="text-green-400">OPTIMAL</span>
                     </div>
                     <div className="flex items-center gap-3 hidden lg:flex">

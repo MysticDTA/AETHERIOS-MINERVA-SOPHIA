@@ -8,6 +8,7 @@ import { SystemAnalysis } from './SystemAnalysis';
 import { SophiaCognitiveCore } from './SophiaCognitiveCore';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { SystemIntegrityCore } from './SystemIntegrityCore';
+import { Tooltip } from './Tooltip';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -30,6 +31,32 @@ const PerformanceCard: React.FC<{ label: string, value: string, sub: string, col
         <span className="text-[7px] font-mono text-slate-500 uppercase tracking-[0.5em] font-black group-hover:text-gold transition-colors">{label}</span>
         <span className="font-orbitron text-2xl font-bold tracking-tighter" style={{ color, textShadow: `0 0 25px ${color}22` }}>{value}</span>
         <span className="text-[7px] font-mono text-slate-600 uppercase tracking-widest opacity-60">{sub}</span>
+    </div>
+);
+
+const CausalFirewall: React.FC = () => (
+    <div className="bg-black/40 border border-white/10 rounded-xl p-6 flex flex-col gap-4 relative overflow-hidden group shadow-inner">
+        <div className="flex justify-between items-center mb-1">
+            <h4 className="font-orbitron text-[9px] text-rose-400 uppercase tracking-[0.4em] font-black">Causal_Firewall</h4>
+            <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_#f43f5e]" />
+        </div>
+        <div className="space-y-3">
+            <div className="flex justify-between items-center text-[10px] font-mono">
+                <span className="text-slate-500">ENCRYPTION</span>
+                <span className="text-pearl">AES-256-GCM</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-mono">
+                <span className="text-slate-500">PARITY_ERRORS</span>
+                <span className="text-emerald-400">0.00%</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-mono">
+                <span className="text-slate-500">PROXY_HOP</span>
+                <span className="text-pearl">VERCEL_EDGE</span>
+            </div>
+        </div>
+        <div className="mt-2 h-0.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-rose-500/40 animate-shimmer w-full" />
+        </div>
     </div>
 );
 
@@ -78,6 +105,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                 </div>
             </div>
+
+            <CausalFirewall />
 
             <div className="glass-panel p-10 rounded-3xl space-y-8 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-6 opacity-[0.01] font-minerva italic text-8xl pointer-events-none uppercase tracking-tighter">Rites</div>
