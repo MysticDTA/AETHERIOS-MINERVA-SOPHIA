@@ -4,6 +4,11 @@ import { SystemState } from '../../types';
 
 type SoundName = keyof typeof soundMap;
 
+/**
+ * AETHERIOS Institutional Audio Engine
+ * Manages high-fidelity spatialized sound effects and persistent resonance loops.
+ * Optimizes the sensory experience for the Architect's terminal.
+ */
 export class AudioEngine {
   private audioContext: AudioContext;
   private buffers: Map<SoundName, AudioBuffer> = new Map();
@@ -13,7 +18,7 @@ export class AudioEngine {
   private masterGainNode: GainNode;
   private isMuted = false;
   
-  // Dynamic ambience layers
+  // Dynamic ambience layers for deeper immersion
   private dynamicHum: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
   private dynamicStatic: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
   private dynamicHeartbeat: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
@@ -24,11 +29,16 @@ export class AudioEngine {
     
     this.masterGainNode = this.audioContext.createGain();
     this.masterGainNode.connect(this.audioContext.destination);
-    // REFINEMENT: Precision volume ramp
+    
+    // Initialize with a precision volume ramp
     this.masterGainNode.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
     this.masterGainNode.gain.exponentialRampToValueAtTime(0.5, this.audioContext.currentTime + 1.0);
   }
 
+  /**
+   * Decodes institutional sound shards from the soundMap.
+   * Converts base64 telemetry data into PCM buffers.
+   */
   public async loadSounds(): Promise<void> {
     const soundPromises: Promise<void>[] = [];
 
@@ -59,11 +69,11 @@ export class AudioEngine {
               resolve();
             })
             .catch(error => {
-              console.error(`Failed to decode sound: ${String(soundName)}`, error);
+              console.error(`FAILED_SONIC_DECODE: ${String(soundName)}`, error);
               resolve();
             });
         } catch (error) {
-          console.error(`Failed to load sound: ${String(soundName)}`, error);
+          console.error(`FAILED_SONIC_LOAD: ${String(soundName)}`, error);
           resolve();
         }
       });
@@ -74,6 +84,9 @@ export class AudioEngine {
     this.isLoaded = true;
   }
 
+  /**
+   * Re-establishes the causal audio link after user interaction.
+   */
   public resumeContext = (): Promise<void> => {
     if (this.audioContext.state === 'suspended') {
       return this.audioContext.resume().then(() => {
@@ -85,9 +98,10 @@ export class AudioEngine {
   
   public setMasterVolume(level: number): void {
       if (this.masterGainNode && !this.isMuted) {
+          const clampedLevel = Math.max(0.0001, Math.min(1.0, level));
           this.masterGainNode.gain.cancelScheduledValues(this.audioContext.currentTime);
           this.masterGainNode.gain.setValueAtTime(this.masterGainNode.gain.value, this.audioContext.currentTime);
-          this.masterGainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, level), this.audioContext.currentTime + 0.3);
+          this.masterGainNode.gain.exponentialRampToValueAtTime(clampedLevel, this.audioContext.currentTime + 0.3);
       }
   }
 
@@ -175,12 +189,15 @@ export class AudioEngine {
       return sound ? sound.source : null;
   }
 
+  /**
+   * Sets the core background resonance based on the current Governance Axiom.
+   */
   public setMode(mode: string): void {
     if (!this.isLoaded) return;
     
     let soundName: SoundName | null = null;
     switch (mode) {
-      case 'CRADE OF PRESENCE':
+      case 'CRADLE OF PRESENCE':
       case 'SOVEREIGN EMBODIMENT':
         soundName = 'synthesis';
         break;
@@ -215,12 +232,17 @@ export class AudioEngine {
     }
   }
   
+  /**
+   * Adjusts ambient sound textures based on real-time system diagnostics.
+   * Higher decoherence increases spectral static. Lower health adds a mechanical hum.
+   */
   public updateDynamicAmbience(state: SystemState): void {
       if (!this.isLoaded || this.isSuspended) return;
 
       const rampTime = 1.5;
       const currentTime = this.audioContext.currentTime;
 
+      // Mechanical Hum based on system health
       if (!this.dynamicHum) {
           this.dynamicHum = this.playSound('dynamic_hum_base', true, 0.0001);
       }
@@ -230,6 +252,7 @@ export class AudioEngine {
           this.dynamicHum.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
+      // Spectral Crackle based on decoherence
       if (!this.dynamicStatic) {
           this.dynamicStatic = this.playSound('dynamic_static_crackle', true, 0.0001);
       }
@@ -239,6 +262,7 @@ export class AudioEngine {
           this.dynamicStatic.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
+      // Biometric Heartbeat pulse linked to HRV coherence
       if (!this.dynamicHeartbeat) {
           this.dynamicHeartbeat = this.playSound('dynamic_heartbeat', true, 0.0001);
       }

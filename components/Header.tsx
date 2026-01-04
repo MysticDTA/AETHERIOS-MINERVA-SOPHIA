@@ -57,45 +57,45 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
     const isTransmissionActive = transmissionStatus && transmissionStatus !== 'AWAITING SIGNAL';
 
     return (
-        <header className="relative z-50 flex flex-col lg:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10 shrink-0">
+        <header className="relative z-50 flex flex-col lg:flex-row items-center justify-between gap-4 pb-6 border-b border-white/10 shrink-0">
             <div className="flex items-center gap-6 w-full lg:w-auto overflow-hidden">
                 <div className="flex flex-col shrink-0">
-                    <h1 className="font-minerva text-3xl md:text-4xl text-pearl text-glow-pearl leading-none tracking-tight mb-2 uppercase italic">ÆTHERIOS</h1>
+                    <h1 className="font-minerva text-3xl md:text-4xl text-pearl text-glow-pearl leading-none tracking-tight mb-1 uppercase italic">ÆTHERIOS</h1>
                     <div className="flex items-center gap-3">
-                        <span className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold ${activeTier.color}`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
+                        <span className={`text-[8px] font-mono uppercase tracking-[0.3em] font-black ${activeTier.color}`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
                         <div className="h-3 w-px bg-white/10" />
                         <div className="flex items-center gap-2">
                              <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
-                             <span className="text-[9px] font-mono text-violet-400 uppercase tracking-widest">MINERVA_LINK: ACTIVE</span>
+                             <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest font-black">MINERVA_SOPHIA: LOCKED</span>
                         </div>
                     </div>
                 </div>
 
-                <nav className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-2 pr-4 mask-fade-right">
-                    {SYSTEM_NODES.map(node => {
+                <nav className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 pr-6 mask-fade-right">
+                    {SYSTEM_NODES.filter(n => !n.isLogs && !n.isShield && !n.isBridge).map(node => {
                         const hasAccess = checkNodeAccess(userTier, node.requiredTier);
                         const disabled = !hasAccess;
-                        const isPrimary = node.isAudit || node.isBridge || node.isShield || node.isLogs;
+                        const isSpecial = node.isAudit;
                         const commsAlert = (node.id === 7) && isTransmissionActive;
 
                         return (
                             <button
                                 key={node.id}
                                 onClick={() => handlePageChange(node.id, node.requiredTier)}
-                                className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
+                                className={`flex-shrink-0 px-4 py-2 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border-2 ${
                                     currentPage === node.id
-                                    ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)]'
-                                    : isPrimary
-                                        ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
+                                    ? 'bg-pearl text-dark-bg font-black border-pearl shadow-[0_0_15px_rgba(248,245,236,0.4)] scale-105'
+                                    : isSpecial
+                                        ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg font-black'
                                         : disabled 
-                                            ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
+                                            ? 'bg-black/40 text-slate-800 cursor-not-allowed border-transparent opacity-40'
                                             : commsAlert
-                                                ? 'bg-gold/20 border-gold/50 text-gold animate-pulse shadow-[0_0_10px_gold]'
-                                                : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
+                                                ? 'bg-gold/20 border-gold/60 text-gold animate-pulse shadow-[0_0_10px_gold]'
+                                                : 'bg-dark-surface/80 hover:bg-white/5 text-warm-grey border-white/5 hover:border-white/20'
                                 }`}
                             >
                                 {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px] filter grayscale opacity-40">🔒</span>}
-                                {commsAlert && <span className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full shadow-[0_0_5px_gold]" />}
+                                {commsAlert && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gold rounded-full shadow-[0_0_8px_gold] animate-ping" />}
                                 {node.label}
                             </button>
                         );
@@ -103,24 +103,24 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                 </nav>
             </div>
             
-            <div className="flex items-center gap-6 md:gap-8 w-full lg:w-auto justify-between lg:justify-end shrink-0">
-                 <div className="flex items-center gap-4 bg-black/40 border border-white/5 px-4 py-2 rounded-md transition-all hover:border-gold/20 group">
+            <div className="flex items-center gap-6 md:gap-10 w-full lg:w-auto justify-between lg:justify-end shrink-0">
+                 <div className="flex items-center gap-4 bg-black/60 border border-gold/20 px-6 py-2.5 rounded-lg transition-all hover:border-gold/60 group shadow-2xl backdrop-blur-xl">
                     <div className="flex flex-col items-end">
-                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 group-hover:text-gold transition-colors">Sovereignty</span>
-                        <span className="font-orbitron text-base md:text-xl text-gold font-bold text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-60">Ω</span></span>
+                        <span className="text-[8px] text-gold/60 font-black uppercase tracking-[0.4em] mb-0.5 group-hover:text-gold transition-colors">Sovereignty</span>
+                        <span className="font-orbitron text-xl md:text-2xl text-gold font-black text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-40 ml-1">Ω</span></span>
                     </div>
                     <UserAvatar tier={userTier} onClick={() => onPageChange(15)} />
                  </div>
 
-                 <div className="min-w-[180px] md:min-w-[240px]">
+                 <div className="min-w-[200px] md:min-w-[280px]">
                       <SystemStatus mode={governanceAxiom} lesions={lesions} isHeaderVersion={true} />
                  </div>
             </div>
 
             <style>{`
                 .mask-fade-right {
-                    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
-                    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+                    mask-image: linear-gradient(to right, black 90%, transparent 100%);
                 }
             `}</style>
         </header>
