@@ -174,7 +174,7 @@ const App: React.FC = () => {
         resonanceFactor={systemState.resonanceFactorRho}
         drift={systemState.temporalCoherenceDrift}
       >
-        <div className={`fixed inset-0 z-[6000] pointer-events-none transition-all duration-1000 ${isRecalibrating ? 'bg-white/40 backdrop-blur-md' : 'bg-transparent opacity-0'}`} />
+        <div className={`fixed inset-0 z-[6000] pointer-events-none transition-all duration-1000 ${isRecalibrating ? 'bg-white/20 backdrop-blur-sm' : 'bg-transparent opacity-0'}`} />
         
         {showDiagnosticScan && (
           <ErrorBoundary>
@@ -185,7 +185,7 @@ const App: React.FC = () => {
         {!isInitialized ? (
             <SovereignPortal onInitialize={handleInitializeNode} />
         ) : (
-            <div className="flex flex-col h-full w-full gap-6 relative z-10">
+            <div className="flex flex-col h-full w-full gap-4 md:gap-6 relative z-10">
                 <Header 
                   governanceAxiom={systemState.governanceAxiom} 
                   lesions={systemState.quantumHealing.lesions} 
@@ -197,30 +197,30 @@ const App: React.FC = () => {
                   transmissionStatus={transmission.status} 
                 />
                 
-                <main className={`relative z-20 flex-grow flex flex-col h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''} ${isRecalibrating ? 'scale-[0.98] blur-[2px]' : ''} transition-all duration-700`}>
+                <main className={`relative z-20 flex-grow flex flex-col h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''} ${isRecalibrating ? 'scale-[0.99] blur-[1px]' : ''} transition-all duration-1000`}>
                     <ErrorBoundary>{pageContent}</ErrorBoundary>
                 </main>
                 
                 <footer className="relative z-40 flex-shrink-0 w-full mb-1 md:mb-2 pointer-events-auto">
-                    <div className="bg-[#080808]/90 border border-white/10 backdrop-blur-3xl p-3 md:p-5 rounded-xl flex items-center justify-between shadow-[0_0_80px_rgba(0,0,0,0.8)] aether-pulse transition-all duration-500 hover:border-white/20">
-                        <div className="flex items-center gap-8">
+                    <div className="bg-[#080808]/90 border border-white/10 backdrop-blur-3xl p-3 md:p-4 rounded-xl flex items-center justify-between shadow-[0_0_80px_rgba(0,0,0,0.8)] border-glow-rose transition-all duration-500 hover:border-white/20">
+                        <div className="flex items-center gap-6">
                             <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-                            <div className="h-6 w-px bg-white/10 hidden md:block" />
+                            <div className="h-6 w-px bg-white/10 hidden xl:block" />
                             <div className="hidden xl:flex items-center gap-6">
-                                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-black">Institutional_Control_Nexus</span>
+                                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-black">Control_Nexus_Active</span>
                             </div>
                         </div>
-                        <div className="hidden lg:flex gap-4 items-center">
+                        <div className="hidden lg:flex gap-3 items-center">
                           {SYSTEM_NODES.filter(n => n.isShield || n.isLogs || n.isBridge || n.isAudit).map(node => (
                             <button 
                               key={node.id}
                               onClick={() => setCurrentPage(node.id)} 
-                              className={`px-6 py-2.5 border-2 font-orbitron text-[10px] uppercase tracking-[0.3em] rounded-sm transition-all font-black active:scale-95 ${
-                                currentPage === node.id ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_20px_white]' :
-                                node.isShield ? 'bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white' :
+                              className={`px-5 py-2 border font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm transition-all font-black active:scale-95 shadow-md ${
+                                currentPage === node.id ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_15px_white]' :
+                                node.isShield ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white' :
                                 node.isLogs ? 'bg-slate-900/10 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
                                 node.isAudit ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg' :
-                                'bg-violet-950/20 border-violet-500/40 text-violet-400 hover:bg-violet-500 hover:text-white'
+                                'bg-violet-950/20 border-violet-500/30 text-violet-400 hover:bg-violet-500 hover:text-white'
                               }`}
                             >
                               {node.label}

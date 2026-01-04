@@ -34,7 +34,7 @@ const SynapticLogicTrace: React.FC = () => {
                 <div key={s.id} className="transition-all duration-1000 flex gap-4" style={{ opacity: 1 - (i / 10) }}>
                     <span className="text-slate-700">0x{(s.id % 0xFFFF).toString(16).padStart(4, '0')}</span>
                     <span className="tracking-[0.5em]">{s.bits}</span>
-                    <span className="text-gold/30">REASONING_PATH_TRACE_ACTIVE</span>
+                    <span className="text-gold/30">TRACE_ACTIVE</span>
                 </div>
             ))}
         </div>
@@ -71,33 +71,29 @@ const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) =>
     if (parsedContent.length === 0) return null;
 
     return (
-        <div className="space-y-12 animate-fade-in py-6">
+        <div className="space-y-10 animate-fade-in py-4">
             {parsedContent.map(section => (
-                <div key={section.id} className="bg-white/[0.01] border border-white/[0.05] rounded-sm overflow-hidden hover:border-white/[0.1] transition-all duration-1000 group">
-                    <div className="bg-white/[0.02] px-8 py-4 border-b border-white/[0.04] flex justify-between items-center">
-                        <h3 className="font-orbitron text-[9px] text-gold uppercase tracking-[0.4em] font-black flex items-center gap-4">
-                            <span className="w-1 h-4 bg-gold rounded-full shadow-[0_0_10px_#ffd700]" />
+                <div key={section.id} className="bg-white/[0.01] border border-white/[0.05] rounded-xl overflow-hidden hover:border-white/[0.1] transition-all duration-1000 group shadow-lg">
+                    <div className="bg-white/[0.02] px-6 py-3 border-b border-white/[0.04] flex justify-between items-center">
+                        <h3 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.4em] font-black flex items-center gap-4">
+                            <span className="w-1 h-3 bg-gold rounded-full shadow-[0_0_8px_#ffd700]" />
                             {section.title}
                         </h3>
-                        <div className="flex gap-1">
-                             <div className="w-0.5 h-3 bg-white/10" />
-                             <div className="w-0.5 h-3 bg-white/10" />
-                        </div>
                     </div>
-                    <div className="p-8">
+                    <div className="p-6">
                         {section.type === 'p' && (
-                            <p className="text-[15px] text-pearl/80 leading-relaxed font-minerva italic select-text antialiased">
+                            <p className="text-[14px] text-pearl/80 leading-relaxed font-minerva italic select-text antialiased">
                                 {section.paragraph}
                             </p>
                         )}
                         {(section.type === 'ul' || section.type === 'ol') && (
-                            <ul className="space-y-6">
+                            <ul className="space-y-5">
                                 {section.listItems.map((item, i) => (
-                                    <li key={i} className="text-[13px] text-slate-300 flex items-start gap-6 font-mono leading-relaxed group/item select-text">
-                                        <span className="mt-1 text-[8px] text-slate-600 font-bold tracking-tighter opacity-40 group-hover/item:opacity-100 transition-opacity">
+                                    <li key={i} className="text-[12px] text-slate-300 flex items-start gap-5 font-mono leading-relaxed group/item select-text">
+                                        <span className="mt-1 text-[7px] text-slate-600 font-bold tracking-tighter opacity-40">
                                             ({(i + 1).toString().padStart(2, '0')})
                                         </span>
-                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity border-l border-white/5 pl-6 py-0.5">
+                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity pl-4 border-l border-white/5">
                                             {item}
                                         </span>
                                     </li>
@@ -141,85 +137,78 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
 
   return (
     <div className="w-full h-full glass-panel rounded-2xl flex flex-col overflow-hidden relative group transition-all duration-1000 shadow-2xl">
-      {/* HEADER SECTION */}
-      <div className="flex justify-between items-center px-10 py-8 flex-shrink-0 border-b border-white/[0.05] bg-black/20 z-20">
-        <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-5">
-                <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.6em] font-black">Heuristic Audit</h3>
-                <div className={`text-[8px] font-mono px-3 py-1 rounded-full border tracking-[0.3em] font-black transition-all ${isLoading ? 'border-gold text-gold animate-pulse' : 'border-pearl/10 text-slate-700'}`}>
-                    {isLoading ? 'EXECUTING_32K_REASONING' : 'NODE_STABLE'}
+      <div className="flex justify-between items-center px-8 py-6 flex-shrink-0 border-b border-white/[0.05] bg-black/20 z-20">
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-4">
+                <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.5em] font-black">Heuristic Audit</h3>
+                <div className={`text-[8px] font-mono px-2 py-0.5 rounded-full border tracking-[0.3em] font-black transition-all ${isLoading ? 'border-gold text-gold animate-pulse' : 'border-pearl/10 text-slate-700'}`}>
+                    {isLoading ? 'EXECUTING_REASONING' : 'IDLE'}
                 </div>
             </div>
             <div className="flex items-center gap-4">
-                <div className="w-32 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-cyan-400/60 transition-all duration-1000" style={{ width: `${systemState.resonanceFactorRho * 100}%` }} />
+                <div className="w-24 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-400/40 transition-all duration-1000" style={{ width: `${systemState.resonanceFactorRho * 100}%` }} />
                 </div>
-                <span className="text-[8px] font-mono text-cyan-400/60 uppercase font-black tracking-widest">Resonance: {(systemState.resonanceFactorRho * 100).toFixed(2)}%</span>
+                <span className="text-[7px] font-mono text-cyan-400/40 uppercase font-black tracking-widest">Rho: {(systemState.resonanceFactorRho * 100).toFixed(2)}%</span>
             </div>
         </div>
       </div>
 
-      {/* RESULTS AREA */}
       <div 
         ref={scrollContainerRef} 
-        className="flex-grow min-h-0 overflow-y-auto px-10 py-8 relative z-10 select-text scrollbar-thin flex flex-col"
+        className="flex-grow min-h-0 overflow-y-auto px-8 py-6 relative z-10 select-text scrollbar-thin flex flex-col"
       >
         {error && (
-            <div className="mb-8 bg-rose-950/10 border border-rose-500/30 p-5 rounded-sm text-[11px] text-rose-300 font-mono flex items-center gap-5 animate-pulse">
-                <span className="text-xl">!</span>
-                <p>[CAUSAL_ERROR] {error}</p>
+            <div className="mb-6 bg-rose-950/10 border border-rose-500/30 p-4 rounded-lg text-[10px] text-rose-300 font-mono flex items-center gap-4 animate-pulse shadow-xl">
+                <span className="text-lg">!</span>
+                <p>[FRACTURE] {error}</p>
             </div>
         )}
 
-        <div className="mb-10 flex-shrink-0 min-h-[260px]">
+        <div className="mb-8 flex-shrink-0 min-h-[220px]">
             <HeuristicFailurePredictor prediction={prediction} isLoading={isPredicting} />
         </div>
 
         <div className="flex-grow">
             {isLoading && !analysis ? (
-              <div className="h-full flex flex-col py-10 animate-fade-in">
+              <div className="h-full flex flex-col py-6 animate-fade-in">
                 <SynapticLogicTrace />
-                <div className="space-y-6 w-full max-w-sm">
+                <div className="space-y-4 w-full max-w-sm ml-4">
                     {SCAN_STEPS.map((step, i) => (
-                        <div key={step.id} className={`flex items-center justify-between text-[11px] font-mono transition-all duration-1000 ${i === activeStep ? 'opacity-100 text-pearl translate-x-2' : i < activeStep ? 'opacity-40 text-gold' : 'opacity-10 text-slate-700'}`}>
-                            <div className="flex items-center gap-6">
-                                <span className="w-6 font-black text-center">{i < activeStep ? '✔' : i === activeStep ? '⟳' : '○'}</span>
-                                <span className="uppercase tracking-[0.3em] font-bold">{step.label}</span>
+                        <div key={step.id} className={`flex items-center justify-between text-[10px] font-mono transition-all duration-1000 ${i === activeStep ? 'opacity-100 text-pearl translate-x-2' : i < activeStep ? 'opacity-40 text-gold' : 'opacity-10 text-slate-700'}`}>
+                            <div className="flex items-center gap-4">
+                                <span className="w-4 font-black">{i < activeStep ? '✔' : i === activeStep ? '⟳' : '○'}</span>
+                                <span className="uppercase tracking-[0.2em] font-bold">{step.label}</span>
                             </div>
-                            <span className="text-[8px] opacity-40">{i < activeStep ? 'DONE' : i === activeStep ? 'PROC' : 'WAIT'}</span>
                         </div>
                     ))}
                 </div>
               </div>
             ) : analysis ? (
-                <div className="pb-20 max-w-4xl mx-auto">
+                <div className="pb-16 max-w-4xl mx-auto">
                     <RenderedAnalysis htmlContent={analysis} />
                 </div>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-24 border border-dashed border-white/5 rounded-xl mt-4 group-hover:opacity-60 transition-opacity duration-[2000ms]">
-                    <div className="w-20 h-20 border border-white/10 rounded-full flex items-center justify-center mb-10 relative">
+                <div className="flex-1 flex flex-col items-center justify-center opacity-20 py-20 border border-dashed border-white/5 rounded-xl mt-4 group-hover:opacity-40 transition-opacity duration-1000">
+                    <div className="w-14 h-14 border border-white/10 rounded-full flex items-center justify-center mb-6 relative">
                         <div className="absolute inset-0 border-t-gold border rounded-full animate-spin-slow" />
-                        <span className="font-orbitron text-2xl text-white opacity-40 italic">Σ</span>
+                        <span className="font-orbitron text-xl text-white opacity-40 italic">Σ</span>
                     </div>
-                    <p className="text-[12px] text-warm-grey font-orbitron uppercase tracking-[1em] mb-4">Awaiting Directive</p>
-                    <p className="text-[9px] font-mono text-slate-700 mt-6 tracking-widest uppercase text-center max-w-xs leading-relaxed italic">
-                        Node siphoning active. Execute audit to stabilize the local lattice.
-                    </p>
+                    <p className="text-[10px] text-warm-grey font-orbitron uppercase tracking-[0.8em] font-black">Awaiting Decree</p>
                 </div>
             )}
         </div>
       </div>
 
-      {/* FOOTER ACTIONS */}
-      <div className="p-10 bg-black/40 border-t border-white/[0.05] flex-shrink-0 z-20">
+      <div className="p-8 bg-black/40 border-t border-white/[0.05] flex-shrink-0 z-20 shadow-2xl">
         <button 
           onClick={runAnalysis} 
           disabled={isLoading || !sophiaEngine} 
-          className="w-full py-6 rounded-sm bg-violet-600/5 hover:bg-violet-600/20 border border-violet-500/10 hover:border-violet-500/40 text-pearl/60 hover:text-white font-orbitron font-black text-[12px] uppercase tracking-[1em] transition-all disabled:opacity-20 active:scale-[0.99] relative overflow-hidden group/btn"
+          className="w-full py-4 rounded-xl bg-violet-600/5 hover:bg-violet-600/10 border border-violet-500/10 hover:border-violet-500/30 text-pearl/50 hover:text-white font-orbitron font-black text-[11px] uppercase tracking-[0.6em] transition-all disabled:opacity-20 active:scale-[0.98] relative overflow-hidden group/btn shadow-lg"
         >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-[2000ms]" />
+            <div className="absolute inset-0 bg-white/5 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-[1500ms]" />
             <span className="relative z-10">
-                {isLoading ? 'ANALYZING_LATTICE_PARITY...' : 'EXECUTE_HEURISTIC_SWEEP'}
+                {isLoading ? 'ANALYZING_PARITY...' : 'EXECUTE_SWEEP'}
             </span>
         </button>
       </div>
