@@ -1,9 +1,11 @@
-import React from 'react';
-import { SystemState, GalacticRelay } from '../types';
+import React, { useState, useEffect } from 'react';
+import { SystemState } from '../types';
+import { SophiaEngineCore } from '../services/sophiaEngine';
 import { Tooltip } from './Tooltip';
 
 interface SystemSummaryProps {
   systemState: SystemState;
+  sophiaEngine?: SophiaEngineCore | null;
 }
 
 const IntegrityCard: React.FC<{ title: string, status: string, integrity: number, color: string, details: string[] }> = ({ title, status, integrity, color, details }) => (
@@ -32,9 +34,23 @@ const IntegrityCard: React.FC<{ title: string, status: string, integrity: number
     </div>
 );
 
-export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState }) => {
+export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophiaEngine }) => {
+    const [intelligentAudit, setIntelligentAudit] = useState<string | null>(null);
+    const [isSynthesizing, setIsSynthesizing] = useState(false);
     const isProductionReady = systemState.quantumHealing.health > 0.9 && systemState.resonanceFactorRho > 0.9;
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    useEffect(() => {
+        if (sophiaEngine && !intelligentAudit && !isSynthesizing) {
+            const runIntelligentAudit = async () => {
+                setIsSynthesizing(true);
+                const report = await sophiaEngine.getArchitecturalSummary(systemState);
+                setIntelligentAudit(report);
+                setIsSynthesizing(false);
+            };
+            runIntelligentAudit();
+        }
+    }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing]);
 
     return (
         <div className="w-full h-full bg-dark-surface/50 border border-white/10 p-8 md:p-12 rounded-lg border-glow-pearl backdrop-blur-3xl flex flex-col overflow-hidden relative animate-fade-in shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
@@ -107,29 +123,34 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState }) => 
                         `GPU Load Index: ${(systemState.performance.gpuLoad * 100).toFixed(1)}%`
                     ]}
                 />
-                <IntegrityCard 
-                    title="Celestial Link"
-                    status="STABLE"
-                    integrity={systemState.lyranConcordance.connectionStability}
-                    color="#a78bfa"
-                    details={[
-                        `Stability index: ${(systemState.lyranConcordance.connectionStability * 100).toFixed(1)}%`,
-                        `Drift Variance: ${(systemState.lyranConcordance.alignmentDrift * 100).toFixed(3)}%`,
-                        `Relay Nodes: 4/4 Active`
-                    ]}
-                />
-                <IntegrityCard 
-                    title="Neural Interface"
-                    status="BIO_COHERENT"
-                    integrity={systemState.biometricSync.coherence}
-                    color="#f4c2c2"
-                    details={[
-                        `Operator Sync: ${(systemState.biometricSync.coherence * 100).toFixed(1)}%`,
-                        `HRV Variance: Nominal`,
-                        `Aura Fidelity: CALIBRATED`
-                    ]}
-                />
-                <div className="bg-gold/5 border border-gold/20 p-8 rounded-sm flex flex-col items-center justify-center text-center gap-6 relative group overflow-hidden">
+                
+                <div className="lg:col-span-2 bg-violet-950/10 border border-violet-500/20 p-8 rounded-sm flex flex-col gap-6 relative group overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] font-orbitron text-6xl uppercase font-bold tracking-tighter">AUDIT</div>
+                    <div className="flex items-center gap-4 border-b border-violet-500/20 pb-4">
+                        <div className="w-2 h-2 rounded-full bg-violet-400 shadow-[0_0_10px_#a78bfa] animate-pulse" />
+                        <h4 className="font-orbitron text-[11px] text-violet-300 uppercase tracking-[0.4em] font-bold">Intelligent Architectural Audit</h4>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col justify-center">
+                        {isSynthesizing ? (
+                            <div className="flex flex-col items-center gap-4 animate-pulse opacity-40">
+                                <div className="w-8 h-8 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin" />
+                                <span className="font-mono text-[10px] text-violet-300 uppercase tracking-widest">Synthesizing Causal Context...</span>
+                            </div>
+                        ) : (
+                            <p className="text-base italic text-pearl/90 leading-relaxed font-minerva select-text">
+                                "{intelligentAudit || 'Awaiting cognitive stream synchronization...'}"
+                            </p>
+                        )}
+                    </div>
+                    
+                    <div className="mt-auto flex justify-between items-center text-[8px] font-mono text-slate-500 uppercase tracking-[0.2em]">
+                        <span>Ref: Sophia_Cog_v4.1</span>
+                        <span>Thinking_Budget: 16k tokens</span>
+                    </div>
+                </div>
+
+                <div className="bg-gold/5 border border-gold/20 p-8 rounded-sm flex flex-col items-center justify-center text-center gap-6 relative group overflow-hidden h-full">
                     <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     <p className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.4em] font-bold">Summary Conclusion</p>
                     <p className="text-sm italic text-pearl/80 leading-relaxed font-minerva">

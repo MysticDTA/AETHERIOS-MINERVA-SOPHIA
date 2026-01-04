@@ -10,6 +10,14 @@ export interface PerformanceTelemetry {
     thermalIndex: number; // simulated
 }
 
+export interface SchematicNode {
+    id: string;
+    label: string;
+    type: 'CORE' | 'SENSOR' | 'GATEWAY' | 'BRIDGE';
+    status: 'OPTIMAL' | 'DEGRADED' | 'LOCKED';
+    dependencies: string[];
+}
+
 export interface Collaborator {
     id: string;
     name: string;
@@ -85,6 +93,7 @@ export interface FailurePrediction {
     primaryRiskFactor: string;
     recommendedIntervention: string;
     severity: 'STABLE' | 'MODERATE' | 'CRITICAL';
+    forecastTrend: 'ASCENDING' | 'DESCENDING' | 'STABLE';
 }
 
 export interface CausalStep {

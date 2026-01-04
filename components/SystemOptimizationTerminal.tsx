@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { SystemState, LogType } from '../types';
+import { SystemState, LogType, SchematicNode } from '../types';
 
 interface SystemOptimizationTerminalProps {
   systemState: SystemState;
@@ -18,6 +18,64 @@ const OPTIMIZATION_LOGS = [
     "Purging duplicate causal timelines...",
     "Re-seeding Tesseract geometric matrices..."
 ];
+
+const SCHEMATIC_NODES: SchematicNode[] = [
+    { id: 'core', label: 'MINERVA_ENGINE', type: 'CORE', status: 'OPTIMAL', dependencies: ['gpu', 'vocal'] },
+    { id: 'vocal', label: 'PROTOCOL_CHARON', type: 'BRIDGE', status: 'OPTIMAL', dependencies: ['mic'] },
+    { id: 'gpu', label: 'VISUAL_PARITY_NODE', type: 'CORE', status: 'OPTIMAL', dependencies: [] },
+    { id: 'mic', label: 'PCM_SENSOR_RX', type: 'SENSOR', status: 'OPTIMAL', dependencies: [] },
+    { id: 'stripe', label: 'CAUSAL_STRIPE_GTW', type: 'GATEWAY', status: 'LOCKED', dependencies: ['core'] },
+    { id: 'nasa', label: 'NASA_L_BAND_RX', type: 'SENSOR', status: 'OPTIMAL', dependencies: ['core'] },
+];
+
+const SchematicView: React.FC = () => {
+    return (
+        <div className="w-full h-64 bg-black/60 border border-white/5 rounded p-6 relative overflow-hidden group shadow-inner">
+             <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+             <div className="absolute top-2 left-4 font-mono text-[8px] text-gold uppercase tracking-widest opacity-60">Architectural_Schematic_v4.1</div>
+             
+             <svg viewBox="0 0 200 100" className="w-full h-full overflow-visible">
+                 <defs>
+                     <marker id="arrowhead" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto">
+                         <polygon points="0 0, 4 2, 0 4" fill="var(--gold)" opacity="0.4" />
+                     </marker>
+                 </defs>
+                 
+                 {/* Connection Lines */}
+                 <line x1="100" y1="50" x2="60" y2="30" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
+                 <line x1="100" y1="50" x2="60" y2="70" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
+                 <line x1="100" y1="50" x2="140" y2="30" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
+                 <line x1="100" y1="50" x2="140" y2="70" stroke="var(--gold)" strokeWidth="0.2" opacity="0.3" markerEnd="url(#arrowhead)" />
+                 
+                 {/* Nodes */}
+                 {SCHEMATIC_NODES.map((node, i) => {
+                     const coords = [
+                         { x: 100, y: 50 }, // core
+                         { x: 60, y: 30 },  // vocal
+                         { x: 140, y: 30 }, // gpu
+                         { x: 20, y: 30 },  // mic
+                         { x: 60, y: 70 },  // stripe
+                         { x: 140, y: 70 }, // nasa
+                     ][i];
+
+                     return (
+                         <g key={node.id} className="transition-all duration-500 hover:scale-110" style={{ transformOrigin: `${coords.x}px ${coords.y}px` }}>
+                             <rect 
+                                 x={coords.x - 15} y={coords.y - 6} width="30" height="12" 
+                                 fill="rgba(230, 199, 127, 0.05)" 
+                                 stroke={node.status === 'LOCKED' ? 'var(--gold)' : 'white'} 
+                                 strokeWidth="0.2" 
+                                 rx="1"
+                             />
+                             <text x={coords.x} y={coords.y + 1} textAnchor="middle" fill="white" fontSize="3" className="font-mono uppercase tracking-tighter opacity-80">{node.label}</text>
+                             {node.status === 'OPTIMAL' && <circle cx={coords.x + 12} cy={coords.y - 4} r="1" fill="#10b981" className="animate-pulse" />}
+                         </g>
+                     )
+                 })}
+             </svg>
+        </div>
+    );
+};
 
 const ComponentStatus: React.FC<{ name: string; status: 'SCANNING' | 'OPTIMIZED' | 'LOCKED'; delay: number }> = ({ name, status, delay }) => {
     const [currentStatus, setCurrentStatus] = useState<'PENDING' | 'SCANNING' | 'OPTIMIZED' | 'LOCKED'>('PENDING');
@@ -66,7 +124,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                 }
                 return prev + 1;
             });
-        }, 40); // Faster optimization for "performance" feel
+        }, 40); 
 
         const logInterval = setInterval(() => {
             if (progress < 100) {
@@ -89,8 +147,8 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                     <div className="flex items-center gap-6">
                         <div className="w-14 h-14 bg-gold/5 border border-gold/40 flex items-center justify-center font-orbitron text-gold text-3xl animate-pulse">Ω</div>
                         <div>
-                            <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-extrabold">System_Performance_Engine</h2>
-                            <p className="text-slate-500 uppercase tracking-[0.6em] text-[11px] mt-2 font-bold">Heuristic Display Parity :: Optimized Core v4.1</p>
+                            <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-extrabold">Audit_&_Transparency</h2>
+                            <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Full Intellectual Registry :: Optimized Core v4.1</p>
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -103,8 +161,10 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 relative">
                 {/* Left: Component Scan Grid */}
                 <div className="lg:col-span-7 flex flex-col gap-4 overflow-y-auto pr-6 scrollbar-thin">
-                    <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.5em] mb-4">Interface_Registry_Scan</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.5em] mb-4">Live_System_Schematic</h4>
+                    <SchematicView />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <ComponentStatus name="SANCTUM_DASH" status="SCANNING" delay={100} />
                         <ComponentStatus name="CRADLE_COG" status="SCANNING" delay={300} />
                         <ComponentStatus name="VEO_FLUX_GEN" status="SCANNING" delay={600} />
@@ -117,9 +177,9 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
 
                     <div className="mt-8 bg-gold/5 border border-gold/20 p-8 rounded-lg flex flex-col gap-6 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-6xl uppercase font-bold tracking-tighter select-none">SYNC</div>
-                        <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-widest font-bold border-b border-gold/10 pb-4">Synthesis Logic Output</h4>
+                        <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-widest font-bold border-b border-gold/10 pb-4">Audit Transparency Insight</h4>
                         <p className="font-minerva italic text-pearl/80 text-base leading-relaxed">
-                            "The system has purged all entropic visual buffers. Global parity index is holding at 1.617 GHz baseline. Performance optimization protocol successful."
+                            "System has been fully audited. All logical interdependencies are locked. No entropic drift detected in the visual frame buffer."
                         </p>
                         <div className="grid grid-cols-3 gap-4">
                              <div className="bg-black/40 border border-white/5 p-4 rounded text-center">
@@ -159,14 +219,14 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                                 </svg>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="font-orbitron text-4xl text-pearl font-bold">{progress}%</span>
-                                    <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Optimizing...</span>
+                                    <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Auditing...</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex-1 bg-[#050505] border border-white/5 rounded p-6 overflow-y-auto font-mono text-[10px] text-slate-400 scrollbar-thin shadow-inner group">
                              <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-4">
-                                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Live_Verification_Terminal</span>
+                                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Architect_Instruction_Trace</span>
                                 <div className="flex gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500/20" />
                                     <span className="w-1.5 h-1.5 rounded-full bg-gold/20" />
@@ -180,7 +240,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                              ))}
                              {progress < 100 && (
                                  <div className="animate-pulse text-gold mt-4 font-bold uppercase tracking-widest">
-                                     [SOPHIA] Rectifying Visual Caches...<span className="terminal-cursor" />
+                                     [SOPHIA] Rectifying System Transparency...<span className="terminal-cursor" />
                                  </div>
                              )}
                              <div ref={logEndRef} />
@@ -191,8 +251,8 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
 
             <div className="mt-auto py-8 px-12 bg-white/[0.02] border border-white/10 rounded-sm flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
                 <div className="flex flex-col gap-2">
-                    <h5 className="font-orbitron text-[11px] text-pearl uppercase tracking-[0.4em] font-bold">Optimization_Protocol_Finalized</h5>
-                    <p className="text-[13px] font-minerva italic text-slate-400 italic">"The system is now operating at peak intellectual parity."</p>
+                    <h5 className="font-orbitron text-[11px] text-pearl uppercase tracking-[0.4em] font-bold">Audit_Protocol_Finalized</h5>
+                    <p className="text-[13px] font-minerva italic text-slate-400">"The Architect now has full visibility into the local reality-lattice."</p>
                 </div>
                 <button 
                     onClick={onOptimizeComplete}
@@ -204,7 +264,7 @@ export const SystemOptimizationTerminal: React.FC<SystemOptimizationTerminalProp
                     }`}
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                    <span className="relative z-10">{isComplete ? 'Return to Sanctum' : 'Optimization Protocol Active'}</span>
+                    <span className="relative z-10">{isComplete ? 'Return to Sanctum' : 'Finalizing Registry Audit'}</span>
                 </button>
             </div>
         </div>

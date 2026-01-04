@@ -15,8 +15,13 @@ class CosmosCommsService {
     private decodingInterval: number | null = null;
     private nextMessageTimeout: number | null = null;
     private isRunning = false;
+    private isFetching = false;
     private retryCount = 0;
+    private lastTransmissionTime = 0;
     
+    // HEURISTIC COOLDOWN: 5 minutes (300,000ms) to prevent quota over-saturation
+    private readonly MIN_SYNC_INTERVAL = 300000;
+
     public initialState: CosmosTransmission = {
         source: 'AWAITING_NASA_UPLINK',
         message: '',
@@ -41,7 +46,14 @@ class CosmosCommsService {
     start() {
         if (this.isRunning) return;
         this.isRunning = true;
-        this.beginTransmission(); // Start immediately
+        
+        // Prevent immediate re-fire on component re-mount if it's too soon
+        const timeSinceLast = Date.now() - this.lastTransmissionTime;
+        if (timeSinceLast > this.MIN_SYNC_INTERVAL) {
+            this.beginTransmission();
+        } else {
+            this.scheduleNextTransmission();
+        }
     }
     
     stop() {
@@ -54,23 +66,25 @@ class CosmosCommsService {
         if (!this.isRunning) return;
         if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
 
-        // PRODUCTION OPTIMIZATION: Increasing interval significantly to preserve API quota.
-        // Base delay: 6 minutes. Exponential backoff if error occurred.
-        const baseDelay = isError ? 300000 * Math.pow(2, this.retryCount) : 360000; 
-        const jitter = Math.random() * 120000;
+        // PRODUCTION OPTIMIZATION: Default to 15-minute cycles for background telemetry
+        const baseDelay = isError ? 300000 * Math.pow(2, this.retryCount) : 900000; 
+        const jitter = Math.random() * 60000;
         const delay = Math.min(baseDelay + jitter, 3600000); // Cap at 1 hour
 
         this.nextMessageTimeout = window.setTimeout(() => this.beginTransmission(), delay);
     }
 
     private async beginTransmission() {
+        if (this.isFetching) return;
+        
+        this.isFetching = true;
         this.currentState = {
             ...this.currentState,
             source: 'Syncing NOAA/NASA Telemetry...',
             message: '',
             decodedCharacters: 0,
             status: 'RECEIVING...',
-            frequency: 1.617 + (Math.random() * 0.005 - 0.0025), // Precision jitter around Golden Ratio
+            frequency: 1.617 + (Math.random() * 0.005 - 0.0025),
             bandwidth: 10 + Math.random() * 40
         };
         this.emit();
@@ -86,8 +100,10 @@ class CosmosCommsService {
                 Return JSON: {"source": "Observatory/Satellite Name", "text": "Technical summary with real units like km/s, nT, or MeV", "metric": "Key value like Kp-Index"}
             `;
             
+            // INTELLECTUAL OPTIMIZATION: Switched to Flash model for lightweight background telemetry 
+            // to preserve Pro-tier quota for the primary Causal Engine.
             const response = await ai.models.generateContent({
-                model: 'gemini-3-pro-preview', 
+                model: 'gemini-3-flash-preview', 
                 contents: prompt,
                 config: {
                     tools: [{googleSearch: {}}],
@@ -109,31 +125,35 @@ class CosmosCommsService {
             const jsonStr = response.text.trim();
             const { source, text, metric } = JSON.parse(jsonStr);
 
+            this.lastTransmissionTime = Date.now();
             this.currentState.source = source;
             this.currentState.message = text;
             this.currentState.realWorldMetric = metric;
             this.currentState.status = 'DECODING...';
-            this.retryCount = 0; // Reset retry counter on success
+            this.retryCount = 0;
             this.emit();
 
             this.startDecoding(); 
 
         } catch (error: any) {
             console.error("Grounding Link Failure:", error);
+            this.isFetching = false;
             
             let statusMsg: CommsStatus = 'SIGNAL LOST';
             if (error?.status === 'RESOURCE_EXHAUSTED' || error?.message?.includes('429')) {
                 statusMsg = 'SIGNAL LOST';
-                this.currentState.message = "Grounding link quota exhausted. High-order resonance required. Re-synchronizing in standby mode...";
+                this.currentState.message = "Grounding link quota exhausted. Causal Damping in effect. Re-synchronizing after field stabilization (5m+)...";
                 this.retryCount++;
             } else {
-                this.currentState.message = "Grounding link to NASA/NOAA data stream interrupted. Re-synchronizing at 1.617 GHz...";
+                this.currentState.message = "Grounding link to NASA/NOAA data stream interrupted. Re-establishing parity...";
             }
 
             this.currentState.source = "SYSTEM_ERROR";
             this.currentState.status = statusMsg;
             this.emit();
             this.scheduleNextTransmission(true);
+        } finally {
+            this.isFetching = false;
         }
     }
 

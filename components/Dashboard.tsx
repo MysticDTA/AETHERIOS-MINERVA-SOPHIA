@@ -26,7 +26,7 @@ const RITE_COMMANDS = [
     { label: 'Deep Gestation', cmd: 'Take this into the Womb.', rite: 'gestate' },
     { label: 'Quantum Harvest', cmd: 'Harvest the outcomes...', rite: 'harvest' },
     { label: 'Shadow Membrane', cmd: 'What is hidden in silence?', rite: 'shadow' },
-    { label: 'System Optimization', cmd: 'Optimize for Performance.', rite: 'optimize' }
+    { label: 'Architect Audit', cmd: 'Access full system review.', rite: 'master_audit' }
 ];
 
 const PerformanceCard: React.FC<{ label: string, value: string, sub: string, color: string }> = ({ label, value, sub, color }) => (
@@ -79,8 +79,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }
 
   const handleRiteClick = (rite: string) => {
-      if (rite === 'optimize') {
-          onOptimize();
+      if (rite === 'master_audit') {
+          onTriggerScan();
       }
   };
 

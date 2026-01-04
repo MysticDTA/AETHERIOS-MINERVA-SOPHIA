@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
 import { SimulationControls } from './components/SimulationControls';
@@ -89,9 +89,12 @@ const App: React.FC = () => {
       addLogEntry, setSystemState, systemState, audioEngine: audioEngine.current,
   });
 
-  const voiceInterface = useVoiceInterface({
+  const voiceInterfaceHook = useVoiceInterface({
       addLogEntry, systemInstruction, onSetOrbMode: setOrbMode
   });
+
+  // Use memoization to prevent comms-restart loops when voiceInterface state changes
+  const voiceInterface = useMemo(() => voiceInterfaceHook, [voiceInterfaceHook.isSessionActive, voiceInterfaceHook.userInputTranscription, voiceInterfaceHook.sophiaOutputTranscription]);
 
   useEffect(() => {
     sophiaEngine.current = new SophiaEngineCore(systemInstruction);
@@ -114,10 +117,17 @@ const App: React.FC = () => {
   useEffect(() => {
     audioEngine.current = new AudioEngine();
     audioEngine.current.loadSounds().then(() => setIsAudioReady(true));
+    
+    // Grounding Link Initialization
     const unsubscribeComms = cosmosCommsService.subscribe(setTransmission);
     cosmosCommsService.start();
-    return () => { unsubscribeComms(); voiceInterface.closeVoiceSession(); };
-  }, [voiceInterface]);
+    
+    return () => { 
+        unsubscribeComms(); 
+        cosmosCommsService.stop(); // CRITICAL: Stop the service to prevent multiple background timers
+        voiceInterfaceHook.closeVoiceSession(); 
+    };
+  }, []); // Run only on mount
 
   const handleTriggerScan = async () => {
     setOrbMode('ANALYSIS'); 
@@ -159,7 +169,7 @@ const App: React.FC = () => {
           case 11: return <Display11 systemState={systemState} />;
           case 12: return <Display12 systemState={systemState} />;
           case 13: return <NeuralQuantizer orbMode={orbMode} />;
-          case 14: return <SystemSummary systemState={systemState} />;
+          case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine.current} />;
           case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} />;
           case 17: return <DeploymentManifest systemState={systemState} />;

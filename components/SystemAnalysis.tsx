@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { useSophiaCore } from './hooks/useSophiaCore';
+import { HeuristicFailurePredictor } from './HeuristicFailurePredictor';
 
 const SCAN_STEPS = [
     { id: 'flux', label: 'Analyzing Aetheric Gestation' },
@@ -137,8 +138,6 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
     return () => clearInterval(interval);
   }, [isLoading, isPredicting, sophiaEngine, runPrediction]);
 
-  const showPredictionAlert = prediction && (prediction.severity === 'CRITICAL' || prediction.probability > 0.5);
-
   return (
     <div className="w-full h-full bg-[#0a0a0a]/70 border border-white/[0.08] rounded-xl flex flex-col overflow-hidden relative group transition-all duration-700 shadow-2xl backdrop-blur-3xl">
       <div className="flex justify-between items-center px-6 py-5 flex-shrink-0 border-b border-white/[0.05] bg-black/40 z-20">
@@ -164,27 +163,12 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
             </div>
         )}
 
-        {showPredictionAlert && (
-            <div className="mb-6 bg-rose-950/30 border border-rose-500/50 p-4 rounded-sm animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.15)] relative overflow-hidden group/alert">
-                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
-                <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-rose-500 rounded-full" />
-                        <span className="font-orbitron text-[10px] text-rose-300 uppercase tracking-widest font-bold">Causal Failure Forecast</span>
-                    </div>
-                    <span className="font-mono text-[9px] text-rose-500">PROBABILITY: {(prediction.probability * 100).toFixed(0)}%</span>
-                </div>
-                <p className="text-[12px] font-minerva italic text-pearl leading-relaxed mb-3">
-                    "Decoherence event likely in <span className="text-rose-400 font-bold underline">{prediction.estTimeToDecoherence}</span>. Primary factor: {prediction.primaryRiskFactor}"
-                </p>
-                <div className="bg-rose-500/10 p-2 border border-rose-500/20 rounded-sm">
-                    <p className="text-[9px] font-mono text-rose-200 uppercase tracking-tighter"><span className="text-white font-bold">RECOMMENDED:</span> {prediction.recommendedIntervention}</p>
-                </div>
-            </div>
-        )}
+        <div className="mb-8 h-64">
+            <HeuristicFailurePredictor prediction={prediction} isLoading={isPredicting} />
+        </div>
 
         {isLoading && !analysis ? (
-          <div className="h-full flex flex-col pt-12 items-center">
+          <div className="h-full flex flex-col items-center">
             <HeuristicGrid />
             <div className="w-full space-y-6 px-4">
                 {SCAN_STEPS.map((step, i) => (
@@ -213,7 +197,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
                 )}
             </div>
         ) : (
-            <div className="text-center h-full flex flex-col items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity duration-1000">
+            <div className="text-center h-full flex flex-col items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity duration-1000 mt-12">
                 <p className="text-[11px] text-warm-grey font-orbitron uppercase tracking-[0.6em] mb-4">Awaiting Causal Command</p>
                 <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                 <p className="text-[8px] font-mono text-slate-600 mt-4 tracking-widest uppercase">Protocol: Minerva_Audit_V1.2.6</p>

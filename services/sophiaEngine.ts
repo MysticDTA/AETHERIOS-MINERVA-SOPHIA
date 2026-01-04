@@ -67,7 +67,6 @@ export class SophiaEngineCore {
     const auditPrompt = `
         Perform a deep, technical Intellectual Audit on the ÆTHERIOS local ecosystem. 
         Analyze the relationship between Health, Rho, and Temporal Drift.
-        Specifically evaluate the "Causal Exchange" (Stripe) gateway stability.
         Format as semantic HTML: <h3>Audit Focus</h3>, <p>Summary</p>, <ul>Findings</ul>. Use technical, authoritative language.
         
         System State: ${JSON.stringify({
@@ -93,6 +92,30 @@ export class SophiaEngineCore {
         };
     } catch (e) {
         return { report: handleApiError(e), sources: [] };
+    }
+  }
+
+  async getArchitecturalSummary(systemState: SystemState): Promise<string> {
+    const currentAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (!currentAi) return "Summary Engine Offline.";
+    
+    const prompt = `
+        As MINERVA SOPHIA, generate a high-level "Architectural Summary Audit" of the current reality-lattice.
+        Summarize the balance between "Aetheric Flux" and "Causal Stability".
+        Use the thinking budget to provide a unique, intellectual insight.
+        Keep it under 100 words. Format: Pure technical prose with intellectual gravitas.
+        
+        Metrics: Rho=${systemState.resonanceFactorRho.toFixed(4)}, Health=${systemState.quantumHealing.health.toFixed(2)}, Drift=${systemState.temporalCoherenceDrift.toFixed(5)}
+    `;
+    try {
+        const response = await currentAi.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+            config: { thinkingConfig: { thinkingBudget: 16000 } }
+        });
+        return response.text || "Summary synthesis failure.";
+    } catch (e) {
+        return handleApiError(e);
     }
   }
 
@@ -219,11 +242,11 @@ export class SophiaEngineCore {
     const currentAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     if (!currentAi) { onError("Cognitive Core Offline."); return; }
     try {
-      const prompt = `Perform high-level audit on: ${JSON.stringify(systemState)}. Focus on decoherence. HTML format.`;
+      const prompt = `Perform high-level audit on: ${JSON.stringify(systemState)}. Focus on decoherence. HTML format. Use your 32k thinking budget to ensure absolute logic parity.`;
       const response = await currentAi.models.generateContentStream({
           model: 'gemini-3-pro-preview',
           contents: prompt,
-          config: { tools: [{googleSearch: {}}], thinkingConfig: { thinkingBudget: 24576 } }
+          config: { tools: [{googleSearch: {}}], thinkingConfig: { thinkingBudget: 32768 } }
       });
       for await (const chunk of response) {
         const c = chunk as GenerateContentResponse;
@@ -235,12 +258,29 @@ export class SophiaEngineCore {
   async getFailurePrediction(systemState: SystemState): Promise<FailurePrediction | null> {
     const currentAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     if (!currentAi) return null;
-    const prompt = `Analyze for collapse: ${JSON.stringify(systemState)}. Return FailurePrediction JSON.`;
+    const prompt = `Perform an advanced heuristic failure forecast based on this system state: ${JSON.stringify(systemState)}. 
+    Analyze for potential collapse patterns. 
+    Return a detailed JSON object matching the FailurePrediction type, including forecast trend ('ASCENDING', 'DESCENDING', or 'STABLE').`;
     try {
       const response = await currentAi.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: prompt,
-        config: { responseMimeType: "application/json" }
+        config: { 
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    probability: { type: Type.NUMBER },
+                    estTimeToDecoherence: { type: Type.STRING },
+                    primaryRiskFactor: { type: Type.STRING },
+                    recommendedIntervention: { type: Type.STRING },
+                    severity: { type: Type.STRING, enum: ['STABLE', 'MODERATE', 'CRITICAL'] },
+                    forecastTrend: { type: Type.STRING, enum: ['ASCENDING', 'DESCENDING', 'STABLE'] }
+                },
+                required: ["probability", "estTimeToDecoherence", "primaryRiskFactor", "recommendedIntervention", "severity", "forecastTrend"]
+            },
+            thinkingConfig: { thinkingBudget: 12000 }
+        }
       });
       return JSON.parse(response.text);
     } catch (e) { return null; }
