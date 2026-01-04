@@ -67,16 +67,24 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         setTimeout(() => setCalibrationEffect(null), 800);
 
         if (isSuccess) {
-            addLogEntry(LogType.INFO, `Lyran node ${starId} calibrated successfully.`);
+            addLogEntry(LogType.INFO, `Lyran node ${starId} calibrated. Temporal Phase Lock active (60s).`);
             audioEngine?.playUIConfirm();
             setSystemState(prev => {
                 const newState = { ...prev };
                 newState.lyranConcordance.connectionStability = Math.min(1, prev.lyranConcordance.connectionStability + 0.05);
-                newState.lyranConcordance.alignmentDrift = Math.max(0, prev.lyranConcordance.alignmentDrift - 0.02);
+                newState.lyranConcordance.alignmentDrift = Math.max(0, prev.lyranConcordance.alignmentDrift - 0.05); // Enhanced correction
+                newState.isPhaseLocked = true;
                 const cost = Math.random() * 0.015;
                 newState.quantumHealing.decoherence = Math.min(1, newState.quantumHealing.decoherence + cost);
                 return newState;
             });
+            
+            // Release Phase Lock after 60 seconds
+            setTimeout(() => {
+                setSystemState(prev => ({ ...prev, isPhaseLocked: false }));
+                addLogEntry(LogType.INFO, "Temporal Phase Lock expired. Drift accumulation resumed.");
+            }, 60000);
+
             let newTarget = calibrationTargetId;
             while (newTarget === calibrationTargetId) {
                 newTarget = Math.floor(Math.random() * STAR_COUNT) + 1;
@@ -118,16 +126,22 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         setIsDischargingGround(true);
         addLogEntry(LogType.SYSTEM, 'Earth Grounding Core discharge sequence initiated.');
         audioEngine?.playGroundingDischarge();
+        
+        // BALANCING ADJUSTMENT: Entropy Damping
+        // Scale reduction based on Schumann Intensity (Baseline effectiveness + scaling)
+        const intensityFactor = systemState.schumannResonance.intensity;
+        const reduction = 0.4 * (1 + intensityFactor); // Effective reduction between 0.4 and 0.8
+        
         setSystemState(prev => {
             const newState = { ...prev };
             newState.earthGrounding.status = 'DISCHARGING';
             newState.earthGrounding.charge = Math.max(0, prev.earthGrounding.charge - 0.75);
-            newState.quantumHealing.decoherence = Math.max(0, prev.quantumHealing.decoherence - 0.5);
-            addLogEntry(LogType.INFO, 'Core discharge successful. System decoherence rapidly reduced.');
+            newState.quantumHealing.decoherence = Math.max(0, prev.quantumHealing.decoherence - reduction);
+            addLogEntry(LogType.INFO, `Core discharge successful. Reduction: ${(reduction * 100).toFixed(0)}%.`);
             return newState;
         });
         setTimeout(() => setIsDischargingGround(false), 15000); // 15 second cooldown
-    }, [isDischargingGround, addLogEntry, setSystemState, systemState.earthGrounding.charge, audioEngine]);
+    }, [isDischargingGround, addLogEntry, setSystemState, systemState.earthGrounding.charge, systemState.schumannResonance.intensity, audioEngine]);
     
     const handleHeliumFlush = useCallback(() => {
         if (isFlushingHelium) return;

@@ -139,6 +139,7 @@ export const initialSystemState: SystemState = {
   log: [],
   breathCycle: 'INHALE',
   isGrounded: false,
+  isPhaseLocked: false,
   ingestedModules: []
 };
 
@@ -226,6 +227,16 @@ export const useSystemSimulation = (
       setSystemState(prev => {
         let newHealth = prev.quantumHealing.health;
         let newDecoherence = prev.quantumHealing.decoherence;
+        
+        // BALANCING ADJUSTMENT: Biometric-Logic Handshake
+        // Throttling or penalizing logic based on biometric coherence
+        if (prev.biometricSync.coherence < 0.4) {
+            newDecoherence = Math.min(1.0, newDecoherence + 0.02);
+            if (Math.random() < 0.05) {
+                addLogEntry(LogType.WARNING, "Lattice Fracture: Neural instability detected. Throttle logic core.");
+            }
+        }
+
         // Use a more stable random jitter
         let resonanceModifier = Math.max(0.1, Math.min(1.0, prev.resonanceFactorRho + (Math.random() - 0.5) * 0.005));
         
@@ -241,12 +252,19 @@ export const useSystemSimulation = (
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
         if (coherenceScore < 0.75) coherenceStatus = 'RESONATING';
 
+        // BALANCING ADJUSTMENT: Temporal Drift Correction (Phase Lock)
+        const driftIncrease = prev.isPhaseLocked ? 0 : (newDecoherence * 0.0002) - (resonanceModifier * 0.0008);
+
         return {
           ...prev,
           isGrounded,
           performance: newPerformance,
+          quantumHealing: {
+              ...prev.quantumHealing,
+              decoherence: newDecoherence
+          },
           resonanceFactorRho: resonanceModifier,
-          temporalCoherenceDrift: prev.temporalCoherenceDrift + (newDecoherence * 0.0002) - (resonanceModifier * 0.0008),
+          temporalCoherenceDrift: prev.temporalCoherenceDrift + driftIncrease,
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,
@@ -259,7 +277,7 @@ export const useSystemSimulation = (
       });
     }, 1000);
     return () => { if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current); };
-  }, [params, orbMode, isGrounded, diagnosticMode, optimizationActive]);
+  }, [params, orbMode, isGrounded, diagnosticMode, optimizationActive, addLogEntry]);
 
   return { 
     systemState, 

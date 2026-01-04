@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { SystemStatus } from './components/SystemStatus';
-import { AudioEngine } from './components/audio/AudioEngine';
-import { UserTier, CommsStatus } from './types';
+import { SystemStatus } from './SystemStatus';
+import { AudioEngine } from './audio/AudioEngine';
+import { UserTier, CommsStatus } from '../types';
 
 interface HeaderProps {
     governanceAxiom: string;

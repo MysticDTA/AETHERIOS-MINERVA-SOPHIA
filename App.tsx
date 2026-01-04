@@ -82,10 +82,24 @@ const App: React.FC = () => {
   
   const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
 
+  // BALANCING ADJUSTMENT: Institutional Parity Check
+  // Automated mending when logic fractures occur
+  const triggerAutoRepair = useCallback(() => {
+    setOrbMode('REPAIR');
+    setTimeout(() => setOrbMode('STANDBY'), 5000);
+  }, []);
+
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
         const source = event.filename ? ` @ ${event.filename.split('/').pop()}:${event.lineno}` : '';
         const msg = event.message || 'Unknown Exception';
+        
+        if (msg.includes("Requested entity was not found.")) {
+            addLogEntry(LogType.CRITICAL, "[KEY_FRACTURE] API entity lost in remote lattice. Re-authenticating...");
+            window.aistudio?.openSelectKey();
+            return;
+        }
+
         addLogEntry(LogType.CRITICAL, `[LATTICE_FRACTURE] ${msg}${source}`);
         setSystemState(prev => ({
             ...prev,
@@ -97,10 +111,18 @@ const App: React.FC = () => {
             }
         }));
         audioEngine.current?.playEffect('renewal');
+        triggerAutoRepair();
     };
 
     const handlePromiseRejection = (event: PromiseRejectionEvent) => {
         const reason = event.reason?.message || event.reason || 'Unknown Rejection';
+        
+        if (reason.includes("Requested entity was not found.")) {
+            addLogEntry(LogType.CRITICAL, "[ASYNC_KEY_FRACTURE] Remote entity desync. Opening AI Studio Key Portal...");
+            window.aistudio?.openSelectKey();
+            return;
+        }
+
         addLogEntry(LogType.CRITICAL, `[ASYNC_DECOHERENCE] ${reason}`);
         setSystemState(prev => ({
             ...prev,
@@ -109,6 +131,7 @@ const App: React.FC = () => {
                 entropyFlux: Math.min(1, prev.coherenceResonance.entropyFlux + 0.05)
             }
         }));
+        triggerAutoRepair();
     };
 
     window.addEventListener('error', handleGlobalError);
@@ -117,11 +140,21 @@ const App: React.FC = () => {
         window.removeEventListener('error', handleGlobalError);
         window.removeEventListener('unhandledrejection', handlePromiseRejection);
     };
-  }, [addLogEntry, setSystemState]);
+  }, [addLogEntry, setSystemState, triggerAutoRepair]);
 
   const handleComponentError = useCallback((error: Error, errorInfo: React.ErrorInfo) => {
-    addLogEntry(LogType.CRITICAL, `[COMPONENT_CRASH] ${error.message}`);
-  }, [addLogEntry]);
+    addLogEntry(LogType.CRITICAL, `[COMPONENT_FRACTURE] ${error.message}`);
+    setSystemState(prev => ({
+        ...prev,
+        quantumHealing: {
+            ...prev.quantumHealing,
+            decoherence: Math.min(1, prev.quantumHealing.decoherence + 0.2),
+            status: "DAMAGED"
+        }
+    }));
+    audioEngine.current?.playEffect('renewal');
+    triggerAutoRepair();
+  }, [addLogEntry, setSystemState, triggerAutoRepair]);
 
   const { 
     isSessionActive, 
@@ -300,44 +333,42 @@ const App: React.FC = () => {
       }
   }, [currentPage, systemState, scanCompleted, orbMode, transmission, isSessionActive, userInputTranscription, sophiaOutputTranscription, transcriptionHistory, lastSystemCommand, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, clearVoiceHistory, startVoiceSession, closeVoiceSession, logFilter]);
 
-  const appContent = !isInitialized ? (
+  const dashboardContent = (
+    <ApiKeyGuard>
+      <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho}>
+        {showDiagnosticScan && (
+          <ErrorBoundary onError={handleComponentError}>
+            <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
+          </ErrorBoundary>
+        )}
+        <ErrorBoundary onError={handleComponentError}>
+          <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
+        </ErrorBoundary>
+        <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
+          <ErrorBoundary onError={handleComponentError}>{renderPage()}</ErrorBoundary>
+        </main>
+        <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
+          <ErrorBoundary onError={handleComponentError}>
+            <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
+                <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
+                <div className="flex gap-2">
+                  <button onClick={() => setCurrentPage(23)} className="px-4 py-2 bg-rose-950/20 border border-rose-500/40 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">Security_Shield</button>
+                  <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-slate-900/10 border border-slate-500/20 text-slate-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-500 hover:text-white transition-all font-bold">System_Logs</button>
+                  <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
+                  <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
+                </div>
+            </div>
+          </ErrorBoundary>
+        </footer>
+      </Layout>
+    </ApiKeyGuard>
+  );
+
+  return !isInitialized ? (
     <ErrorBoundary onError={handleComponentError}>
       <SovereignPortal onInitialize={handleInitializeNode} />
     </ErrorBoundary>
-  ) : (
-    <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho}>
-      {showDiagnosticScan && (
-        <ErrorBoundary onError={handleComponentError}>
-          <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
-        </ErrorBoundary>
-      )}
-      <ErrorBoundary onError={handleComponentError}>
-        <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
-      </ErrorBoundary>
-      <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
-        <ErrorBoundary onError={handleComponentError}>{renderPage()}</ErrorBoundary>
-      </main>
-      <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
-        <ErrorBoundary onError={handleComponentError}>
-          <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
-              <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-              <div className="flex gap-2">
-                <button onClick={() => setCurrentPage(23)} className="px-4 py-2 bg-rose-950/20 border border-rose-500/40 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">Security_Shield</button>
-                <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-slate-900/10 border border-slate-500/20 text-slate-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-500 hover:text-white transition-all font-bold">System_Logs</button>
-                <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
-                <button onClick={() => setCurrentPage(19)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-extrabold">System_Evolution_Terminal</button>
-              </div>
-          </div>
-        </ErrorBoundary>
-      </footer>
-    </Layout>
-  );
-
-  return (
-    <ApiKeyGuard>
-      {appContent}
-    </ApiKeyGuard>
-  );
+  ) : dashboardContent;
 };
 
 export default App;

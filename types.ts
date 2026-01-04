@@ -65,6 +65,7 @@ export interface SystemState {
   log: LogEntry[];
   breathCycle: 'INHALE' | 'EXHALE';
   isGrounded: boolean;
+  isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
 }
 
