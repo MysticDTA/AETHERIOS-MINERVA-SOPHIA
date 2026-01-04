@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { SystemState, OrbMode, OrbModeConfig, TransmissionState, LogType } from './types';
 import { AudioEngine } from './components/audio/AudioEngine';
@@ -62,7 +62,7 @@ const orbModes: OrbModeConfig[] = [
   { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation. Withdrawing into the generative void.' }
 ];
 
-const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 23, 22];
+const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 21, 23, 22];
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
@@ -80,13 +80,13 @@ const App: React.FC = () => {
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
   
-  const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
+  const { systemState, setSystemState, addLogEntry, setDiagnosticMode, setGrounded } = useSystemSimulation(simulationParams, orbMode);
 
-  // BALANCING ADJUSTMENT: Institutional Parity Check
-  // Automated mending when logic fractures occur
   const triggerAutoRepair = useCallback(() => {
     setOrbMode('REPAIR');
-    setTimeout(() => setOrbMode('STANDBY'), 5000);
+    setTimeout(() => {
+        setOrbMode('STANDBY');
+    }, 5000);
   }, []);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const App: React.FC = () => {
         const msg = event.message || 'Unknown Exception';
         
         if (msg.includes("Requested entity was not found.")) {
-            addLogEntry(LogType.CRITICAL, "[KEY_FRACTURE] API entity lost in remote lattice. Re-authenticating...");
+            addLogEntry(LogType.CRITICAL, "[KEY_FRACTURE] API entity lost. Requesting AI Studio re-authentication...");
             window.aistudio?.openSelectKey();
             return;
         }
@@ -106,7 +106,6 @@ const App: React.FC = () => {
             quantumHealing: {
                 ...prev.quantumHealing,
                 decoherence: Math.min(1, prev.quantumHealing.decoherence + 0.1),
-                health: Math.max(0, prev.quantumHealing.health - 0.05),
                 status: "DAMAGED"
             }
         }));
@@ -118,19 +117,12 @@ const App: React.FC = () => {
         const reason = event.reason?.message || event.reason || 'Unknown Rejection';
         
         if (reason.includes("Requested entity was not found.")) {
-            addLogEntry(LogType.CRITICAL, "[ASYNC_KEY_FRACTURE] Remote entity desync. Opening AI Studio Key Portal...");
+            addLogEntry(LogType.CRITICAL, "[ASYNC_KEY_FRACTURE] Entity desync. Opening AI Studio Key Portal...");
             window.aistudio?.openSelectKey();
             return;
         }
 
         addLogEntry(LogType.CRITICAL, `[ASYNC_DECOHERENCE] ${reason}`);
-        setSystemState(prev => ({
-            ...prev,
-            coherenceResonance: {
-                ...prev.coherenceResonance,
-                entropyFlux: Math.min(1, prev.coherenceResonance.entropyFlux + 0.05)
-            }
-        }));
         triggerAutoRepair();
     };
 
@@ -144,28 +136,11 @@ const App: React.FC = () => {
 
   const handleComponentError = useCallback((error: Error, errorInfo: React.ErrorInfo) => {
     addLogEntry(LogType.CRITICAL, `[COMPONENT_FRACTURE] ${error.message}`);
-    setSystemState(prev => ({
-        ...prev,
-        quantumHealing: {
-            ...prev.quantumHealing,
-            decoherence: Math.min(1, prev.quantumHealing.decoherence + 0.2),
-            status: "DAMAGED"
-        }
-    }));
-    audioEngine.current?.playEffect('renewal');
     triggerAutoRepair();
-  }, [addLogEntry, setSystemState, triggerAutoRepair]);
+    audioEngine.current?.playEffect('renewal');
+  }, [addLogEntry, triggerAutoRepair]);
 
-  const { 
-    isSessionActive, 
-    userInputTranscription, 
-    sophiaOutputTranscription, 
-    transcriptionHistory, 
-    lastSystemCommand, 
-    startVoiceSession, 
-    closeVoiceSession,
-    clearHistory: clearVoiceHistory
-  } = useVoiceInterface({ 
+  const voiceInterface = useVoiceInterface({ 
     addLogEntry, 
     systemInstruction, 
     onSetOrbMode: setOrbMode 
@@ -279,7 +254,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [handleTriggerScan, showDiagnosticScan, currentPage, setDiagnosticMode]);
 
-  const renderPage = useCallback(() => {
+  const pageContent = useMemo(() => {
       switch (currentPage) {
           case 1: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
           case 2: return <SubsystemsDisplay systemState={systemState} onGroundingDischarge={handleGroundingDischarge} isDischargingGround={isDischargingGround} />;
@@ -293,16 +268,7 @@ const App: React.FC = () => {
                 onToggleInstructionsModal={() => {}} 
                 onRelayCalibration={handleRelayCalibration} 
                 setOrbMode={setOrbMode} 
-                voiceInterface={{
-                    isSessionActive,
-                    userInputTranscription,
-                    sophiaOutputTranscription,
-                    transcriptionHistory,
-                    lastSystemCommand,
-                    startVoiceSession,
-                    closeVoiceSession,
-                    clearHistory: clearVoiceHistory
-                }} 
+                voiceInterface={voiceInterface} 
                 onTriggerAudit={handleTriggerScan} 
               />
           );
@@ -331,7 +297,7 @@ const App: React.FC = () => {
           case 22: return <div className="h-full"><EventLog log={systemState.log} filter={logFilter} onFilterChange={setLogFilter} /></div>;
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
       }
-  }, [currentPage, systemState, scanCompleted, orbMode, transmission, isSessionActive, userInputTranscription, sophiaOutputTranscription, transcriptionHistory, lastSystemCommand, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, clearVoiceHistory, startVoiceSession, closeVoiceSession, logFilter]);
+  }, [currentPage, systemState, scanCompleted, orbMode, transmission, voiceInterface, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, logFilter]);
 
   const dashboardContent = (
     <ApiKeyGuard>
@@ -345,7 +311,7 @@ const App: React.FC = () => {
           <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
         </ErrorBoundary>
         <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
-          <ErrorBoundary onError={handleComponentError}>{renderPage()}</ErrorBoundary>
+          <ErrorBoundary onError={handleComponentError}>{pageContent}</ErrorBoundary>
         </main>
         <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
           <ErrorBoundary onError={handleComponentError}>

@@ -2,14 +2,12 @@
 // Global shared types for SOPHIA DV99 / Alliance System
 
 declare global {
-  // FIX: Moved AIStudio definition into global scope to merge with environment defaults and resolve "Subsequent property declarations must have same type"
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
     openSelectKey: () => Promise<void>;
   }
 
   interface Window {
-    // FIX: Aligned aistudio property as optional to match base environment declarations and resolve "identical modifiers" error
     aistudio?: AIStudio;
     SpeechRecognition: any;
     webkitRecognition: any;
@@ -25,6 +23,8 @@ export interface PerformanceTelemetry {
     gpuLoad: number; 
     frameStability: number; 
     thermalIndex: number; 
+    throughput: number;
+    memoryUsage: number;
 }
 
 export interface IngestedModule {
@@ -59,7 +59,7 @@ export interface SystemState {
   abundanceCore: AbundanceCoreData;
   dilutionRefrigerator: DilutionRefrigeratorData;
   governanceAxiom: string;
-  supanovaTriforce: SupanovaTriforceData;
+  supernovaTriforce: SupernovaTriforceData;
   pillars: Record<PillarId, PillarData>;
   temporalCoherenceDrift: number;
   log: LogEntry[];
@@ -137,7 +137,6 @@ export interface GalacticRelay {
   latency: number;
 }
 
-// FIX: Added missing exported member 'SyncStatus'
 export type SyncStatus = 'SYNCHRONIZED' | 'CALIBRATING' | 'UNSTABLE' | 'DECOUPLED';
 
 export interface BiometricSyncData {
@@ -146,14 +145,7 @@ export interface BiometricSyncData {
     status: SyncStatus;
 }
 
-// FIX: Added missing exported member 'VibrationStatus'
 export type VibrationStatus = 'HARMONIC' | 'DISCORDANT' | 'CRITICAL';
-
-export interface VibrationStatusData {
-    amplitude: number;
-    frequency: number;
-    resonanceStatus: VibrationStatus;
-}
 
 export interface VibrationData {
     amplitude: number;
@@ -161,7 +153,6 @@ export interface VibrationData {
     resonanceStatus: VibrationStatus;
 }
 
-// FIX: Added missing exported member 'AethericTransferStatus'
 export type AethericTransferStatus = 'STABLE' | 'TURBULENT' | 'STAGNANT';
 
 export interface AethericTransferData {
@@ -171,7 +162,6 @@ export interface AethericTransferData {
     entropy: number;
 }
 
-// FIX: Added missing exported member 'SchumannResonanceStatus'
 export type SchumannResonanceStatus = 'NOMINAL' | 'ELEVATED' | 'SUPPRESSED';
 
 export interface SchumannResonanceData {
@@ -224,7 +214,6 @@ export interface AbundanceCoreData {
     status: 'EXPANDING' | 'STABLE' | 'CONTRACTING';
 }
 
-// FIX: Added missing exported member 'DilutionRefrigeratorStatus'
 export type DilutionRefrigeratorStatus = 'STABLE' | 'UNSTABLE' | 'BOOSTED' | 'OFFLINE';
 
 export interface DilutionRefrigeratorData {
@@ -233,20 +222,20 @@ export interface DilutionRefrigeratorData {
     coolingPower: number;
 }
 
-export enum SupanovaTriforceState {
+export enum SupernovaTriforceState {
   IDLE = "IDLE",
   CHARGING = "CHARGING",
   STABLE = "STABLE",
   SUPERNOVA = "SUPERNOVA",
 }
 
-export interface SupanovaTriforceData {
+export interface SupernovaTriforceData {
   phiEnergy: number;
   psiEnergy: number;
   omegaEnergy: number;
   output: number;
   stability: number;
-  state: SupanovaTriforceState;
+  state: SupernovaTriforceState;
 }
 
 export type PillarId = 'ARCTURIAN' | 'LEMURIAN' | 'ATLANTEAN';
@@ -340,7 +329,6 @@ export interface SchematicNode {
     dependencies: string[];
 }
 
-// FIX: Added missing exported member 'Scenario'
 export interface Scenario {
     name: string;
     description: string;
@@ -350,7 +338,6 @@ export interface Scenario {
     };
 }
 
-// FIX: Added missing exported member 'CommunityData'
 export interface CommunityData {
     id: string;
     name: string;
@@ -362,7 +349,6 @@ export interface CommunityData {
     location: { x: number; y: number };
 }
 
-// FIX: Added missing exported member 'GlobalResonanceState'
 export interface GlobalResonanceState {
     aggregateRho: number;
     activeArchitects: number;
@@ -370,7 +356,6 @@ export interface GlobalResonanceState {
     communities: CommunityData[];
 }
 
-// FIX: Added missing exported member 'Collaborator'
 export interface Collaborator {
     id: string;
     name: string;
@@ -380,7 +365,6 @@ export interface Collaborator {
     clearance: UserTier;
 }
 
-// FIX: Added missing exported member 'InstitutionalEntity'
 export interface InstitutionalEntity {
     id: string;
     name: string;

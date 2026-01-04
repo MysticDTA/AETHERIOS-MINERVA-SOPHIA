@@ -9,7 +9,6 @@ interface AuraScannerProps {
 
 export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonance }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const secondaryVideoRef = useRef<HTMLVideoElement>(null);
   const [streamActive, setStreamActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,10 +26,6 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          if (secondaryVideoRef.current) {
-            secondaryVideoRef.current.srcObject = stream;
-          }
-          // Ensure metadata is loaded before activating the stream visuals
           videoRef.current.onloadedmetadata = () => {
             setStreamActive(true);
           };
@@ -61,11 +56,11 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
   };
 
   const auraColor = getAuraColor();
-  const blurAmount = 12 + (1 - coherence) * 24; 
+  const blurAmount = 12 + (1 - coherence) * 20; 
   const pulseSpeed = 3 + (1 - coherence) * 3;
 
   return (
-    <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-rose backdrop-blur-sm flex flex-col relative overflow-hidden transition-all duration-1000 group hover:bg-dark-surface/70">
+    <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-rose backdrop-blur-sm flex flex-col relative overflow-hidden transition-all duration-1000 group hover:bg-dark-surface/70 gpu-accel">
       <div className="flex justify-between items-center mb-4 z-20 border-b border-white/5 pb-2">
         <h3 className="font-orbitron text-xs text-warm-grey uppercase tracking-[0.2em] font-bold">Biometric Aura Scanner V2</h3>
         <div className="flex items-center gap-2">
@@ -82,7 +77,6 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
             </div>
         ) : (
             <>
-                {/* Cold Booting State */}
                 {!streamActive && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10 animate-pulse">
                         <div className="w-12 h-12 border-2 border-gold/30 rounded-full border-t-gold animate-spin mb-4" />
@@ -95,28 +89,15 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
                     autoPlay 
                     playsInline 
                     muted 
-                    className={`absolute inset-0 w-full h-full object-cover opacity-40 grayscale contrast-125 transition-opacity duration-1000 ${streamActive ? 'opacity-40' : 'opacity-0'}`}
+                    className={`absolute inset-0 w-full h-full object-cover opacity-30 grayscale contrast-125 transition-opacity duration-1000 ${streamActive ? 'opacity-30' : 'opacity-0'}`}
                 />
                 
+                {/* Optimized Aura Overlay: Using a single complex filter to simulate multiple layers */}
                 <div 
-                    className={`absolute inset-0 mix-blend-overlay z-10 transition-all duration-1000 pointer-events-none ${streamActive ? 'opacity-100' : 'opacity-0'}`}
-                    style={{ backgroundColor: auraColor }}
-                />
-
-                <div 
-                    className={`absolute inset-0 mix-blend-soft-light z-10 transition-opacity duration-1000 pointer-events-none ${streamActive ? 'opacity-30' : 'opacity-0'}`}
-                    style={{ background: `radial-gradient(circle at 50% 40%, ${auraColor}, transparent 70%)` }}
-                />
-
-                <video 
-                    ref={secondaryVideoRef}
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className={`absolute inset-0 w-full h-full object-cover mix-blend-screen pointer-events-none transition-all duration-1000 ${streamActive ? 'opacity-60' : 'opacity-0'}`}
+                    className={`absolute inset-0 z-10 transition-all duration-1000 pointer-events-none ${streamActive ? 'opacity-100' : 'opacity-0'}`}
                     style={{ 
-                        filter: `blur(${blurAmount}px) brightness(1.5) saturate(2)`,
-                        transform: `scale(${1.02 + (1-coherence) * 0.05})`,
+                        background: `radial-gradient(circle at 50% 40%, ${auraColor}, transparent 80%)`,
+                        backdropFilter: `blur(${blurAmount}px) brightness(1.2)`,
                         animation: `aura-breathe ${pulseSpeed}s infinite alternate ease-in-out`
                     }}
                 />
@@ -170,8 +151,8 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
       
       <style>{`
         @keyframes aura-breathe {
-            0% { opacity: 0.3; filter: blur(${blurAmount}px) brightness(1.2); }
-            100% { opacity: 0.6; filter: blur(${blurAmount + 5}px) brightness(1.7); }
+            0% { transform: scale(1); filter: contrast(1.1); }
+            100% { transform: scale(1.05); filter: contrast(1.3); }
         }
       `}</style>
     </div>

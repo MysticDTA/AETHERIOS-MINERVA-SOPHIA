@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { SystemState } from '../types';
-import { SupanovaTriforceReactor } from '../services/SupanovaTriforceReactor';
+import { SupernovaTriforceReactor } from '../services/SupanovaTriforceReactor';
 import { PatternRecognitionHUD } from './PatternRecognitionHUD';
 import { TemporalDriftVisualizer } from './TemporalDriftVisualizer';
 
@@ -13,7 +14,7 @@ export const Display11: React.FC<Display11Props> = ({ systemState }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
       {/* --- LEFT COLUMN: Reactor Dynamics --- */}
       <div className="lg:col-span-1 flex flex-col gap-6">
-        <SupanovaTriforceReactor data={systemState.supanovaTriforce} />
+        <SupernovaTriforceReactor data={systemState.supernovaTriforce} />
         <PatternRecognitionHUD systemState={systemState} />
       </div>
 

@@ -9,6 +9,7 @@ import { SophiaCognitiveCore } from './SophiaCognitiveCore';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { SystemIntegrityCore } from './SystemIntegrityCore';
 import { Tooltip } from './Tooltip';
+import { PerformanceMetricsChart } from './PerformanceMetricsChart';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -135,23 +136,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* --- COLUMN 2: CORE VISUAL (5/12) --- */}
-      <div className="lg:col-span-5 flex flex-col items-center gap-16 overflow-y-auto px-6 hide-scrollbar">
-        <div className="w-full flex justify-center items-center aspect-square max-w-[580px] relative">
+      {/* --- COLUMN 2: CORE VISUAL & TELEMETRY CHARTS (5/12) --- */}
+      <div className="lg:col-span-5 flex flex-col items-center gap-10 overflow-y-auto px-6 hide-scrollbar">
+        <div className="w-full flex justify-center items-center aspect-square max-w-[500px] relative shrink-0">
             <div className="absolute inset-0 bg-radial-gradient from-violet-600/5 via-transparent to-transparent blur-3xl opacity-20" />
-            <div className="relative z-20 scale-110">
+            <div className="relative z-20 scale-100">
                 <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
             </div>
-            {/* Minimalist Telemetry Label */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center z-30 space-y-2 opacity-40 group-hover:opacity-100 transition-opacity duration-[2000ms]">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center z-30 space-y-2 opacity-40 group-hover:opacity-100 transition-opacity duration-[2000ms]">
                 <p className="font-orbitron text-[8px] text-gold uppercase tracking-[1.5em] font-black">Phase_Intercept</p>
                 <p className="font-mono text-[10px] text-pearl/50">1.617 GHz L-BAND LOCK</p>
             </div>
         </div>
         
-        <div className="w-full space-y-12 pb-16">
-            <WombCoreStability data={systemState.supanovaTriforce} />
-            <div className="grid grid-cols-3 gap-8">
+        <div className="w-full space-y-8 pb-16">
+            <PerformanceMetricsChart performance={systemState.performance} />
+            <WombCoreStability data={systemState.supernovaTriforce} />
+            <div className="grid grid-cols-3 gap-6">
                 <PerformanceCard label="Sync_Latency" value={`${(systemState.performance.logicalLatency).toFixed(4)}ms`} sub="LATTICE_MATCH" color="#67e8f9" />
                 <PerformanceCard label="Causal_Parity" value={`${(systemState.performance.visualParity * 100).toFixed(2)}%`} sub="SYNAPTIC_SYNC" color="#ffd700" />
                 <PerformanceCard label="Aether_Flux" value={`${(systemState.performance.thermalIndex).toFixed(2)}Ψ`} sub="HARMONIC_Δ" color="#f8f5ec" />

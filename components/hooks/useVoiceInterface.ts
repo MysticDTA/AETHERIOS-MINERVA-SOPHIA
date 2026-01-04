@@ -1,6 +1,5 @@
-
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from "@google/genai";
+import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from '@google/genai';
 import { LogType, OrbMode } from '../../types';
 import { encode, decode, decodeAudioData } from '../audio/liveUtils';
 import { knowledgeBase } from '../../services/knowledgeBase';
@@ -148,11 +147,11 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                                 
                                 sessionPromise.current?.then((session) => {
                                     session.sendToolResponse({
-                                        functionResponses: [{
+                                        functionResponses: {
                                             id: fc.id,
                                             name: fc.name,
                                             response: { result: "ok", message: `System mode successfully updated to ${mode}` },
-                                        }]
+                                        }
                                     });
                                 });
                             }

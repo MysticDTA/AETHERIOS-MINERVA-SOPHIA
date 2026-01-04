@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   SystemState, 
   LogType, 
-  SupanovaTriforceState, 
+  SupernovaTriforceState, 
   PillarId, 
   OrbMode, 
   CoherenceResonanceData,
@@ -27,7 +27,9 @@ export const initialSystemState: SystemState = {
     visualParity: 0.9998,
     gpuLoad: 0.12,
     frameStability: 1.0,
-    thermalIndex: 32.4
+    thermalIndex: 32.4,
+    throughput: 450,
+    memoryUsage: 12.4
   },
   auth: {
     isAuthenticated: true,
@@ -122,13 +124,13 @@ export const initialSystemState: SystemState = {
     coolingPower: 500,
   },
   governanceAxiom: "SOVEREIGN EMBODIMENT",
-  supanovaTriforce: {
+  supernovaTriforce: {
     phiEnergy: 0.9,
     psiEnergy: 0.9,
     omegaEnergy: 0.95,
     output: 15.0,
     stability: 0.99,
-    state: SupanovaTriforceState.STABLE,
+    state: SupernovaTriforceState.STABLE,
   },
   pillars: {
     ARCTURIAN: { id: 'ARCTURIAN', name: 'Arcturian Logic', activation: 0.95, description: 'Logic & Geometry' },
@@ -147,22 +149,17 @@ export const useSystemSimulation = (
   params: { decoherenceChance: number; lesionChance: number },
   orbMode: OrbMode
 ) => {
-  // Use a stable initial state to prevent hydration mismatch
   const [systemState, setSystemState] = useState<SystemState>(initialSystemState);
   const [isLoaded, setIsLoaded] = useState(false);
-
   const [isGrounded, setGrounded] = useState(false);
   const [diagnosticMode, setDiagnosticMode] = useState(false);
-  const [optimizationActive] = useState(false);
   
   const simulationIntervalRef = useRef<number | null>(null);
   const breathIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
 
-  // Load persistence data only after mount
   useEffect(() => {
     isMounted.current = true;
-    
     try {
         const stored = localStorage.getItem(PERSISTENCE_KEY);
         if (stored) {
@@ -172,7 +169,6 @@ export const useSystemSimulation = (
     } catch (e) { 
         console.warn("Persistence hydration skipped.");
     }
-    
     setIsLoaded(true);
 
     const syncWithBackend = async () => {
@@ -225,35 +221,33 @@ export const useSystemSimulation = (
     simulationIntervalRef.current = window.setInterval(() => {
       if (!isMounted.current) return;
       setSystemState(prev => {
-        let newHealth = prev.quantumHealing.health;
         let newDecoherence = prev.quantumHealing.decoherence;
         
-        // BALANCING ADJUSTMENT: Biometric-Logic Handshake
-        // Throttling or penalizing logic based on biometric coherence
         if (prev.biometricSync.coherence < 0.4) {
-            newDecoherence = Math.min(1.0, newDecoherence + 0.02);
+            newDecoherence = Math.min(1.0, newDecoherence + 0.01);
             if (Math.random() < 0.05) {
-                addLogEntry(LogType.WARNING, "Lattice Fracture: Neural instability detected. Throttle logic core.");
+                addLogEntry(LogType.WARNING, "Lattice Fracture: Operator desync. Accelerating entropy damping.");
             }
         }
 
-        // Use a more stable random jitter
         let resonanceModifier = Math.max(0.1, Math.min(1.0, prev.resonanceFactorRho + (Math.random() - 0.5) * 0.005));
         
         const newPerformance: PerformanceTelemetry = {
             logicalLatency: 0.0001 + (newDecoherence * 0.005),
             visualParity: 1.0 - (newDecoherence * 0.1),
-            gpuLoad: 0.1 + (prev.supanovaTriforce.output / 100),
+            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 100) + (Math.random() * 0.05),
             frameStability: 1.0 - (prev.vibration.amplitude / 100),
-            thermalIndex: 30 + (prev.supanovaTriforce.stability * 10)
+            thermalIndex: 30 + (prev.supernovaTriforce.stability * 10),
+            throughput: 400 + (resonanceModifier * 200) + (Math.random() * 50),
+            memoryUsage: 12 + (newDecoherence * 4) + (Math.random() * 2)
         };
 
         const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
         if (coherenceScore < 0.75) coherenceStatus = 'RESONATING';
+        if (coherenceScore < 0.4) coherenceStatus = 'DECOHERING';
 
-        // BALANCING ADJUSTMENT: Temporal Drift Correction (Phase Lock)
-        const driftIncrease = prev.isPhaseLocked ? 0 : (newDecoherence * 0.0002) - (resonanceModifier * 0.0008);
+        const driftIncrease = prev.isPhaseLocked ? 0 : (newDecoherence * 0.0002) - (resonanceModifier * 0.0005);
 
         return {
           ...prev,
@@ -264,7 +258,7 @@ export const useSystemSimulation = (
               decoherence: newDecoherence
           },
           resonanceFactorRho: resonanceModifier,
-          temporalCoherenceDrift: prev.temporalCoherenceDrift + driftIncrease,
+          temporalCoherenceDrift: Math.max(0, prev.temporalCoherenceDrift + driftIncrease),
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,
@@ -277,7 +271,7 @@ export const useSystemSimulation = (
       });
     }, 1000);
     return () => { if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current); };
-  }, [params, orbMode, isGrounded, diagnosticMode, optimizationActive, addLogEntry]);
+  }, [orbMode, isGrounded, diagnosticMode, addLogEntry]);
 
   return { 
     systemState, 

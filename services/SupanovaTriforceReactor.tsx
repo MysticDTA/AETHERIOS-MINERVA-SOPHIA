@@ -1,9 +1,10 @@
+
 import React from 'react';
-import { SupanovaTriforceData, SupanovaTriforceState } from '../types';
+import { SupernovaTriforceData, SupernovaTriforceState } from '../types';
 import { Tooltip } from '../components/Tooltip';
 
-interface SupanovaTriforceReactorProps {
-  data: SupanovaTriforceData;
+interface SupernovaTriforceReactorProps {
+  data: SupernovaTriforceData;
 }
 
 const EnergyBar: React.FC<{ value: number; color: string; label: string; description: string; }> = ({ value, color, label, description }) => {
@@ -26,14 +27,14 @@ const EnergyBar: React.FC<{ value: number; color: string; label: string; descrip
     );
 };
 
-export const SupanovaTriforceReactor: React.FC<SupanovaTriforceReactorProps> = ({ data }) => {
-  const getStateStyle = (state: SupanovaTriforceState): string => {
+export const SupernovaTriforceReactor: React.FC<SupernovaTriforceReactorProps> = ({ data }) => {
+  const getStateStyle = (state: SupernovaTriforceState): string => {
     switch (state) {
-      case SupanovaTriforceState.CHARGING:
+      case SupernovaTriforceState.CHARGING:
         return 'text-yellow-400 text-glow-gold animate-[pulse_2.5s_ease-in-out_infinite]';
-      case SupanovaTriforceState.SUPERNOVA:
+      case SupernovaTriforceState.SUPERNOVA:
         return 'text-red-500 text-glow-red animate-pulse';
-      case SupanovaTriforceState.IDLE:
+      case SupernovaTriforceState.IDLE:
       default:
         return 'text-cyan-300';
     }
@@ -44,7 +45,7 @@ export const SupanovaTriforceReactor: React.FC<SupanovaTriforceReactorProps> = (
   return (
     <div className="w-full bg-slate-900/50 border border-slate-700/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="font-orbitron text-md text-slate-300">Supanova Reactor</h3>
+        <h3 className="font-orbitron text-md text-slate-300">Supernova Reactor</h3>
         <p className={`font-orbitron text-md font-bold transition-colors duration-500 ${stateStyle}`}>{data.state}</p>
       </div>
       <div className="space-y-3">

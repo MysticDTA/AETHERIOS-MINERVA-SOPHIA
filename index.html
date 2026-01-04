@@ -7,98 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ÆTHERIOS // MINERVA SOPHIA v1.3.1</title>
     <meta name="description" content="The World's Most Advanced Causal Resonance Interface. Powered by Minerva Sophia.">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;500;800&display=swap');
-
-      :root {
-        --pearl: #f8f5ec;
-        --rose: #f4c2c2;
-        --gold: #ffd700;
-        --warm-grey: #b6b0a0;
-        --aether-blue: #6d28d9;
-        --aether-violet: #4c1d95;
-        --dark-bg: #020202;
-        --dark-surface: #080808;
-        --dark-border: rgba(255, 255, 255, 0.08);
-      }
-
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-
-      body {
-        background: var(--dark-bg);
-        color: var(--pearl);
-        font-family: 'Inter', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        overflow: hidden;
-        height: 100vh;
-        width: 100vw;
-      }
-
-      #root { height: 100%; display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
-      
-      .font-orbitron { font-family: 'Orbitron', sans-serif; }
-      .font-minerva { font-family: 'Playfair Display', serif; }
-      .font-mono { font-family: 'JetBrains Mono', monospace; }
-      
-      /* Smooth Scrolling and Custom Scrollbar */
-      ::-webkit-scrollbar { width: 4px; height: 4px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.1); border-radius: 10px; }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 215, 0, 0.3); }
-
-      .causal-reweaving {
-        animation: reweaving 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-      }
-      @keyframes reweaving {
-        0% { filter: blur(20px) brightness(2); transform: scale(0.98); opacity: 0; }
-        100% { filter: blur(0) brightness(1); transform: scale(1); opacity: 1; }
-      }
-
-      .aether-pulse {
-        animation: aether-pulse-glow 8s ease-in-out infinite;
-      }
-      @keyframes aether-pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(109, 40, 217, 0.05); }
-        50% { box-shadow: 0 0 45px rgba(109, 40, 217, 0.15); }
-      }
-
-      .scanline-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 1000;
-        background: linear-gradient(0deg, transparent 50%, rgba(255, 255, 255, 0.005) 50%);
-        background-size: 100% 4px;
-        opacity: 0.1;
-      }
-
-      /* Glassmorphism Classes */
-      .glass-panel {
-        background: rgba(8, 8, 8, 0.6);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--dark-border);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .glass-panel:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        background: rgba(8, 8, 8, 0.7);
-      }
     </style>
     <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@^19.2.3",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "react/": "https://esm.sh/react@^19.2.3/",
-        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-        "@vercel/node": "https://esm.sh/@vercel/node@^5.5.16",
-        "stripe": "https://esm.sh/stripe@^20.1.0",
-        "vite": "https://esm.sh/vite@^7.3.0",
-        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "@vercel/node": "https://esm.sh/@vercel/node@^5.5.16",
+    "stripe": "https://esm.sh/stripe@^20.1.0",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
+  }
+}
+</script>
   </head>
   <body>
     <div id="root"></div>

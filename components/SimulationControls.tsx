@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
+import { Scenario } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
 import { AudioEngine } from './audio/AudioEngine';
-import { Scenario } from '../types';
 import { Tooltip } from './Tooltip';
 
 interface SimulationControlsProps {

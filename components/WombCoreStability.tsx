@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { SupanovaTriforceData, SupanovaTriforceState } from '../types';
+import { SupernovaTriforceData, SupernovaTriforceState } from '../types';
 import { Tooltip } from './Tooltip';
 
 interface WombCoreStabilityProps {
-  data: SupanovaTriforceData;
+  data: SupernovaTriforceData;
 }
 
 const SegmentedBar: React.FC<{ value: number; color: string; label: string; description: string; }> = ({ value, color, label, description }) => {
@@ -42,13 +42,13 @@ const SegmentedBar: React.FC<{ value: number; color: string; label: string; desc
 };
 
 export const WombCoreStability: React.FC<WombCoreStabilityProps> = React.memo(({ data }) => {
-  const getStateStyle = (state: SupanovaTriforceState): string => {
+  const getStateStyle = (state: SupernovaTriforceState): string => {
     switch (state) {
-      case SupanovaTriforceState.CHARGING:
+      case SupernovaTriforceState.CHARGING:
         return 'text-gold text-glow-gold animate-[pulse_2.5s_ease-in-out_infinite]';
-      case SupanovaTriforceState.SUPERNOVA:
+      case SupernovaTriforceState.SUPERNOVA:
         return 'text-rose text-glow-rose animate-pulse';
-      case SupanovaTriforceState.IDLE:
+      case SupernovaTriforceState.IDLE:
       default:
         return 'text-pearl';
     }

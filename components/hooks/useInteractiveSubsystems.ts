@@ -1,9 +1,8 @@
-
 import React, { useState, useCallback } from 'react';
 import { SystemState, LogType, PillarId } from '../../types';
 import { AudioEngine } from '../audio/AudioEngine';
 
-const STAR_COUNT = 7; // From LyranStarMap component
+const STAR_COUNT = 7;
 
 interface useInteractiveSubsystemsProps {
     addLogEntry: (type: LogType, message: string) => void;
@@ -41,10 +40,10 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
             const newState = { ...prev, galacticRelayNetwork: { ...prev.galacticRelayNetwork } };
             const relay = newState.galacticRelayNetwork[relayId];
             let success = false;
-            if (relay.status === 'DEGRADED' && Math.random() < 0.8) { // 80% success
+            if (relay.status === 'DEGRADED' && Math.random() < 0.8) {
                 newState.galacticRelayNetwork[relayId] = { ...relay, status: 'ONLINE' };
                 success = true;
-            } else if (relay.status === 'OFFLINE' && Math.random() < 0.3) { // 30% success to bring back to degraded
+            } else if (relay.status === 'OFFLINE' && Math.random() < 0.3) {
                 newState.galacticRelayNetwork[relayId] = { ...relay, status: 'DEGRADED' };
                 success = true;
             }
@@ -56,7 +55,6 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
             }
             const cost = Math.random() * 0.03;
             newState.quantumHealing.decoherence = Math.min(1, newState.quantumHealing.decoherence + cost);
-            addLogEntry(LogType.WARNING, `Relay calibration caused ${(cost * 100).toFixed(2)}% decoherence spike.`);
             return newState;
         });
     }, [addLogEntry, systemState.galacticRelayNetwork, setSystemState, audioEngine]);
@@ -67,19 +65,19 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         setTimeout(() => setCalibrationEffect(null), 800);
 
         if (isSuccess) {
+            // ADJUSTMENT: Temporal Drift Correction (Phase Lock)
             addLogEntry(LogType.INFO, `Lyran node ${starId} calibrated. Temporal Phase Lock active (60s).`);
             audioEngine?.playUIConfirm();
-            setSystemState(prev => {
-                const newState = { ...prev };
-                newState.lyranConcordance.connectionStability = Math.min(1, prev.lyranConcordance.connectionStability + 0.05);
-                newState.lyranConcordance.alignmentDrift = Math.max(0, prev.lyranConcordance.alignmentDrift - 0.05); // Enhanced correction
-                newState.isPhaseLocked = true;
-                const cost = Math.random() * 0.015;
-                newState.quantumHealing.decoherence = Math.min(1, newState.quantumHealing.decoherence + cost);
-                return newState;
-            });
+            setSystemState(prev => ({
+                ...prev,
+                lyranConcordance: {
+                    ...prev.lyranConcordance,
+                    connectionStability: Math.min(1, prev.lyranConcordance.connectionStability + 0.1),
+                    alignmentDrift: Math.max(0, prev.lyranConcordance.alignmentDrift - 0.05)
+                },
+                isPhaseLocked: true
+            }));
             
-            // Release Phase Lock after 60 seconds
             setTimeout(() => {
                 setSystemState(prev => ({ ...prev, isPhaseLocked: false }));
                 addLogEntry(LogType.INFO, "Temporal Phase Lock expired. Drift accumulation resumed.");
@@ -93,11 +91,13 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         } else {
             addLogEntry(LogType.WARNING, `Incorrect node calibration attempt on Lyran node ${starId}.`);
             audioEngine?.playUIClick();
-            setSystemState(prev => {
-                const newState = { ...prev };
-                newState.lyranConcordance.alignmentDrift = Math.min(1, prev.lyranConcordance.alignmentDrift + 0.01);
-                return newState;
-            });
+            setSystemState(prev => ({
+                ...prev,
+                lyranConcordance: {
+                    ...prev.lyranConcordance,
+                    alignmentDrift: Math.min(1, prev.lyranConcordance.alignmentDrift + 0.02)
+                }
+            }));
         }
     }, [calibrationTargetId, addLogEntry, setSystemState, audioEngine]);
 
@@ -110,15 +110,10 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
             const newState = { ...prev };
             newState.aethericTransfer.fluxStatus = 'STABLE';
             newState.aethericTransfer.efficiency = Math.min(1, prev.aethericTransfer.efficiency + 0.2);
-            newState.supanovaTriforce.psiEnergy = Math.max(0, prev.supanovaTriforce.psiEnergy - 0.1);
             newState.quantumHealing.decoherence = Math.min(1, prev.quantumHealing.decoherence + 0.05);
-            addLogEntry(LogType.WARNING, 'Flow purge caused minor decoherence spike and drained coherence field energy.');
             return newState;
         });
-        setTimeout(() => {
-            setIsPurgingAether(false);
-            addLogEntry(LogType.INFO, 'Aetheric purge conduit has cooled down.');
-        }, 10000); // 10 second cooldown
+        setTimeout(() => setIsPurgingAether(false), 10000);
     }, [isPurgingAether, addLogEntry, setSystemState, audioEngine]);
 
     const handleGroundingDischarge = useCallback(() => {
@@ -127,20 +122,19 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         addLogEntry(LogType.SYSTEM, 'Earth Grounding Core discharge sequence initiated.');
         audioEngine?.playGroundingDischarge();
         
-        // BALANCING ADJUSTMENT: Entropy Damping
-        // Scale reduction based on Schumann Intensity (Baseline effectiveness + scaling)
+        // ADJUSTMENT: Entropy Damping scaling with Schumann Intensity
+        // nominal efficacy is 0.5. Scaling by intensityFactor * 2 makes it up to 1.0 (2x)
         const intensityFactor = systemState.schumannResonance.intensity;
-        const reduction = 0.4 * (1 + intensityFactor); // Effective reduction between 0.4 and 0.8
+        const reduction = 0.5 * (intensityFactor * 2);
         
-        setSystemState(prev => {
-            const newState = { ...prev };
-            newState.earthGrounding.status = 'DISCHARGING';
-            newState.earthGrounding.charge = Math.max(0, prev.earthGrounding.charge - 0.75);
-            newState.quantumHealing.decoherence = Math.max(0, prev.quantumHealing.decoherence - reduction);
-            addLogEntry(LogType.INFO, `Core discharge successful. Reduction: ${(reduction * 100).toFixed(0)}%.`);
-            return newState;
-        });
-        setTimeout(() => setIsDischargingGround(false), 15000); // 15 second cooldown
+        setSystemState(prev => ({
+            ...prev,
+            earthGrounding: { ...prev.earthGrounding, status: 'DISCHARGING', charge: 0 },
+            quantumHealing: { ...prev.quantumHealing, decoherence: Math.max(0, prev.quantumHealing.decoherence - reduction) }
+        }));
+        
+        addLogEntry(LogType.INFO, `Core discharge successful. Entropy reduction: ${(reduction * 100).toFixed(0)}%.`);
+        setTimeout(() => setIsDischargingGround(false), 15000);
     }, [isDischargingGround, addLogEntry, setSystemState, systemState.earthGrounding.charge, systemState.schumannResonance.intensity, audioEngine]);
     
     const handleHeliumFlush = useCallback(() => {
@@ -148,48 +142,31 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         setIsFlushingHelium(true);
         addLogEntry(LogType.SYSTEM, 'Dilution Refrigerator Helium-3 flush initiated.');
         audioEngine?.playHeliumFlush();
-        setSystemState(prev => {
-            const newState = { ...prev };
-            newState.dilutionRefrigerator = {
+        setSystemState(prev => ({
+            ...prev,
+            dilutionRefrigerator: {
                 ...prev.dilutionRefrigerator,
                 status: 'BOOSTED',
-                temperature: Math.max(5, prev.dilutionRefrigerator.temperature - 20),
+                temperature: 5,
                 coolingPower: prev.dilutionRefrigerator.coolingPower + 400,
-            };
-            const cost = 0.03;
-            newState.quantumHealing.decoherence = Math.min(1, prev.quantumHealing.decoherence + cost);
-            addLogEntry(LogType.WARNING, `Helium-3 flush caused a minor ${(cost * 100).toFixed(2)}% decoherence spike.`);
-            return newState;
-        });
-
-        setTimeout(() => {
-            setIsFlushingHelium(false);
-            addLogEntry(LogType.INFO, 'Dilution Refrigerator has returned to normal operation.');
-            // No need to reset status here, the simulation loop will take over
-        }, 10000); // 10 second boost duration
+            }
+        }));
+        setTimeout(() => setIsFlushingHelium(false), 10000);
     }, [isFlushingHelium, addLogEntry, setSystemState, audioEngine]);
 
     const handleDilutionCalibration = useCallback(() => {
         if (isCalibratingDilution) return;
         setIsCalibratingDilution(true);
         addLogEntry(LogType.SYSTEM, 'Dilution Refrigerator thermal calibration sequence active.');
-        audioEngine?.playUIConfirm(); // Reuse confirm sound
-        
-        // Immediate visual feedback is handled by the component via isCalibratingDilution prop
-        
+        audioEngine?.playUIConfirm();
         setTimeout(() => {
-            setSystemState(prev => {
-                const newState = { ...prev };
-                newState.dilutionRefrigerator = {
-                    ...prev.dilutionRefrigerator,
-                    status: 'STABLE',
-                    temperature: 10.0, // Reset to nominal
-                };
-                addLogEntry(LogType.INFO, 'Thermal calibration complete. Mixing chamber stable at 10.0 mK.');
-                return newState;
-            });
+            setSystemState(prev => ({
+                ...prev,
+                dilutionRefrigerator: { ...prev.dilutionRefrigerator, status: 'STABLE', temperature: 10.0 }
+            }));
             setIsCalibratingDilution(false);
-        }, 3000); // 3 second calibration time
+            addLogEntry(LogType.INFO, 'Thermal calibration complete. Mixing chamber stable at 10.0 mK.');
+        }, 3000);
     }, [isCalibratingDilution, addLogEntry, setSystemState, audioEngine]);
 
     return {

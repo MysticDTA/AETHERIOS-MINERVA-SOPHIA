@@ -14,7 +14,7 @@ interface ResourceProcurementProps {
 const TIER_CARDS = [
     { 
         id: 'ARCHITECT', 
-        name: 'ARCHITECT LICENCE', 
+        name: 'ARCHITECT LICENSE', 
         price: '$2,900/mo', 
         priceId: 'price_architect_monthly_gold',
         color: '#e6c77f', 

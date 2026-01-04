@@ -1,6 +1,5 @@
-
+import { GoogleGenAI, Type } from '@google/genai';
 import { TransmissionState, CommsStatus } from '../types';
-import { GoogleGenAI, Type } from "@google/genai";
 
 export interface CosmosTransmission extends TransmissionState {
     frequency: number; // in GHz (Radio Astronomy Spectrum)

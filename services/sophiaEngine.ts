@@ -1,7 +1,6 @@
-
-import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from "@google/genai";
-import { SystemState, FailurePrediction, CausalStrategy } from "../types";
-import { knowledgeBase } from "./knowledgeBase";
+import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
+import { SystemState, FailurePrediction, CausalStrategy } from '../types';
+import { knowledgeBase } from './knowledgeBase';
 
 const handleApiError = (error: any): string => {
   console.error("Sophia Engine Error:", error);
@@ -57,11 +56,10 @@ export class SophiaEngineCore {
   }
 
   private getFreshChatSession(): Chat | null {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
 
     try {
-        const ai = new GoogleGenAI({ apiKey });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         this.chat = ai.chats.create({
           model: 'gemini-3-pro-preview',
           config: {
@@ -80,10 +78,9 @@ export class SophiaEngineCore {
   }
 
   async performSystemAudit(systemState: SystemState): Promise<{ report: string; sources: any[] }> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return { report: "Audit Core Offline: Missing Credentials.", sources: [] };
+    if (!process.env.API_KEY) return { report: "Audit Core Offline: Missing Credentials.", sources: [] };
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const auditPrompt = `
         Perform a Deep Causal Audit on the ÆTHERIOS environment. 
         Analyze the current state metrics: Rho=${systemState.resonanceFactorRho.toFixed(5)}, Health=${systemState.quantumHealing.health.toFixed(4)}, Drift=${systemState.temporalCoherenceDrift.toFixed(6)}.
@@ -110,10 +107,9 @@ export class SophiaEngineCore {
   }
 
   async getArchitecturalSummary(systemState: SystemState): Promise<string> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return "Summary Engine Offline.";
+    if (!process.env.API_KEY) return "Summary Engine Offline.";
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `
         Synthesize a high-level "Intellectual Status Ticker" for the current reality-lattice.
         Summarize the synergy between Aetheric Flux and Causal Stability.
@@ -141,8 +137,7 @@ export class SophiaEngineCore {
     onToolCall?: (fc: any) => void,
     imageData?: string
   ) {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) { onError("Cognitive Core Offline: Key Required."); return; }
+    if (!process.env.API_KEY) { onError("Cognitive Core Offline: Key Required."); return; }
     
     try {
       const recentMemories = knowledgeBase.getMemories().slice(0, 10);
@@ -153,7 +148,7 @@ export class SophiaEngineCore {
       const fullPrompt = `${memoryContext}Operator decree: ${message}`;
 
       if (imageData) {
-          const ai = new GoogleGenAI({ apiKey });
+          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           const parts = [
               { text: fullPrompt },
               { inlineData: { data: imageData.split(',')[1], mimeType: 'image/jpeg' } }
@@ -210,11 +205,10 @@ export class SophiaEngineCore {
     onSources: (sources: any[]) => void,
     onError: (error: string) => void
   ) {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) { onError("Cognitive Core Offline."); return; }
+    if (!process.env.API_KEY) { onError("Cognitive Core Offline."); return; }
     
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `
         Execute a Sovereign Causal Analysis on the ÆTHERIOS lattice.
         Current State Telemetry: ${JSON.stringify({
@@ -257,10 +251,9 @@ export class SophiaEngineCore {
   }
 
   async getFailurePrediction(systemState: SystemState): Promise<FailurePrediction | null> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Analyze for imminent causal collapse. State: ${JSON.stringify(systemState)}. Return JSON FailurePrediction.`;
     try {
       const response = await ai.models.generateContent({
@@ -288,10 +281,9 @@ export class SophiaEngineCore {
   }
 
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy | null> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Synthesize a comprehensive Causal Strategy for the ÆTHERIOS lattice.
         Current State: ${JSON.stringify(systemState)}.
         Identify three specific steps to stabilize the reality matrix and achieve peak Radiant Sovereignty.
@@ -333,10 +325,9 @@ export class SophiaEngineCore {
   }
 
   async interpretResonance(metrics: any): Promise<any> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Interpret these real-time resonance harmonics: ${JSON.stringify(metrics)}. Provide a single authoritative directive. Return JSON: {"interpretation": "string", "directive": "string"}`;
     try {
         const response = await ai.models.generateContent({
@@ -352,10 +343,9 @@ export class SophiaEngineCore {
   }
 
   async getCelestialTargetStatus(bodyName: string): Promise<any | null> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Fetch real-time astrophysical telemetry for "${bodyName}". Include flux density, magnitude, and distance. Return JSON: {"body": "string", "status": "string", "magnitude": "string", "flux": "string", "dist": "string"}`;
     try {
         const response = await ai.models.generateContent({
@@ -372,10 +362,9 @@ export class SophiaEngineCore {
 }
 
   async getProactiveInsight(systemState: SystemState, trendContext: string): Promise<string | null> {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
+    if (!process.env.API_KEY) return null;
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Context: ${trendContext}. Identify shadow membrane anomalies in this state: ${JSON.stringify(systemState)}. Return JSON: {"alert": "string", "recommendation": "string"}`;
     try {
         const response = await ai.models.generateContent({
