@@ -29,9 +29,9 @@ export const Display4: React.FC<Display4Props> = ({
     onTriggerAudit
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-h-0 overflow-hidden">
       {/* --- CHAT CONSOLE (LEFT) --- */}
-      <div className="lg:col-span-5 xl:col-span-6 h-full min-h-0">
+      <div className="h-full min-h-0 flex flex-col bg-black/10 rounded-2xl border border-white/5 overflow-hidden">
         <SophiaConsole 
             log={systemState.log} 
             systemState={systemState} 
@@ -45,7 +45,7 @@ export const Display4: React.FC<Display4Props> = ({
       </div>
 
       {/* --- VOCAL BRIDGE (RIGHT) --- */}
-      <div className="lg:col-span-7 xl:col-span-6 h-full min-h-0">
+      <div className="h-full min-h-0 flex flex-col bg-black/10 rounded-2xl border border-white/5 overflow-hidden">
         <VoiceInterface 
             isSessionActive={voiceInterface.isSessionActive}
             startSession={voiceInterface.startVoiceSession}

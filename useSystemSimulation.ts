@@ -7,7 +7,8 @@ import {
   PillarId, 
   OrbMode, 
   CoherenceResonanceData,
-  PerformanceTelemetry
+  PerformanceTelemetry,
+  IngestedModule
 } from './types';
 import { ApiService } from './services/api';
 
@@ -158,20 +159,6 @@ export const useSystemSimulation = (
   const breathIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
 
-  // LOGGING: Track Orb Mode transitions
-  useEffect(() => {
-    if (isLoaded) {
-      console.log(`[SYSTEM_TELEMETRY] Mode Transition: ${orbMode} protocol engaged.`);
-    }
-  }, [orbMode, isLoaded]);
-
-  // LOGGING: Track Core Dynamic changes (Health/Rho)
-  useEffect(() => {
-    if (isLoaded) {
-      console.debug(`[SYSTEM_TELEMETRY] Core Adjustment: Health=${systemState.quantumHealing.health.toFixed(4)}, Rho=${systemState.resonanceFactorRho.toFixed(6)}`);
-    }
-  }, [systemState.quantumHealing.health, systemState.resonanceFactorRho, isLoaded]);
-
   useEffect(() => {
     isMounted.current = true;
     try {
@@ -237,31 +224,40 @@ export const useSystemSimulation = (
       setSystemState(prev => {
         let newDecoherence = prev.quantumHealing.decoherence;
         
+        // INTELLIGENT DECOHERENCE CALCULATION
         if (prev.biometricSync.coherence < 0.4) {
-            newDecoherence = Math.min(1.0, newDecoherence + 0.01);
-            if (Math.random() < 0.05) {
-                addLogEntry(LogType.WARNING, "Lattice Fracture: Operator desync. Accelerating entropy damping.");
-            }
+            newDecoherence = Math.min(1.0, newDecoherence + 0.012);
+        } else {
+            // Self-correction active in SOVEREIGN state
+            const correctionPower = (prev.resonanceFactorRho * 0.005) + (isGrounded ? 0.01 : 0);
+            newDecoherence = Math.max(0, newDecoherence - correctionPower);
         }
 
-        let resonanceModifier = Math.max(0.1, Math.min(1.0, prev.resonanceFactorRho + (Math.random() - 0.5) * 0.005));
+        // UNIFIED RESONANCE FACTOR RHO
+        // Derived from Biometrics, Physics (Schumann), and Quantum Entanglement
+        const baseRho = (prev.biometricSync.coherence + prev.schumannResonance.intensity + prev.bohrEinsteinCorrelator.correlation) / 3;
+        let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.002));
         
+        // PERFORMANCE TELEMETRY
         const newPerformance: PerformanceTelemetry = {
-            logicalLatency: 0.0001 + (newDecoherence * 0.005),
-            visualParity: 1.0 - (newDecoherence * 0.1),
-            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 100) + (Math.random() * 0.05),
-            frameStability: 1.0 - (prev.vibration.amplitude / 100),
-            thermalIndex: 30 + (prev.supernovaTriforce.stability * 10),
-            throughput: 400 + (resonanceModifier * 200) + (Math.random() * 50),
-            memoryUsage: 12 + (newDecoherence * 4) + (Math.random() * 2)
+            logicalLatency: 0.0001 + (newDecoherence * 0.008),
+            visualParity: 1.0 - (newDecoherence * 0.15),
+            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 150) + (Math.random() * 0.04),
+            frameStability: 1.0 - (prev.vibration.amplitude / 200),
+            thermalIndex: 30 + (prev.supernovaTriforce.stability * 15),
+            throughput: 400 + (resonanceModifier * 250) + (Math.random() * 40),
+            memoryUsage: 12 + (newDecoherence * 6) + (Math.random() * 1.5)
         };
 
         const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
-        if (coherenceScore < 0.75) coherenceStatus = 'RESONATING';
+        if (coherenceScore < 0.7) coherenceStatus = 'RESONATING';
         if (coherenceScore < 0.4) coherenceStatus = 'DECOHERING';
+        if (coherenceScore < 0.2) coherenceStatus = 'CRITICAL';
 
-        const driftIncrease = prev.isPhaseLocked ? 0 : (newDecoherence * 0.0002) - (resonanceModifier * 0.0005);
+        // TEMPORAL DRIFT LOGIC
+        // Drift is corrected by the Phase Lock (Star Calibration)
+        const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0004);
 
         return {
           ...prev,
@@ -269,14 +265,15 @@ export const useSystemSimulation = (
           performance: newPerformance,
           quantumHealing: {
               ...prev.quantumHealing,
-              decoherence: newDecoherence
+              decoherence: newDecoherence,
+              health: Math.max(0, 1.0 - newDecoherence * 0.8)
           },
           resonanceFactorRho: resonanceModifier,
           temporalCoherenceDrift: Math.max(0, prev.temporalCoherenceDrift + driftIncrease),
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,
-              entropyFlux: (newDecoherence * 0.3) + (1 - resonanceModifier) * 0.7,
+              entropyFlux: (newDecoherence * 0.4) + (1 - resonanceModifier) * 0.6,
               phaseSync: resonanceModifier,
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus

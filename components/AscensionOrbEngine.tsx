@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { OrbMode } from '../types';
 
@@ -29,21 +30,21 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
   }, [mode]);
 
   return (
-    <div className="relative w-56 h-56 flex items-center justify-center transition-all duration-1000 select-none pointer-events-none group">
+    <div className="relative w-64 h-64 flex items-center justify-center transition-all duration-1000 select-none pointer-events-none group">
       {/* Deep Atmospheric Layer */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_40%,rgba(0,0,0,0.8)_100%)] pointer-events-none rounded-full" />
       
       <svg viewBox="0 0 200 200" className="w-full h-full overflow-visible">
         <defs>
           <filter id="orb-glow-main" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="12" result="blur" />
+            <feGaussianBlur stdDeviation="15" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
           <filter id="orb-glow-sharp" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.2" result="blur" />
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
-          <radialGradient id={`grad-${mode}`}>
+          <radialGradient id={`grad-${mode}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor={colors.accent} stopOpacity="1" />
             <stop offset="40%" stopColor={colors.primary} stopOpacity="0.8" />
             <stop offset="100%" stopColor={colors.secondary} stopOpacity="0.1" />
@@ -51,11 +52,11 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
         </defs>
 
         {/* --- DYNAMIC BACKGROUND LATTICE --- */}
-        <g opacity="0.08" stroke={colors.primary} strokeWidth="0.15">
+        <g opacity="0.1" stroke={colors.primary} strokeWidth="0.2">
             <circle cx="100" cy="100" r="98" fill="none" strokeDasharray="1 10" />
             <circle cx="100" cy="100" r="88" fill="none" strokeDasharray="5 20" opacity="0.5" />
-            {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
-                <line key={deg} x1="100" y1="100" x2={100 + 98 * Math.cos(deg * Math.PI / 180)} y2={100 + 98 * Math.sin(deg * Math.PI / 180)} opacity="0.2" />
+            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
+                <line key={deg} x1="100" y1="100" x2={100 + 98 * Math.cos(deg * Math.PI / 180)} y2={100 + 98 * Math.sin(deg * Math.PI / 180)} opacity="0.3" />
             ))}
         </g>
 
@@ -64,14 +65,14 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
         {/* STANDBY: Elegant Concentric Shells */}
         {mode === 'STANDBY' && (
             <g className="transition-all duration-1000">
-                <circle cx="100" cy="100" r="50" fill="none" stroke={colors.primary} strokeWidth="0.4" opacity="0.3">
-                    <animate attributeName="r" values="49;54;49" dur="8s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="55" fill="none" stroke={colors.primary} strokeWidth="0.5" opacity="0.4">
+                    <animate attributeName="r" values="54;58;54" dur="10s" repeatCount="indefinite" />
                 </circle>
-                <circle cx="100" cy="100" r="65" fill="none" stroke={colors.secondary} strokeWidth="0.2" strokeDasharray="2 15">
-                     <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="80s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="72" fill="none" stroke={colors.secondary} strokeWidth="0.3" strokeDasharray="3 18">
+                     <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="120s" repeatCount="indefinite" />
                 </circle>
-                <circle cx="100" cy="100" r="42" fill="none" stroke={colors.primary} strokeWidth="1" strokeDasharray="1 30" opacity="0.6">
-                     <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="40s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="48" fill="none" stroke={colors.primary} strokeWidth="1.2" strokeDasharray="1 35" opacity="0.7">
+                     <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="50s" repeatCount="indefinite" />
                 </circle>
             </g>
         )}
@@ -79,29 +80,31 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
         {/* ANALYSIS: Scanning Decagon & Radar HUD */}
         {mode === 'ANALYSIS' && (
             <g>
-                <polygon points="100,22 146,36 164,85 140,134 95,148 55,134 35,85 53,36" fill="none" stroke={colors.primary} strokeWidth="0.8" opacity="0.6">
-                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="12s" repeatCount="indefinite" />
+                <polygon points="100,15 149,30 178,74 162,126 120,165 74,165 35,126 18,74 48,30" fill="none" stroke={colors.primary} strokeWidth="1" opacity="0.7">
+                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="15s" repeatCount="indefinite" />
                 </polygon>
-                <circle cx="100" cy="100" r="70" fill="none" stroke={colors.accent} strokeWidth="3" opacity="0.1">
-                    <animate attributeName="r" values="30;85" dur="2.5s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.5;0" dur="2.5s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="85" fill="none" stroke={colors.accent} strokeWidth="5" opacity="0.1">
+                    <animate attributeName="r" values="40;95" dur="3s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.4;0" dur="3s" repeatCount="indefinite" />
                 </circle>
-                <path d="M 100 12 A 88 88 0 0 1 188 100" fill="none" stroke={colors.accent} strokeWidth="2" opacity="0.4">
-                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="1.8s" repeatCount="indefinite" />
-                </path>
+                <g className="animate-[spin_4s_linear_infinite]" style={{ transformOrigin: '100px 100px' }}>
+                    <path d="M 100 10 A 90 90 0 0 1 190 100" fill="none" stroke={colors.accent} strokeWidth="1.5" opacity="0.5" />
+                    <circle cx="100" cy="10" r="2" fill={colors.accent} filter="url(#orb-glow-sharp)" />
+                </g>
             </g>
         )}
 
         {/* SYNTHESIS: Unified Toroidal Flow */}
         {mode === 'SYNTHESIS' && (
             <g>
-                {[0, 60, 120].map(deg => (
-                    <ellipse key={deg} cx="100" cy="100" rx="22" ry="85" fill="none" stroke={colors.primary} strokeWidth="1.2" opacity="0.5" transform={`rotate(${deg} 100 100)`}>
-                        <animate attributeName="stroke-width" values="0.5;1.5;0.5" dur="4s" repeatCount="indefinite" />
+                {[0, 45, 90, 135].map(deg => (
+                    <ellipse key={deg} cx="100" cy="100" rx="30" ry="92" fill="none" stroke={colors.primary} strokeWidth="1" opacity="0.6" transform={`rotate(${deg} 100 100)`}>
+                        <animate attributeName="stroke-width" values="0.4;1.8;0.4" dur="5s" repeatCount="indefinite" />
+                        <animate attributeName="stroke-dasharray" values="10,200; 150,10; 10,200" dur="8s" repeatCount="indefinite" />
                     </ellipse>
                 ))}
-                <circle cx="100" cy="100" r="60" fill="none" stroke={colors.secondary} strokeWidth="0.5" strokeDasharray="2 12" opacity="0.6">
-                     <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="15s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="68" fill="none" stroke={colors.secondary} strokeWidth="0.6" strokeDasharray="3 15" opacity="0.7">
+                     <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite" />
                 </circle>
             </g>
         )}
@@ -109,28 +112,31 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
         {/* REPAIR: Causal Alignment Vectors */}
         {mode === 'REPAIR' && (
             <g>
-                <rect x="58" y="58" width="84" height="84" fill="none" stroke={colors.primary} strokeWidth="0.8" opacity="0.4">
-                    <animate attributeName="opacity" values="0.1;0.9;0.1" dur="2s" repeatCount="indefinite" />
+                <rect x="52" y="52" width="96" height="96" fill="none" stroke={colors.primary} strokeWidth="1" opacity="0.5">
+                    <animate attributeName="opacity" values="0.2;1;0.2" dur="2.5s" repeatCount="indefinite" />
                 </rect>
-                <path d="M 100 35 L 100 165 M 35 100 L 165 100" stroke={colors.accent} strokeWidth="1" opacity="0.7">
-                     <animate attributeName="stroke-dasharray" values="0 260; 260 0; 0 260" dur="4s" repeatCount="indefinite" />
+                <rect x="35" y="35" width="130" height="130" fill="none" stroke={colors.secondary} strokeWidth="0.5" strokeDasharray="15 15">
+                     <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="-360 100 100" dur="40s" repeatCount="indefinite" />
+                </rect>
+                <path d="M 100 20 L 100 180 M 20 100 L 180 100" stroke={colors.accent} strokeWidth="1.2" opacity="0.8">
+                     <animate attributeName="stroke-dasharray" values="0 320; 320 0; 0 320" dur="6s" repeatCount="indefinite" />
                 </path>
-                <circle cx="100" cy="100" r="58" fill="none" stroke={colors.primary} strokeWidth="0.6" strokeDasharray="12 8" opacity="0.3" />
+                <circle cx="100" cy="100" r="65" fill="none" stroke={colors.primary} strokeWidth="0.8" strokeDasharray="15 10" opacity="0.4" />
             </g>
         )}
 
         {/* GROUNDING: Telluric Anchor Conduits */}
         {mode === 'GROUNDING' && (
             <g>
-                <rect x="40" y="155" width="120" height="2" fill={colors.primary} opacity="0.8" />
-                {[60, 100, 140].map(x => (
-                    <line key={x} x1={x} y1="30" x2={x} y2="155" stroke={colors.secondary} strokeWidth="0.6" opacity="0.5">
-                        <animate attributeName="stroke-dashoffset" from="30" to="0" dur="1s" repeatCount="indefinite" />
-                        <animate attributeName="stroke-dasharray" values="1 15; 8 8" dur="2s" repeatCount="indefinite" />
+                <rect x="30" y="165" width="140" height="3" fill={colors.primary} opacity="0.9" filter="url(#orb-glow-sharp)" />
+                {[50, 75, 100, 125, 150].map(x => (
+                    <line key={x} x1={x} y1="20" x2={x} y2="165" stroke={colors.secondary} strokeWidth="0.8" opacity="0.6">
+                        <animate attributeName="stroke-dashoffset" from="40" to="0" dur="0.8s" repeatCount="indefinite" />
+                        <animate attributeName="stroke-dasharray" values="2 20; 12 12" dur="1.5s" repeatCount="indefinite" />
                     </line>
                 ))}
-                <circle cx="100" cy="100" r="45" fill="none" stroke={colors.primary} strokeWidth="1.2" opacity="0.5">
-                     <animate attributeName="cy" values="98;102;98" dur="4s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="52" fill="none" stroke={colors.primary} strokeWidth="2" opacity="0.6">
+                     <animate attributeName="cy" values="96;104;96" dur="5s" repeatCount="indefinite" />
                 </circle>
             </g>
         )}
@@ -138,34 +144,37 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
         {/* CONCORDANCE: Metatron Blossom Unfolding */}
         {mode === 'CONCORDANCE' && (
             <g>
-                <circle cx="100" cy="100" r="85" fill="none" stroke={colors.primary} strokeWidth="0.6" opacity="0.7" />
-                {[0, 60, 120, 180, 240, 300].map(deg => (
-                    <circle 
-                        key={deg} 
-                        cx={100 + 48 * Math.cos(deg * Math.PI / 180)} 
-                        cy={100 + 48 * Math.sin(deg * Math.PI / 180)} 
-                        r="48" fill="none" stroke={colors.primary} strokeWidth="0.2" opacity="0.4"
-                    >
-                        <animateTransform attributeName="transform" type="rotate" from={`${deg} 100 100`} to={`${deg + 360} 100 100`} dur="60s" repeatCount="indefinite" />
-                    </circle>
-                ))}
-                <polygon points="100,15 175,145 25,145" fill="none" stroke={colors.accent} strokeWidth="1.2" opacity="0.6">
-                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite" />
+                <circle cx="100" cy="100" r="92" fill="none" stroke={colors.primary} strokeWidth="0.8" opacity="0.8" />
+                {[0, 60, 120, 180, 240, 300].map(deg => {
+                    const r = 55;
+                    const cx = 100 + r * Math.cos(deg * Math.PI / 180);
+                    const cy = 100 + r * Math.sin(deg * Math.PI / 180);
+                    return (
+                        <g key={deg} style={{ transformOrigin: '100px 100px' }}>
+                             <animateTransform attributeName="transform" type="rotate" from={`${deg} 100 100`} to={`${deg + 360} 100 100`} dur="100s" repeatCount="indefinite" />
+                             <circle cx={cx} cy={cy} r="55" fill="none" stroke={colors.primary} strokeWidth="0.3" opacity="0.5" />
+                             <line x1="100" y1="100" x2={cx} y2={cy} stroke={colors.accent} strokeWidth="0.2" opacity="0.3" />
+                        </g>
+                    );
+                })}
+                <polygon points="100,5 185,150 15,150" fill="none" stroke={colors.accent} strokeWidth="1.5" opacity="0.7">
+                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="25s" repeatCount="indefinite" />
                 </polygon>
-                <polygon points="100,185 25,55 175,55" fill="none" stroke={colors.accent} strokeWidth="1.2" opacity="0.6">
-                    <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="20s" repeatCount="indefinite" />
+                <polygon points="100,195 15,50 185,50" fill="none" stroke={colors.accent} strokeWidth="1.5" opacity="0.7">
+                    <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="25s" repeatCount="indefinite" />
                 </polygon>
             </g>
         )}
 
         {/* OFFLINE: Particulate Dissipation */}
         {mode === 'OFFLINE' && (
-            <g opacity="0.2">
-                <circle cx="100" cy="100" r="28" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeDasharray="4 22" />
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                    <circle key={i} cx={70 + i * 8} cy={50 + i * 6} r="1" fill={colors.accent}>
-                         <animate attributeName="opacity" values="1;0" dur={`${1.5 + i * 0.25}s`} repeatCount="indefinite" />
-                         <animate attributeName="cy" values={`${50 + i * 6}; ${180}`} dur={`${3 + i * 0.4}s`} repeatCount="indefinite" />
+            <g opacity="0.3">
+                <circle cx="100" cy="100" r="35" fill="none" stroke={colors.primary} strokeWidth="2" strokeDasharray="5 25" />
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
+                    <circle key={i} cx={60 + i * 7} cy={40 + i * 5} r="1.2" fill={colors.accent}>
+                         <animate attributeName="opacity" values="1;0" dur={`${2 + i * 0.2}s`} repeatCount="indefinite" />
+                         <animate attributeName="cy" values={`${40 + i * 5}; ${190}`} dur={`${4 + i * 0.3}s`} repeatCount="indefinite" />
+                         <animate attributeName="cx" values={`${60 + i * 7}; ${60 + i * 7 + (Math.random() - 0.5) * 40}`} dur={`${4 + i * 0.3}s`} repeatCount="indefinite" />
                     </circle>
                 ))}
             </g>
@@ -173,58 +182,58 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
 
         {/* --- CORE ORB (SHARED) --- */}
         <circle 
-          cx="100" cy="100" r="32" 
+          cx="100" cy="100" r="38" 
           fill={`url(#grad-${mode})`}
           filter="url(#orb-glow-main)"
           className="transition-all duration-[2000ms] ease-in-out shadow-inner"
           style={{
-             animation: mode === 'OFFLINE' ? 'none' : 'pulse 6s ease-in-out infinite'
+             animation: mode === 'OFFLINE' ? 'none' : 'pulse 8s ease-in-out infinite'
           }}
         />
         
         {/* Core Detail Ring */}
         <circle 
-          cx="100" cy="100" r="28" 
+          cx="100" cy="100" r="34" 
           fill="none"
           stroke={colors.accent}
-          strokeWidth="0.4"
+          strokeWidth="0.6"
           filter="url(#orb-glow-sharp)"
-          opacity="0.5"
-          strokeDasharray="2 6"
+          opacity="0.6"
+          strokeDasharray="3 8"
         >
-             <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="10s" repeatCount="indefinite" />
+             <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="12s" repeatCount="indefinite" />
         </circle>
 
         {/* HUD Micro-Data Overlay */}
-        <g opacity="0.6">
-            <text x="100" y="94" textAnchor="middle" fill={colors.primary} fontSize="3.5" className="font-mono uppercase tracking-[0.2em] font-bold">
-                {mode === 'OFFLINE' ? 'LOST' : 'LOCK'}
+        <g opacity="0.7">
+            <text x="100" y="94" textAnchor="middle" fill={colors.primary} fontSize="4.5" className="font-mono uppercase tracking-[0.25em] font-bold">
+                {mode === 'OFFLINE' ? 'VOID' : 'SYNC'}
             </text>
-            <text x="100" y="112" textAnchor="middle" fill={colors.accent} fontSize="3" className="font-mono uppercase tracking-widest opacity-80">
-                {mode === 'OFFLINE' ? '00:00:00' : `REF_${coordinateTicker}`}
+            <text x="100" y="114" textAnchor="middle" fill={colors.accent} fontSize="3.5" className="font-mono uppercase tracking-widest opacity-80">
+                {mode === 'OFFLINE' ? '00:00' : `0x${coordinateTicker}`}
             </text>
         </g>
 
       </svg>
       
-      {/* Decorative Bottom Bar */}
-      <div className="absolute -bottom-12 flex flex-col items-center gap-3">
-        <div className="flex gap-2.5 items-center">
-            {Array.from({length: 4}).map((_, i) => (
+      {/* Decorative Mode Badge */}
+      <div className="absolute -bottom-16 flex flex-col items-center gap-4">
+        <div className="flex gap-3 items-center">
+            {Array.from({length: 5}).map((_, i) => (
                 <div 
                     key={i} 
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${mode === 'OFFLINE' ? 'bg-slate-800' : 'bg-current shadow-[0_0_8px_currentColor]'}`} 
+                    className={`w-2 h-2 rounded-full transition-all duration-700 ${mode === 'OFFLINE' ? 'bg-slate-900' : 'bg-current shadow-[0_0_10px_currentColor]'}`} 
                     style={{ 
                         color: colors.primary, 
-                        animation: mode === 'OFFLINE' ? 'none' : 'pulse 2s ease-in-out infinite',
-                        animationDelay: `${i * 0.25}s`,
-                        opacity: 0.2 + (i * 0.2)
+                        animation: mode === 'OFFLINE' ? 'none' : 'pulse 2.5s ease-in-out infinite',
+                        animationDelay: `${i * 0.3}s`,
+                        opacity: 0.15 + (i * 0.15)
                     }} 
                 />
             ))}
         </div>
-        <div className="px-6 py-1 bg-black/40 border border-white/10 rounded-full backdrop-blur-md">
-            <span className="font-orbitron text-[9px] tracking-[0.6em] font-bold uppercase transition-colors duration-1000 block text-center" style={{ color: colors.primary, textShadow: `0 0 10px ${colors.glow}` }}>
+        <div className="px-8 py-2 bg-black/50 border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
+            <span className="font-orbitron text-[10px] tracking-[0.8em] font-black uppercase transition-colors duration-1000 block text-center" style={{ color: colors.primary, textShadow: `0 0 15px ${colors.glow}` }}>
                 {mode}
             </span>
         </div>
@@ -232,12 +241,8 @@ const AscensionOrbEngine: React.FC<AscensionOrbEngineProps> = ({ mode }) => {
       
       <style>{`
         @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
-        @keyframes radar-spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            0%, 100% { opacity: 0.75; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
         }
       `}</style>
     </div>

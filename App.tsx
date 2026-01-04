@@ -38,6 +38,7 @@ import { SatelliteUplink } from './components/SatelliteUplink';
 import { DeploymentManifest } from './components/DeploymentManifest';
 import { EventLog } from './components/EventLog';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
+import { SYSTEM_NODES } from './Registry';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -54,8 +55,6 @@ const orbModes: OrbModeConfig[] = [
   { id: 'CONCORDANCE', name: 'Concordance', description: 'Peak Radiant Sovereignty. Absolute phase alignment.' },
   { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation.' }
 ];
-
-const NAV_SEQUENCE = [1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 21, 23, 22];
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
@@ -195,9 +194,19 @@ const App: React.FC = () => {
             <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
                 <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
                 <div className="flex gap-2">
-                  <button onClick={() => setCurrentPage(23)} className="px-4 py-2 bg-rose-950/20 border border-rose-500/40 text-rose-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-rose-500 hover:text-white transition-all font-bold">Security_Shield</button>
-                  <button onClick={() => setCurrentPage(22)} className="px-4 py-2 bg-slate-900/10 border border-slate-500/20 text-slate-400 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-500 hover:text-white transition-all font-bold">System_Logs</button>
-                  <button onClick={() => setCurrentPage(21)} className="px-4 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-gold hover:text-dark-bg transition-all font-bold">Menerva_Bridge</button>
+                  {SYSTEM_NODES.filter(n => n.isShield || n.isLogs || n.isBridge).map(node => (
+                    <button 
+                      key={node.id}
+                      onClick={() => setCurrentPage(node.id)} 
+                      className={`px-4 py-2 border font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm transition-all font-bold ${
+                        node.isShield ? 'bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white' :
+                        node.isLogs ? 'bg-slate-900/10 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
+                        'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
+                      }`}
+                    >
+                      {node.label}
+                    </button>
+                  ))}
                 </div>
             </div>
         </footer>

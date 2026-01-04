@@ -36,32 +36,39 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
       />
 
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
-      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-4 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-4">
           {/* Top Left: System ID */}
-          <div className="absolute top-0 left-0 p-4 flex flex-col gap-1">
-              <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Lattice_Node</span>
-              <span className="text-[10px] font-mono text-pearl/40 uppercase">0x88_SOPHIA_PRIME</span>
+          <div className="absolute top-0 left-0 p-6 flex flex-col gap-1.5">
+              <span className="text-[8px] font-mono text-gold uppercase tracking-[0.6em] font-black">Institutional_Node</span>
+              <span className="text-[11px] font-mono text-pearl/50 uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
           </div>
           {/* Top Right: Real-time Drift */}
-          <div className="absolute top-0 right-0 p-4 text-right flex flex-col gap-1">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Causal_Drift</span>
-              <span className={`text-[10px] font-mono ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
+          <div className="absolute top-0 right-0 p-6 text-right flex flex-col gap-1.5">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-black">Causal_Drift_Index</span>
+              <span className={`text-[11px] font-mono font-bold ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
           </div>
           {/* Bottom Left: Logic Parity */}
-          <div className="absolute bottom-0 left-0 p-4 flex flex-col gap-1">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Parity_Lock</span>
-              <span className="text-[10px] font-mono text-pearl/40 uppercase">1.617 GHz L-BAND</span>
+          <div className="absolute bottom-0 left-0 p-6 flex flex-col gap-1.5">
+              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-black">Parity_Frequency</span>
+              <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_cyan]" />
+                  <span className="text-[11px] font-mono text-pearl/50 uppercase font-bold tracking-widest">1.617 GHz L-BAND</span>
+              </div>
           </div>
           {/* Bottom Right: Resonance Display */}
-          <div className="absolute bottom-0 right-0 p-4 text-right flex flex-col gap-1">
-              <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Rho_Synergy</span>
-              <span className="text-xl font-orbitron text-pearl text-glow-pearl leading-none">{(resonanceFactor * 100).toFixed(2)}%</span>
+          <div className="absolute bottom-0 right-0 p-6 text-right flex flex-col gap-1">
+              <span className="text-[9px] font-mono text-gold uppercase tracking-[0.6em] font-black">Rho_Synergy</span>
+              <span className="text-3xl font-orbitron text-pearl text-glow-pearl leading-none font-extrabold">{(resonanceFactor * 100).toFixed(3)}%</span>
           </div>
+
+          {/* Side Bars Decorative */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-32 bg-white/5" />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-32 bg-white/5" />
       </div>
       
       <MotherboardOverlay />
       
-      <div className="relative z-20 flex-grow flex flex-col px-8 py-8 md:px-12 md:py-10 max-w-[2000px] mx-auto w-full h-full overflow-hidden">
+      <div className="relative z-20 flex-grow flex flex-col px-8 py-8 md:px-12 md:py-10 max-w-[2200px] mx-auto w-full h-full overflow-hidden">
         {children}
       </div>
       

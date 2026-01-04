@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Scenario } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';

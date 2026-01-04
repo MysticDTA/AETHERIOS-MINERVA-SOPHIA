@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { AethericTransferData, AethericTransferStatus } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
@@ -79,6 +80,20 @@ const ParticleFlow: React.FC<{ density: number; efficiency: number, color: strin
     return (
         <div className="w-full h-24 bg-black/20 rounded-md relative overflow-hidden">
              <svg className="w-full h-full" preserveAspectRatio="none">
+                <style>{`
+                    @keyframes particle-flow {
+                        from { transform: translateY(-10%); }
+                        to { transform: translateY(110%); }
+                    }
+                    @keyframes particle-turbulence {
+                        from { transform: translateX(-5px) translateY(-10%); }
+                        to { transform: translateX(5px) translateY(-10%); }
+                    }
+                    @keyframes particle-stagnant-flicker {
+                        0%, 100% { opacity: 0.2; }
+                        50% { opacity: 0.8; }
+                    }
+                `}</style>
                 {particles.map(p => (
                     <circle 
                         key={p.id}
@@ -116,7 +131,7 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
                     <h3 className="font-orbitron text-md text-warm-grey">Aetheric Transfer</h3>
                      <p className={`font-orbitron font-bold text-md ${displayConfig.color} ${!isPreviewing && fluxStatus !== 'STABLE' ? 'animate-pulse' : ''}`}>
                         {displayConfig.label}
-                        {isPreviewing && <span className="text-xs text-cyan-400 ml-2">(PREVIEW)</span>}
+                        {isPreviewing && <span className="text-[10px] text-cyan-400 ml-2 font-mono uppercase tracking-widest">(Simulation Active)</span>}
                     </p>
                 </div>
                 <button 
@@ -130,11 +145,11 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
             
             <ParticleFlow density={particleDensity} efficiency={efficiency} color={displayConfig.particleColor} status={displayStatus} />
 
-            <div className="mt-3 flex justify-center items-center gap-2">
-                <span className="text-xs text-warm-grey uppercase">View Filter:</span>
+            <div className="mt-4 flex flex-wrap justify-center items-center gap-2 border-t border-dark-border/30 pt-3">
+                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mr-1">Visual Filter:</span>
                 <button 
                     onClick={() => setPreviewStatus(null)}
-                    className={`px-2 py-0.5 rounded text-xs transition-colors ${!isPreviewing ? 'bg-cyan-500 text-slate-900 font-bold' : 'bg-dark-surface/80 text-warm-grey hover:bg-slate-700'}`}
+                    className={`px-3 py-1 rounded text-[10px] uppercase font-bold tracking-tighter transition-all duration-300 border ${!isPreviewing ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_10px_rgba(248,245,236,0.4)]' : 'bg-transparent text-slate-500 border-transparent hover:text-slate-300'}`}
                 >
                     Live
                 </button>
@@ -142,24 +157,24 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
                      <button 
                         key={opt}
                         onClick={() => setPreviewStatus(opt)}
-                        className={`px-2 py-0.5 rounded text-xs transition-colors capitalize ${previewStatus === opt ? 'bg-cyan-500 text-slate-900 font-bold' : 'bg-dark-surface/80 text-warm-grey hover:bg-slate-700'}`}
+                        className={`px-3 py-1 rounded text-[10px] uppercase font-bold tracking-tighter transition-all duration-300 border ${previewStatus === opt ? 'bg-cyan-500 text-dark-bg border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.4)]' : 'bg-transparent text-slate-500 border-transparent hover:text-slate-300'}`}
                     >
-                        {opt.toLowerCase()}
+                        {opt}
                     </button>
                 ))}
             </div>
 
-            <div className="mt-2 grid grid-cols-3 gap-x-4 text-sm text-center border-t border-dark-border/50 pt-2">
+            <div className="mt-4 grid grid-cols-3 gap-x-4 text-sm text-center border-t border-dark-border/50 pt-3">
                 <div>
-                    <span className="text-warm-grey text-xs uppercase">Efficiency</span>
+                    <span className="text-warm-grey text-[10px] uppercase font-bold tracking-widest block mb-1">Efficiency</span>
                     <p className="font-mono text-pearl text-base">{(efficiency * 100).toFixed(1)}%</p>
                 </div>
                 <div>
-                    <span className="text-warm-grey text-xs uppercase">Density</span>
+                    <span className="text-warm-grey text-[10px] uppercase font-bold tracking-widest block mb-1">Density</span>
                     <p className="font-mono text-pearl text-base">{particleDensity.toFixed(2)}</p>
                 </div>
                  <div>
-                    <span className="text-warm-grey text-xs uppercase">Entropy</span>
+                    <span className="text-warm-grey text-[10px] uppercase font-bold tracking-widest block mb-1">Entropy</span>
                     <p className="font-mono text-pearl text-base">{(entropy * 100).toFixed(1)}%</p>
                 </div>
             </div>

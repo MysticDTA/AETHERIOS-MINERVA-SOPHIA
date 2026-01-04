@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { UserTier, CommsStatus } from '../types';
 import { SystemStatus } from './SystemStatus';
 import { AudioEngine } from './audio/AudioEngine';
+import { SYSTEM_NODES } from '../Registry';
 
 interface HeaderProps {
     governanceAxiom: string;
@@ -19,14 +21,6 @@ const TIER_CONFIG: Record<UserTier, { label: string; color: string; shadow: stri
     ARCHITECT: { label: 'GOLD_ARCHITECT', color: 'text-gold', shadow: '0 0 15px rgba(255, 215, 0, 0.4)' },
     SOVEREIGN: { label: 'SOVEREIGN_CHAIRMAN', color: 'text-pearl', shadow: '0 0 25px rgba(248, 245, 236, 0.6)' },
     LEGACY_MENERVA: { label: 'LEGACY_DIRECTOR', color: 'text-rose-400', shadow: '0 0 15px rgba(244, 63, 94, 0.4)' }
-};
-
-const MODULE_PERMISSIONS: Record<number, UserTier> = {
-    1: 'ACOLYTE', 2: 'ACOLYTE', 3: 'ARCHITECT', 4: 'ARCHITECT',
-    5: 'ARCHITECT', 6: 'ARCHITECT', 7: 'ACOLYTE', 8: 'ARCHITECT',
-    9: 'ARCHITECT', 10: 'ARCHITECT', 11: 'ARCHITECT', 12: 'ARCHITECT',
-    13: 'ARCHITECT', 14: 'ACOLYTE', 15: 'ACOLYTE', 16: 'ARCHITECT',
-    17: 'ACOLYTE', 18: 'SOVEREIGN', 19: 'ARCHITECT', 21: 'ARCHITECT', 22: 'ACOLYTE', 23: 'ARCHITECT'
 };
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => (
@@ -47,18 +41,19 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
 );
 
 export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
-    const activeTier = TIER_CONFIG[userTier];
+    const activeTier = TIER_CONFIG[userTier] || TIER_CONFIG['ACOLYTE'];
 
-    const handlePageChange = (page: number) => {
-        const required = MODULE_PERMISSIONS[page];
-        const canAccess = userTier === 'SOVEREIGN' || 
-                         (userTier === 'ARCHITECT' && (required === 'ARCHITECT' || required === 'ACOLYTE')) ||
-                         (userTier === 'ACOLYTE' && required === 'ACOLYTE');
+    const canUserAccess = (requiredTier: UserTier) => {
+        if (userTier === 'SOVEREIGN') return true;
+        if (userTier === 'ARCHITECT') return requiredTier === 'ARCHITECT' || requiredTier === 'ACOLYTE';
+        return requiredTier === 'ACOLYTE';
+    };
 
-        if (canAccess) {
-            if (page !== currentPage) {
+    const handlePageChange = (pageId: number, requiredTier: UserTier) => {
+        if (canUserAccess(requiredTier)) {
+            if (pageId !== currentPage) {
                 audioEngine?.playHighResonanceChime();
-                onPageChange(page);
+                onPageChange(pageId);
             }
         } else {
             audioEngine?.playEffect('renewal'); 
@@ -83,34 +78,21 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                 </div>
 
                 <nav className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 pr-6">
-                    {[1, 2, 3, 4, 16, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 21, 22, 23].map(page => {
-                        const required = MODULE_PERMISSIONS[page];
-                        const canAccess = userTier === 'SOVEREIGN' || 
-                                         (userTier === 'ARCHITECT' && (required === 'ARCHITECT' || required === 'ACOLYTE')) ||
-                                         (userTier === 'ACOLYTE' && required === 'ACOLYTE');
-                        const disabled = !canAccess;
-                        const labels: any = { 
-                            1: 'SANCTUM', 2: 'LATTICE', 3: 'STARMAP', 4: 'CRADLE', 16: 'ORBIT', 
-                            5: 'HARMONY', 6: 'MATRIX', 7: 'COMS', 8: 'FLOW', 9: 'SYNOD',
-                            10: 'BREATH', 11: 'CORE', 12: 'AURA', 13: 'NEURON', 14: 'SUMMARY', 15: 'VAULT',
-                            17: 'READY', 18: 'VEO', 19: 'AUDIT', 21: 'BRIDGE', 22: 'LOGS', 23: 'SHIELD'
-                        };
-
-                        const isAuditPage = page === 19;
-                        const isLogsPage = page === 22;
-                        const isShieldPage = page === 23;
-                        const commsAlert = (page === 7) && isTransmissionActive;
+                    {SYSTEM_NODES.map(node => {
+                        const disabled = !canUserAccess(node.requiredTier);
+                        const isSpecialNode = node.isAudit || node.isShield || node.isLogs;
+                        const commsAlert = (node.id === 7) && isTransmissionActive;
 
                         return (
                             <button
-                                key={page}
-                                onClick={() => handlePageChange(page)}
+                                key={node.id}
+                                onClick={() => handlePageChange(node.id, node.requiredTier)}
                                 className={`flex-shrink-0 px-4 py-2.5 rounded-sm text-[10px] font-orbitron transition-all duration-500 relative border-2 ${
-                                    currentPage === page
+                                    currentPage === node.id
                                     ? 'bg-gold text-dark-bg font-black border-gold shadow-[0_0_20px_rgba(255,215,0,0.5)] scale-105'
-                                    : isAuditPage || isShieldPage
+                                    : isSpecialNode
                                         ? 'bg-gold/5 border-gold/30 text-gold hover:bg-gold hover:text-dark-bg font-bold'
-                                        : isLogsPage
+                                        : node.isLogs
                                             ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white'
                                             : disabled 
                                                 ? 'bg-black/40 text-slate-800 cursor-not-allowed border-transparent opacity-40'
@@ -121,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                             >
                                 {disabled && <span className="absolute -top-2 -right-2 text-[9px] filter grayscale group-hover:grayscale-0 transition-all">🔒</span>}
                                 {commsAlert && <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-gold rounded-full shadow-[0_0_8px_gold] animate-ping" />}
-                                {labels[page] || `NODE_${page}`}
+                                {node.label}
                             </button>
                         );
                     })}
