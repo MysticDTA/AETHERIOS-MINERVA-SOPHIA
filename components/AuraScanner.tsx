@@ -7,7 +7,7 @@ interface AuraScannerProps {
   resonance: number;
 }
 
-export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonance }) => {
+export const AuraScanner: React.FC<AuraScannerProps> = React.memo(({ biometricData, resonance }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streamActive, setStreamActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,9 +15,11 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
   const { coherence } = biometricData;
 
   useEffect(() => {
+    let currentStream: MediaStream | null = null;
+
     const startCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
+        currentStream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 width: { ideal: 640 },
                 height: { ideal: 480 },
@@ -25,7 +27,7 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
             } 
         });
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          videoRef.current.srcObject = currentStream;
           videoRef.current.onloadedmetadata = () => {
             setStreamActive(true);
           };
@@ -41,9 +43,8 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
     }
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
       }
     };
   }, [streamActive, error]);
@@ -92,7 +93,6 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
                     className={`absolute inset-0 w-full h-full object-cover opacity-30 grayscale contrast-125 transition-opacity duration-1000 ${streamActive ? 'opacity-30' : 'opacity-0'}`}
                 />
                 
-                {/* Optimized Aura Overlay: Using a single complex filter to simulate multiple layers */}
                 <div 
                     className={`absolute inset-0 z-10 transition-all duration-1000 pointer-events-none ${streamActive ? 'opacity-100' : 'opacity-0'}`}
                     style={{ 
@@ -116,9 +116,6 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
                         <svg viewBox="0 0 100 100" className="w-48 h-48 animate-[spin_40s_linear_infinite]">
                             <circle cx="50" cy="50" r="48" fill="none" stroke="var(--pearl)" strokeDasharray="1 8" strokeWidth="0.2" />
                             <circle cx="50" cy="50" r="25" fill="none" stroke="var(--gold)" strokeDasharray="2 2" strokeWidth="0.1" />
-                            {[0, 90, 180, 270].map(deg => (
-                                <line key={deg} x1="50" y1="2" x2="50" y2="8" stroke="var(--pearl)" strokeWidth="0.3" transform={`rotate(${deg} 50 50)`} />
-                            ))}
                         </svg>
                     </div>
 
@@ -148,13 +145,6 @@ export const AuraScanner: React.FC<AuraScannerProps> = ({ biometricData, resonan
           </div>
           <span>PROTO: AETHER_OS_14</span>
       </div>
-      
-      <style>{`
-        @keyframes aura-breathe {
-            0% { transform: scale(1); filter: contrast(1.1); }
-            100% { transform: scale(1.05); filter: contrast(1.3); }
-        }
-      `}</style>
     </div>
   );
-};
+});

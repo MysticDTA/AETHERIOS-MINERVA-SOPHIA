@@ -18,7 +18,7 @@ interface DataPoint {
   memory: number;
 }
 
-export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = ({ performance }) => {
+export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = React.memo(({ performance }) => {
   const [history, setHistory] = useState<DataPoint[]>([]);
 
   useEffect(() => {
@@ -34,8 +34,8 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = (
     };
 
     setHistory(prev => {
-      // PERFORMANCE FIX: Reduce history length to 15 points for less rendering effort
       const next = [...prev, newPoint];
+      // Restricted to 15 points for visual clarity and performance efficiency
       if (next.length > 15) return next.slice(1);
       return next;
     });
@@ -72,60 +72,18 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = (
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-            <XAxis 
-              dataKey="time" 
-              hide 
-            />
-            <YAxis 
-              yAxisId="left" 
-              orientation="left" 
-              stroke="#22d3ee" 
-              fontSize={8} 
-              tickFormatter={(val) => `${val.toFixed(0)}`}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis 
-              yAxisId="right" 
-              orientation="right" 
-              stroke="#ffd700" 
-              fontSize={8} 
-              tickFormatter={(val) => `${val.toFixed(2)}`}
-              axisLine={false}
-              tickLine={false}
-            />
+            <XAxis dataKey="time" hide />
+            <YAxis yAxisId="left" orientation="left" stroke="#22d3ee" fontSize={8} tickFormatter={(val) => `${val.toFixed(0)}`} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="right" orientation="right" stroke="#ffd700" fontSize={8} tickFormatter={(val) => `${val.toFixed(2)}`} axisLine={false} tickLine={false} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(8, 8, 8, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px' }}
               itemStyle={{ fontSize: '10px', fontFamily: 'JetBrains Mono' }}
               labelStyle={{ display: 'none' }}
               isAnimationActive={false}
             />
-            <Area 
-              yAxisId="left"
-              type="monotone" 
-              dataKey="throughput" 
-              stroke="#22d3ee" 
-              fillOpacity={1} 
-              fill="url(#colorThroughput)" 
-              strokeWidth={1.5}
-              isAnimationActive={false}
-            />
-            <Line 
-              yAxisId="right"
-              type="monotone" 
-              dataKey="latency" 
-              stroke="#ffd700" 
-              strokeWidth={1.5}
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Bar
-              yAxisId="left"
-              dataKey="gpu"
-              fill="rgba(248, 245, 236, 0.05)"
-              barSize={8}
-              isAnimationActive={false}
-            />
+            <Area yAxisId="left" type="monotone" dataKey="throughput" stroke="#22d3ee" fillOpacity={1} fill="url(#colorThroughput)" strokeWidth={1.5} isAnimationActive={false} />
+            <Line yAxisId="right" type="monotone" dataKey="latency" stroke="#ffd700" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+            <Bar yAxisId="left" dataKey="gpu" fill="rgba(248, 245, 236, 0.05)" barSize={8} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -140,7 +98,7 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = (
               <p className="font-orbitron text-xs text-gold">{(history.reduce((acc, d) => acc + d.latency, 0) / Math.max(1, history.length)).toFixed(3)} <span className="text-[7px] opacity-40">ms</span></p>
           </div>
           <div className="bg-black/20 p-2.5 rounded border border-white/5">
-              <p className="text-[7px] text-slate-500 uppercase tracking-tighter mb-1">Memory Allocation</p>
+              <p className="text-[7px] text-slate-500 uppercase tracking-tighter mb-1">Memory Usage</p>
               <p className="font-orbitron text-xs text-cyan-400">{performance.memoryUsage.toFixed(1)} <span className="text-[7px] opacity-40">GB</span></p>
           </div>
           <div className="bg-black/20 p-2.5 rounded border border-white/5">
@@ -150,4 +108,4 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = (
       </div>
     </div>
   );
-};
+});
