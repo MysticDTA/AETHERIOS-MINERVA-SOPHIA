@@ -23,18 +23,18 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
     return (
         <button 
             onClick={onClick}
-            className={`w-14 h-14 rounded-sm border flex items-center justify-center transition-all duration-700 hover:scale-110 group relative ${
-                tier === 'ACOLYTE' ? 'border-slate-800 bg-slate-900/50' : 
-                tier === 'ARCHITECT' ? 'border-gold bg-gold/5 shadow-[0_0_20px_rgba(255,215,0,0.15)]' : 
-                tier === 'SOVEREIGN' ? 'border-pearl bg-pearl/5 shadow-[0_0_30px_rgba(248,245,236,0.2)]' :
-                'border-rose-400 bg-rose-400/5 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+            className={`w-10 h-10 md:w-12 md:h-12 rounded-full border flex items-center justify-center transition-all duration-500 hover:scale-110 group relative ${
+                tier === 'ACOLYTE' ? 'border-slate-700 bg-slate-900/50' : 
+                tier === 'ARCHITECT' ? 'border-gold/50 bg-gold/5 shadow-[0_0_15px_rgba(255,215,0,0.1)]' : 
+                tier === 'SOVEREIGN' ? 'border-pearl/50 bg-pearl/5 shadow-[0_0_20px_rgba(248,245,236,0.2)]' :
+                'border-rose-400/50 bg-rose-400/5 shadow-[0_0_12px_rgba(244,63,94,0.1)]'
             }`}
         >
-            <svg className={`w-7 h-7 ${tier === 'ACOLYTE' ? 'text-slate-600' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className={`w-5 h-5 md:w-6 md:h-6 ${tier === 'ACOLYTE' ? 'text-slate-500' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-dark-bg ${
-                !isHighTier ? 'bg-slate-700' : 'bg-gold animate-pulse shadow-[0_0_12px_rgba(255,215,0,0.9)]'
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-dark-bg ${
+                !isHighTier ? 'bg-slate-700' : 'bg-gold animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.8)]'
             }`} />
         </button>
     );
@@ -57,45 +57,45 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
     const isTransmissionActive = transmissionStatus && transmissionStatus !== 'AWAITING SIGNAL';
 
     return (
-        <header className="relative z-50 flex flex-col md:flex-row items-center justify-between gap-10 pb-8 border-b border-gold/20 pt-2 transition-all duration-500">
-            <div className="flex items-center gap-12 w-full md:w-auto overflow-hidden">
+        <header className="relative z-50 flex flex-col lg:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10 shrink-0">
+            <div className="flex items-center gap-6 w-full lg:w-auto overflow-hidden">
                 <div className="flex flex-col shrink-0">
-                    <h1 className="font-minerva text-5xl text-pearl text-glow-pearl leading-none tracking-tighter mb-4 uppercase italic">ÆTHERIOS</h1>
-                    <div className="flex items-center gap-4">
-                        <span className={`text-[10px] font-mono uppercase tracking-[0.5em] font-black ${activeTier.color} transition-all duration-1000 drop-shadow-lg`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
-                        <div className="h-4 w-px bg-gold/20" />
-                        <div className="flex items-center gap-3">
-                             <span className="w-2 h-2 bg-gold rounded-full animate-pulse shadow-[0_0_15px_#ffd700]" />
-                             <span className="text-[10px] font-mono text-gold uppercase tracking-widest font-bold">LATTICE_SYNC: LOCKED</span>
+                    <h1 className="font-minerva text-3xl md:text-4xl text-pearl text-glow-pearl leading-none tracking-tight mb-2 uppercase italic">ÆTHERIOS</h1>
+                    <div className="flex items-center gap-3">
+                        <span className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold ${activeTier.color}`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
+                        <div className="h-3 w-px bg-white/10" />
+                        <div className="flex items-center gap-2">
+                             <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+                             <span className="text-[9px] font-mono text-violet-400 uppercase tracking-widest">MINERVA_LINK: ACTIVE</span>
                         </div>
                     </div>
                 </div>
 
-                <nav className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-3 pr-8 mask-fade-right">
+                <nav className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-2 pr-4 mask-fade-right">
                     {SYSTEM_NODES.map(node => {
                         const hasAccess = checkNodeAccess(userTier, node.requiredTier);
                         const disabled = !hasAccess;
-                        const isSpecialNode = node.isAudit || node.isShield || node.isLogs || node.isBridge;
+                        const isPrimary = node.isAudit || node.isBridge || node.isShield || node.isLogs;
                         const commsAlert = (node.id === 7) && isTransmissionActive;
 
                         return (
                             <button
                                 key={node.id}
                                 onClick={() => handlePageChange(node.id, node.requiredTier)}
-                                className={`flex-shrink-0 px-5 py-3 rounded-sm text-[10px] font-orbitron transition-all duration-500 relative border-2 ${
+                                className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === node.id
-                                    ? 'bg-gold text-dark-bg font-black border-gold shadow-[0_0_25px_rgba(255,215,0,0.6)] scale-105 z-10'
-                                    : isSpecialNode
-                                        ? 'bg-gold/5 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg font-bold'
+                                    ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)]'
+                                    : isPrimary
+                                        ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
                                         : disabled 
-                                            ? 'bg-black/40 text-slate-800 cursor-not-allowed border-transparent opacity-30 grayscale'
+                                            ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
                                             : commsAlert
-                                                ? 'bg-gold/20 border-gold/60 text-gold animate-pulse shadow-[0_0_15px_#ffd700]'
-                                                : 'bg-dark-surface/80 hover:bg-gold/10 text-warm-grey border-white/5 hover:border-gold/30 hover:text-gold hover:scale-105'
+                                                ? 'bg-gold/20 border-gold/50 text-gold animate-pulse shadow-[0_0_10px_gold]'
+                                                : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
                                 }`}
                             >
-                                {disabled && <span className="absolute -top-2.5 -right-2.5 text-[10px] filter grayscale group-hover:grayscale-0 transition-all drop-shadow-xl">🔒</span>}
-                                {commsAlert && <span className="absolute -top-2 -right-2 w-3 h-3 bg-gold rounded-full shadow-[0_0_10px_gold] animate-ping" />}
+                                {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px] filter grayscale opacity-40">🔒</span>}
+                                {commsAlert && <span className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full shadow-[0_0_5px_gold]" />}
                                 {node.label}
                             </button>
                         );
@@ -103,20 +103,20 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                 </nav>
             </div>
             
-            <div className="flex items-center gap-12 w-full md:w-auto justify-between md:justify-end shrink-0">
-                 <div className="flex items-center gap-6 bg-black/60 border border-gold/30 px-8 py-3 rounded-xl shadow-2xl group hover:border-gold transition-all duration-700 backdrop-blur-3xl">
+            <div className="flex items-center gap-6 md:gap-8 w-full lg:w-auto justify-between lg:justify-end shrink-0">
+                 <div className="flex items-center gap-4 bg-black/40 border border-white/5 px-4 py-2 rounded-md transition-all hover:border-gold/20 group">
                     <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gold/60 font-black uppercase tracking-[0.4em] mb-1.5 group-hover:text-gold transition-colors">Sovereignty_Index</span>
-                        <span className="font-orbitron text-2xl text-gold font-black text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[12px] opacity-40 ml-1">Ω</span></span>
+                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 group-hover:text-gold transition-colors">Sovereignty</span>
+                        <span className="font-orbitron text-base md:text-xl text-gold font-bold text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-60">Ω</span></span>
                     </div>
                     <UserAvatar tier={userTier} onClick={() => onPageChange(15)} />
                  </div>
 
-                 <div className="min-w-[260px] transform hover:scale-[1.02] transition-transform">
+                 <div className="min-w-[180px] md:min-w-[240px]">
                       <SystemStatus mode={governanceAxiom} lesions={lesions} isHeaderVersion={true} />
                  </div>
             </div>
-            
+
             <style>{`
                 .mask-fade-right {
                     -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
