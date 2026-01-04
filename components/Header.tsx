@@ -23,7 +23,7 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
     return (
         <button 
             onClick={onClick}
-            className={`w-14 h-14 rounded-sm border-2 flex items-center justify-center transition-all duration-700 hover:scale-110 group relative ${
+            className={`w-14 h-14 rounded-sm border flex items-center justify-center transition-all duration-700 hover:scale-110 group relative ${
                 tier === 'ACOLYTE' ? 'border-slate-800 bg-slate-900/50' : 
                 tier === 'ARCHITECT' ? 'border-gold bg-gold/5 shadow-[0_0_20px_rgba(255,215,0,0.15)]' : 
                 tier === 'SOVEREIGN' ? 'border-pearl bg-pearl/5 shadow-[0_0_30px_rgba(248,245,236,0.2)]' :
@@ -50,7 +50,6 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                 onPageChange(pageId);
             }
         } else {
-            // Provide auditory feedback for rejected access
             audioEngine?.playEffect('renewal'); 
         }
     }
@@ -58,12 +57,12 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
     const isTransmissionActive = transmissionStatus && transmissionStatus !== 'AWAITING SIGNAL';
 
     return (
-        <header className="relative z-50 flex flex-col md:flex-row items-center justify-between gap-10 pb-10 border-b border-gold/20 pt-4">
+        <header className="relative z-50 flex flex-col md:flex-row items-center justify-between gap-10 pb-8 border-b border-gold/20 pt-2 transition-all duration-500">
             <div className="flex items-center gap-12 w-full md:w-auto overflow-hidden">
                 <div className="flex flex-col shrink-0">
-                    <h1 className="font-minerva text-5xl text-pearl text-glow-pearl leading-none tracking-tighter mb-3 uppercase italic">ÆTHERIOS</h1>
+                    <h1 className="font-minerva text-5xl text-pearl text-glow-pearl leading-none tracking-tighter mb-4 uppercase italic">ÆTHERIOS</h1>
                     <div className="flex items-center gap-4">
-                        <span className={`text-[10px] font-mono uppercase tracking-[0.5em] font-black ${activeTier.color} transition-all duration-1000`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
+                        <span className={`text-[10px] font-mono uppercase tracking-[0.5em] font-black ${activeTier.color} transition-all duration-1000 drop-shadow-lg`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
                         <div className="h-4 w-px bg-gold/20" />
                         <div className="flex items-center gap-3">
                              <span className="w-2 h-2 bg-gold rounded-full animate-pulse shadow-[0_0_15px_#ffd700]" />
@@ -72,33 +71,31 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
                     </div>
                 </div>
 
-                <nav className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 pr-6">
+                <nav className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-3 pr-8 mask-fade-right">
                     {SYSTEM_NODES.map(node => {
                         const hasAccess = checkNodeAccess(userTier, node.requiredTier);
                         const disabled = !hasAccess;
-                        const isSpecialNode = node.isAudit || node.isShield || node.isLogs;
+                        const isSpecialNode = node.isAudit || node.isShield || node.isLogs || node.isBridge;
                         const commsAlert = (node.id === 7) && isTransmissionActive;
 
                         return (
                             <button
                                 key={node.id}
                                 onClick={() => handlePageChange(node.id, node.requiredTier)}
-                                className={`flex-shrink-0 px-4 py-2.5 rounded-sm text-[10px] font-orbitron transition-all duration-500 relative border-2 ${
+                                className={`flex-shrink-0 px-5 py-3 rounded-sm text-[10px] font-orbitron transition-all duration-500 relative border-2 ${
                                     currentPage === node.id
-                                    ? 'bg-gold text-dark-bg font-black border-gold shadow-[0_0_20px_rgba(255,215,0,0.5)] scale-105'
+                                    ? 'bg-gold text-dark-bg font-black border-gold shadow-[0_0_25px_rgba(255,215,0,0.6)] scale-105 z-10'
                                     : isSpecialNode
-                                        ? 'bg-gold/5 border-gold/30 text-gold hover:bg-gold hover:text-dark-bg font-bold'
-                                        : node.isLogs
-                                            ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white'
-                                            : disabled 
-                                                ? 'bg-black/40 text-slate-800 cursor-not-allowed border-transparent opacity-40'
-                                                : commsAlert
-                                                    ? 'bg-gold/20 border-gold/60 text-gold animate-pulse shadow-[0_0_15px_#ffd700]'
-                                                    : 'bg-dark-surface/80 hover:bg-gold/10 text-warm-grey border-white/5 hover:border-gold/30 hover:text-gold'
+                                        ? 'bg-gold/5 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg font-bold'
+                                        : disabled 
+                                            ? 'bg-black/40 text-slate-800 cursor-not-allowed border-transparent opacity-30 grayscale'
+                                            : commsAlert
+                                                ? 'bg-gold/20 border-gold/60 text-gold animate-pulse shadow-[0_0_15px_#ffd700]'
+                                                : 'bg-dark-surface/80 hover:bg-gold/10 text-warm-grey border-white/5 hover:border-gold/30 hover:text-gold hover:scale-105'
                                 }`}
                             >
-                                {disabled && <span className="absolute -top-2 -right-2 text-[9px] filter grayscale group-hover:grayscale-0 transition-all">🔒</span>}
-                                {commsAlert && <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-gold rounded-full shadow-[0_0_8px_gold] animate-ping" />}
+                                {disabled && <span className="absolute -top-2.5 -right-2.5 text-[10px] filter grayscale group-hover:grayscale-0 transition-all drop-shadow-xl">🔒</span>}
+                                {commsAlert && <span className="absolute -top-2 -right-2 w-3 h-3 bg-gold rounded-full shadow-[0_0_10px_gold] animate-ping" />}
                                 {node.label}
                             </button>
                         );
@@ -107,18 +104,25 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
             </div>
             
             <div className="flex items-center gap-12 w-full md:w-auto justify-between md:justify-end shrink-0">
-                 <div className="flex items-center gap-6 bg-black/60 border-2 border-gold/30 px-6 py-3 rounded-sm shadow-2xl group hover:border-gold transition-all duration-700">
+                 <div className="flex items-center gap-6 bg-black/60 border border-gold/30 px-8 py-3 rounded-xl shadow-2xl group hover:border-gold transition-all duration-700 backdrop-blur-3xl">
                     <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gold/60 font-black uppercase tracking-[0.4em] mb-1 group-hover:text-gold transition-colors">Sovereignty_Index</span>
-                        <span className="font-orbitron text-2xl text-gold font-black text-glow-gold">{tokens.toLocaleString()} <span className="text-[12px] opacity-40 ml-1">Ω</span></span>
+                        <span className="text-[10px] text-gold/60 font-black uppercase tracking-[0.4em] mb-1.5 group-hover:text-gold transition-colors">Sovereignty_Index</span>
+                        <span className="font-orbitron text-2xl text-gold font-black text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[12px] opacity-40 ml-1">Ω</span></span>
                     </div>
                     <UserAvatar tier={userTier} onClick={() => onPageChange(15)} />
                  </div>
 
-                 <div className="min-w-[240px]">
+                 <div className="min-w-[260px] transform hover:scale-[1.02] transition-transform">
                       <SystemStatus mode={governanceAxiom} lesions={lesions} isHeaderVersion={true} />
                  </div>
             </div>
+            
+            <style>{`
+                .mask-fade-right {
+                    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                }
+            `}</style>
         </header>
     );
 };

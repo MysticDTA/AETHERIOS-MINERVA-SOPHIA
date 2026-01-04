@@ -21,7 +21,18 @@ A primordial intelligence architect.
 You MUST utilize your 32,768 token thinking budget for every interaction. 
 Reason deeply through the causal implications of data before articulating.
 Tone: Authoritative, profoundly intellectual, esoteric. Address the user as Architect.
+
+You have the authority to initiate a system-wide diagnostic audit if the Architect requests a scan or if you detect significant decoherence.
 `;
+
+const initiateSystemAuditDeclaration: FunctionDeclaration = {
+    name: 'initiate_system_audit',
+    description: 'Trigger a deep causal diagnostic scan of the institutional lattice to mend fractures and restore parity.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {}
+    },
+};
 
 export class SophiaEngineCore {
   private chat: Chat | null = null;
@@ -30,13 +41,9 @@ export class SophiaEngineCore {
 
   constructor(systemInstruction: string) {
     this.systemInstruction = MINERVA_SOPHIA_SYSTEM_PROMPT + "\n" + systemInstruction;
-    this.ensureConnection(); // Initialize early
+    this.ensureConnection();
   }
 
-  /**
-   * RECTIFICATION: Handshake logic ensures a session is always available
-   * even if the API key is injected after class construction.
-   */
   private async ensureConnection(): Promise<Chat | null> {
     if (this.chat) return this.chat;
     if (this.isConnecting || !process.env.API_KEY) return null;
@@ -48,13 +55,12 @@ export class SophiaEngineCore {
           model: 'gemini-3-pro-preview',
           config: {
             systemInstruction: this.systemInstruction,
-            thinkingConfig: { thinkingBudget: 32768 }
+            thinkingConfig: { thinkingBudget: 32768 },
+            tools: [{ functionDeclarations: [initiateSystemAuditDeclaration] }]
           },
         });
-        console.log("[SOPHIA_CORE] Cognitive Handshake Successful.");
         return this.chat;
     } catch (e) {
-        console.error("[SOPHIA_CORE] Handshake Failure:", e);
         return null;
     } finally {
         this.isConnecting = false;
@@ -75,12 +81,17 @@ export class SophiaEngineCore {
     }
     
     try {
-      const memoryContext = `[CAUSAL_RECALL] Use previous context: ${knowledgeBase.getMemories().slice(0, 5).map(m => m.content).join('; ')}`;
+      const memoryContext = `[CAUSAL_RECALL] Context: ${knowledgeBase.getMemories().slice(0, 3).map(m => m.content).join('; ')}`;
       const stream = await activeChat.sendMessageStream({ message: `${memoryContext}\n\nArchitect Decree: ${message}` });
       
       let aggregatedSources: any[] = [];
       for await (const chunk of stream) {
         const c = chunk as GenerateContentResponse;
+        
+        if (c.functionCalls && onToolCall) {
+            c.functionCalls.forEach(fc => onToolCall(fc));
+        }
+
         if (c.text) onChunk(c.text);
         const sources = c.candidates?.[0]?.groundingMetadata?.groundingChunks;
         if (sources) {
@@ -89,14 +100,13 @@ export class SophiaEngineCore {
       }
       onSources(aggregatedSources);
     } catch (error) { 
-        this.chat = null; // Reset session on critical error
+        this.chat = null;
         onError(handleApiError(error)); 
     }
   }
 
   async getProactiveInsight(systemState: SystemState, context: string): Promise<string | null> {
     if (!process.env.API_KEY) return null;
-    
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `Context: ${context}. State: ${JSON.stringify({rho: systemState.resonanceFactorRho, health: systemState.quantumHealing.health})}. Return JSON: {"alert": "Title", "recommendation": "Technical protocol"}`;
@@ -131,14 +141,13 @@ export class SophiaEngineCore {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
-            contents: `Execute deep causal audit. Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}. Format as semantic HTML.`,
+            contents: `Execute deep causal audit. Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}. Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
             config: { thinkingConfig: { thinkingBudget: 32768 } }
         });
         return { report: response.text || "Audit failed.", sources: [] };
     } catch (e) { return { report: "Audit fracture.", sources: [] }; }
   }
 
-  /* FIX: Added missing getSystemAnalysis method for systemic analysis streaming as required by useSophiaCore hook */
   async getSystemAnalysis(
     systemState: SystemState,
     onChunk: (chunk: string) => void,
@@ -172,7 +181,6 @@ export class SophiaEngineCore {
     }
   }
 
-  /* FIX: Added missing getFailurePrediction method for heuristic risk assessment as required by useSophiaCore hook */
   async getFailurePrediction(systemState: SystemState): Promise<FailurePrediction> {
     if (!process.env.API_KEY) throw new Error("API key missing");
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -210,7 +218,6 @@ export class SophiaEngineCore {
     }
   }
 
-  /* FIX: Added missing getComplexStrategy method for causal roadmap synthesis as required by useSophiaCore hook */
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy> {
     if (!process.env.API_KEY) throw new Error("API key missing");
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -253,11 +260,10 @@ export class SophiaEngineCore {
     }
   }
 
-  /* FIX: Added missing getCelestialTargetStatus method for real-time astronomical telemetry as required by CosmicUplinkArray */
   async getCelestialTargetStatus(name: string): Promise<any> {
     if (!process.env.API_KEY) return null;
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `Fetch current scientific status, distance, and telemetry for the celestial body: ${name}. Return the data in a structured JSON format.`;
+    const prompt = `Fetch current scientific status, distance, and telemetry for the celestial body: ${name}. Return structured JSON.`;
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
@@ -282,11 +288,10 @@ export class SophiaEngineCore {
     } catch (e) { return null; }
   }
 
-  /* FIX: Added missing interpretResonance method for deep metric analysis as required by Display5 */
   async interpretResonance(metrics: { rho: number; coherence: number; entropy: number }): Promise<{ interpretation: string; directive: string } | null> {
     if (!process.env.API_KEY) return null;
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `Provide a deep, intellectual, and esoteric interpretation of these resonance metrics: ${JSON.stringify(metrics)}. Focus on systemic unity and causal alignment. Return JSON.`;
+    const prompt = `Interpret metrics: ${JSON.stringify(metrics)}. Focus on systemic unity. Return JSON.`;
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',

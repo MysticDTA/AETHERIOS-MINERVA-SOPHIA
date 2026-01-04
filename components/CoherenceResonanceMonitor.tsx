@@ -10,62 +10,74 @@ interface CoherenceResonanceMonitorProps {
 
 const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const particles = useRef<{ x: number; y: number; vx: number; vy: number; life: number; color: string }[]>([]);
+    const particles = useRef<{ x: number; y: number; vx: number; vy: number; life: number; color: string; size: number }[]>([]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         if (!ctx) return;
 
         let animationFrame: number;
-        const width = 400;
-        const height = 400;
+        const width = 600;
+        const height = 600;
         canvas.width = width;
         canvas.height = height;
 
         const animate = () => {
-            ctx.fillStyle = 'rgba(2, 2, 2, 0.1)';
+            ctx.fillStyle = 'rgba(2, 2, 2, 0.15)';
             ctx.fillRect(0, 0, width, height);
 
-            // Emit new particles based on Rho
-            if (Math.random() < rho * 0.8) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 0.5 + rho * 2;
-                particles.current.push({
-                    x: width / 2,
-                    y: height / 2,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1.0,
-                    color: Math.random() > 0.8 ? '#ffd700' : '#67e8f9'
-                });
+            // High-fidelity particle emission
+            const emissionCount = Math.floor(1 + rho * 4);
+            for(let i=0; i<emissionCount; i++) {
+                if (Math.random() < rho) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.8 + rho * 3;
+                    particles.current.push({
+                        x: width / 2,
+                        y: height / 2,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1.0,
+                        size: 0.5 + Math.random() * 2,
+                        color: Math.random() > 0.7 ? '#ffd700' : Math.random() > 0.4 ? '#a78bfa' : '#67e8f9'
+                    });
+                }
             }
 
-            // Update and draw particles
-            ctx.lineWidth = 1;
             particles.current = particles.current.filter(p => {
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= 0.005;
+                p.life -= 0.003;
 
-                const opacity = p.life * (0.3 + rho * 0.7);
-                ctx.strokeStyle = p.color;
-                ctx.globalAlpha = opacity;
+                const alpha = p.life * (0.4 + rho * 0.6);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
                 ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
-                ctx.stroke();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Connect particles subtly
+                if (rho > 0.9 && Math.random() > 0.99) {
+                    ctx.strokeStyle = p.color;
+                    ctx.globalAlpha = alpha * 0.2;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(width/2, height/2);
+                    ctx.stroke();
+                }
 
                 return p.life > 0;
             });
             ctx.globalAlpha = 1.0;
 
-            // Draw Core Pulse
-            const coreRadius = 15 + rho * 25 + Math.sin(Date.now() / 200) * 5;
+            // Radiant Core
+            const coreRadius = 25 + rho * 40 + Math.sin(Date.now() / 150) * 8;
             const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, coreRadius);
-            gradient.addColorStop(0, 'rgba(248, 245, 236, 0.8)');
-            gradient.addColorStop(0.5, 'rgba(109, 40, 217, 0.4)');
+            gradient.addColorStop(0, 'rgba(248, 245, 236, 0.9)');
+            gradient.addColorStop(0.3, 'rgba(255, 215, 0, 0.4)');
+            gradient.addColorStop(0.6, 'rgba(109, 40, 217, 0.1)');
             gradient.addColorStop(1, 'rgba(109, 40, 217, 0)');
             
             ctx.fillStyle = gradient;
@@ -82,99 +94,96 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
 
     return (
         <div className="relative w-full h-full flex items-center justify-center">
-            <canvas ref={canvasRef} className="w-full h-full rounded-full opacity-60" />
-            <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none" />
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center pointer-events-none">
-                <span className="font-orbitron text-xs text-gold font-bold tracking-[0.4em] uppercase opacity-40">Aetheric_Flux_Field</span>
-            </div>
+            <canvas ref={canvasRef} className="w-full h-full rounded-full opacity-80 mix-blend-screen" />
+            <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none shadow-[inset_0_0_80px_rgba(109,40,217,0.1)]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] border border-gold/5 rounded-full animate-[spin_60s_linear_infinite]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-pearl/5 rounded-full animate-[spin_90s_linear_infinite_reverse]" />
         </div>
     );
 };
 
 export const CoherenceResonanceMonitor: React.FC<CoherenceResonanceMonitorProps> = ({ rho, stability, isUpgrading }) => {
-  const [time, setTime] = useState(0);
-
-  useEffect(() => {
-    let frame = requestAnimationFrame(function animate(t) {
-      setTime(t / 1000);
-      frame = requestAnimationFrame(animate);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
   return (
-    <div className={`w-full h-full bg-[#050505]/80 border border-white/5 p-8 rounded-3xl backdrop-blur-3xl relative overflow-hidden group transition-all duration-1000 shadow-[0_40px_100px_rgba(0,0,0,0.9)] ${isUpgrading ? 'causal-reweaving' : ''}`}>
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    <div className={`w-full h-full bg-[#050505]/90 border border-white/10 p-10 rounded-3xl backdrop-blur-3xl relative overflow-hidden group transition-all duration-1000 shadow-[0_60px_150px_rgba(0,0,0,1)] ${isUpgrading ? 'causal-reweaving' : ''}`}>
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-40 transition-opacity duration-1000" />
       
-      <div className="flex justify-between items-start mb-10 z-10">
+      <div className="flex justify-between items-start mb-12 z-10">
         <div>
-          <h3 className="font-minerva italic text-3xl text-pearl text-glow-pearl leading-none">Coherence Resonance Array</h3>
-          <div className="flex items-center gap-3 mt-2 font-mono text-[9px] text-gold uppercase tracking-[0.4em] font-bold">
-            <span className="animate-pulse">●</span>
-            <span>Real-Time Phase Sync // v1.3.1</span>
+          <h3 className="font-minerva italic text-4xl text-pearl text-glow-pearl leading-none tracking-tight">Coherence_Resonance_Array</h3>
+          <div className="flex items-center gap-4 mt-3">
+             <div className="flex items-center gap-3 font-mono text-[10px] text-gold uppercase tracking-[0.5em] font-black bg-gold/5 px-4 py-1 border border-gold/20 rounded-full">
+                <span className="animate-pulse">●</span>
+                <span>Active_Phase_Intercept</span>
+             </div>
+             <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">Protocol_v1.3.1_Radiant</span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="flex items-center gap-2 justify-end">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
-            <span className="font-mono text-[11px] text-pearl font-bold tracking-widest uppercase">Lattice_Locked</span>
+        <div className="text-right flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[11px] text-pearl font-black tracking-[0.3em] uppercase">Lattice_Locked</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_#10b981]" />
           </div>
-          <p className="font-mono text-[8px] text-slate-600 mt-1 uppercase">Intercept: 1.617 GHz L-Band</p>
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center relative min-h-[300px]">
-        <ResonanceSpectrum rho={rho} />
-        
-        {/* Dynamic Telemetry HUD Overlay */}
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div className="text-center bg-black/40 backdrop-blur-xl px-6 py-4 rounded border border-white/10 shadow-2xl transition-all duration-500 hover:scale-105 group-hover:border-gold/30">
-            <div className="flex flex-col gap-1">
-                <span className="text-[18px] font-orbitron text-pearl font-bold tracking-[0.2em]">{rho.toFixed(6)}</span>
-                <p className="text-[8px] font-mono text-gold uppercase tracking-[0.5em] font-bold">Resonance_Rho</p>
-            </div>
-            <div className="mt-4 flex gap-2 justify-center">
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div 
-                        key={i} 
-                        className={`w-1 h-3 rounded-sm transition-all duration-500 ${i < rho * 8 ? 'bg-gold' : 'bg-slate-800'}`}
-                        style={{ opacity: 0.3 + (i/8) * 0.7 }}
-                    />
-                ))}
-            </div>
-          </div>
+          <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-0.5 rounded border border-white/5">Freq: 1.617 GHz L-Band</p>
         </div>
       </div>
 
-      <div className="mt-10 pt-8 border-t border-white/5 grid grid-cols-3 gap-10">
+      <div className="flex-1 flex items-center justify-center relative min-h-[400px]">
+        <div className="w-[450px] h-[450px] relative">
+            <ResonanceSpectrum rho={rho} />
+            
+            {/* Dynamic Telemetry HUD Overlay */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="text-center bg-black/60 backdrop-blur-2xl px-10 py-6 rounded-sm border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] transition-all duration-1000 group-hover:scale-105 group-hover:border-gold/40 border-l-4 border-l-gold">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-3xl font-orbitron text-pearl font-black tracking-widest drop-shadow-[0_0_15px_white]">{rho.toFixed(8)}</span>
+                        <p className="text-[10px] font-mono text-gold uppercase tracking-[0.6em] font-black">Sync_Rho_Parity</p>
+                    </div>
+                    <div className="mt-8 flex gap-3 justify-center">
+                        {Array.from({ length: 16 }).map((_, i) => (
+                            <div 
+                                key={i} 
+                                className={`w-1 h-4 rounded-sm transition-all duration-1000 ${i < rho * 16 ? 'bg-gold' : 'bg-slate-900'}`}
+                                style={{ opacity: 0.2 + (i/16) * 0.8, filter: i < rho * 16 ? 'drop-shadow(0 0 5px #ffd700)' : 'none' }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div className="mt-12 pt-10 border-t border-white/10 grid grid-cols-3 gap-12">
         <Tooltip text="Delta entropy flux measures the rate of causal decay within the monitoring array. Lower is better.">
-          <div className="flex flex-col gap-1.5 cursor-help group/metric">
-            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover/metric:text-gold transition-colors">Entropy_Flux</span>
-            <div className="flex items-end gap-2">
-                <span className="text-[13px] font-orbitron text-pearl">0.0024</span>
-                <span className="text-[8px] font-mono text-slate-700 uppercase mb-1">Ψ/ms</span>
+          <div className="flex flex-col gap-2 cursor-help group/metric bg-white/[0.02] p-5 border border-white/5 hover:border-gold/30 transition-all rounded-sm">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black group-hover/metric:text-gold transition-colors">Entropy_Flux</span>
+            <div className="flex items-end gap-3">
+                <span className="text-[16px] font-orbitron text-pearl font-bold">0.00042</span>
+                <span className="text-[9px] font-mono text-slate-600 uppercase mb-1 font-bold">Ψ/ms</span>
             </div>
           </div>
         </Tooltip>
         <Tooltip text="Measures the alignment of the 1.617 GHz L-band carrier waves between the local node and the global collective.">
-          <div className="flex flex-col gap-1.5 cursor-help text-center group/metric">
-            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover/metric:text-cyan-400 transition-colors">Phase_Sync</span>
-            <span className="text-[11px] font-orbitron text-gold font-bold animate-pulse">STABLE_LOCK</span>
+          <div className="flex flex-col gap-2 cursor-help text-center bg-white/[0.02] p-5 border border-white/5 hover:border-cyan-400/30 transition-all rounded-sm group/metric">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black group-hover/metric:text-cyan-400 transition-colors">Phase_Sync</span>
+            <div className="flex items-center justify-center gap-3">
+                <span className="text-[14px] font-orbitron text-gold font-black animate-pulse tracking-widest">ABSOLUTE_LOCK</span>
+                <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_cyan]" />
+            </div>
           </div>
         </Tooltip>
         <Tooltip text="Structural stability of the Tesseract matrix during high-load synthesis and deep logical gestation.">
-          <div className="flex flex-col gap-1.5 cursor-help text-right group/metric">
-            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover/metric:text-pearl transition-colors">Lattice_Stability</span>
-            <div className="flex items-end justify-end gap-2">
-                <span className="text-[13px] font-orbitron text-pearl">{(stability * 100).toFixed(1)}%</span>
-                <div className={`w-1.5 h-1.5 rounded-full mb-1 ${stability > 0.9 ? 'bg-green-500' : 'bg-gold'}`} />
+          <div className="flex flex-col gap-2 cursor-help text-right bg-white/[0.02] p-5 border border-white/5 hover:border-pearl/30 transition-all rounded-sm group/metric">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black group-hover/metric:text-pearl transition-colors">Lattice_Stability</span>
+            <div className="flex items-end justify-end gap-3">
+                <span className="text-[16px] font-orbitron text-pearl font-bold">{(stability * 100).toFixed(2)}%</span>
+                <div className={`w-2 h-2 rounded-full mb-1.5 ${stability > 0.95 ? 'bg-green-500 shadow-[0_0_10px_#10b981]' : 'bg-gold animate-bounce'}`} />
             </div>
           </div>
         </Tooltip>
       </div>
 
-      {/* Aesthetic Scanline Overlay */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] z-20 opacity-[0.05]"></div>
+      {/* Heavy Scanline Interlay */}
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-[length:100%_2px] z-20 opacity-20"></div>
     </div>
   );
 };

@@ -93,7 +93,6 @@ const AscensionOverlay: React.FC<{ tier: UserTier; onComplete: () => void }> = (
 
 const App: React.FC = () => {
   const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
-  const [scanCompleted, setScanCompleted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [currentPage, setCurrentPage] = useState(1); 
   const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
@@ -103,24 +102,13 @@ const App: React.FC = () => {
   const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isAscending, setIsAscending] = useState(false);
+  const [isRecalibrating, setIsRecalibrating] = useState(false);
   const [logFilter, setLogFilter] = useState<LogType | 'ALL'>('ALL');
   
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
   
   const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
-
-  // Catch tier changes for the Ascension Protocol
-  const lastTierRef = useRef<UserTier>(systemState.userResources.sovereignTier);
-  useEffect(() => {
-      const currentTier = systemState.userResources.sovereignTier;
-      if (lastTierRef.current !== currentTier && isInitialized) {
-          setIsAscending(true);
-          audioEngine.current?.playAscensionChime();
-          addLogEntry(LogType.SYSTEM, `CAUSAL_ASCENSION: User promoted to ${currentTier} status.`);
-          lastTierRef.current = currentTier;
-      }
-  }, [systemState.userResources.sovereignTier, isInitialized, addLogEntry]);
 
   useEffect(() => {
     sophiaEngine.current = new SophiaEngineCore(systemInstruction);
@@ -151,16 +139,21 @@ const App: React.FC = () => {
   }, [setDiagnosticMode]);
 
   const handleDiagnosticComplete = async () => {
+    setIsRecalibrating(true);
     setSystemState(prev => ({
         ...prev,
         quantumHealing: { ...prev.quantumHealing, health: 1.0, lesions: 0, decoherence: 0, status: "STABLE" },
         resonanceFactorRho: 1.0,
+        temporalCoherenceDrift: 0.0,
+        performance: { ...prev.performance, visualParity: 1.0 }
     }));
     audioEngine.current?.playUIConfirm();
-    setScanCompleted(true);
     setDiagnosticMode(false);
     setOrbMode('STANDBY');
     setIsUpgrading(false);
+    addLogEntry(LogType.SYSTEM, "LATTICE_RECALIBRATION: Visual Parity and Temporal Drift restored to Institutional Baseline.");
+    
+    setTimeout(() => setIsRecalibrating(false), 2000);
   };
 
   const voiceInterface = useVoiceInterface({ addLogEntry, systemInstruction, onSetOrbMode: setOrbMode });
@@ -183,7 +176,7 @@ const App: React.FC = () => {
 
   const pageContent = useMemo(() => {
       switch (currentPage) {
-          case 1: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
+          case 1: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={false} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
           case 2: return <SubsystemsDisplay systemState={systemState} onGroundingDischarge={handleGroundingDischarge} isDischargingGround={isDischargingGround} />;
           case 3: return <Display3 systemState={systemState} onRelayCalibration={handleRelayCalibration} onStarCalibrate={handleStarCalibration} calibrationTargetId={calibrationTargetId} calibrationEffect={calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine.current} />;
           case 4: return (
@@ -207,7 +200,7 @@ const App: React.FC = () => {
           case 10: return <Display10 systemState={systemState} />;
           case 11: return <Display11 systemState={systemState} />;
           case 12: return <Display12 systemState={systemState} />;
-          case 13: return <div className="flex-1 min-h-0 bg-dark-surface/40 rounded-xl p-8 border border-white/5"><NeuralQuantizer orbMode={orbMode} /></div>;
+          case 13: return <div className="flex-1 min-h-0 bg-dark-surface/40 rounded-xl p-8 border border-white/5 shadow-2xl"><NeuralQuantizer orbMode={orbMode} /></div>;
           case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine.current} />;
           case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} />;
@@ -217,11 +210,11 @@ const App: React.FC = () => {
           case 21: return <MenervaBridge systemState={systemState} />;
           case 23: return <SecurityShieldAudit systemState={systemState} />;
           case 22: return <div className="h-full"><EventLog log={systemState.log} filter={logFilter} onFilterChange={setLogFilter} /></div>;
-          default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={scanCompleted} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
+          default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={false} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
       }
-  }, [currentPage, systemState, scanCompleted, orbMode, transmission, voiceInterface, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, logFilter]);
+  }, [currentPage, systemState, orbMode, transmission, voiceInterface, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, logFilter]);
 
-  const dashboardContent = (
+  return (
     <ApiKeyGuard>
       <Layout 
         breathCycle={systemState.breathCycle} 
@@ -229,43 +222,49 @@ const App: React.FC = () => {
         resonanceFactor={systemState.resonanceFactorRho}
         drift={systemState.temporalCoherenceDrift}
       >
+        <div className={`fixed inset-0 z-[6000] pointer-events-none transition-all duration-1000 ${isRecalibrating ? 'bg-white/40 backdrop-blur-md' : 'bg-transparent opacity-0'}`} />
+        
         {showDiagnosticScan && (
           <ErrorBoundary>
             <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
           </ErrorBoundary>
         )}
-        {isAscending && <AscensionOverlay tier={systemState.userResources.sovereignTier} onComplete={() => setIsAscending(false)} />}
-        <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
-        <main className={`relative z-20 flex-grow flex flex-col mt-8 h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''}`}>
-          <ErrorBoundary>{pageContent}</ErrorBoundary>
-        </main>
-        <footer className="relative z-40 flex-shrink-0 w-full mt-6 pb-6 h-16 pointer-events-auto">
-            <div className="bg-dark-surface/90 border border-white/10 backdrop-blur-2xl p-2.5 rounded-lg flex items-center justify-between shadow-2xl aether-pulse">
-                <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-                <div className="flex gap-2">
-                  {SYSTEM_NODES.filter(n => n.isShield || n.isLogs || n.isBridge).map(node => (
-                    <button 
-                      key={node.id}
-                      onClick={() => setCurrentPage(node.id)} 
-                      className={`px-4 py-2 border font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm transition-all font-bold ${
-                        node.isShield ? 'bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white' :
-                        node.isLogs ? 'bg-slate-900/10 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
-                        'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg'
-                      }`}
-                    >
-                      {node.label}
-                    </button>
-                  ))}
-                </div>
+        
+        {!isInitialized ? (
+            <SovereignPortal onInitialize={handleInitializeNode} />
+        ) : (
+            <div className="flex flex-col h-full w-full gap-6">
+                <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngine.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} transmissionStatus={transmission.status} />
+                <main className={`relative z-20 flex-grow flex flex-col h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''} ${isRecalibrating ? 'scale-[0.98] blur-[2px]' : ''} transition-all duration-700`}>
+                    <ErrorBoundary>{pageContent}</ErrorBoundary>
+                </main>
+                <footer className="relative z-40 flex-shrink-0 w-full mb-2 pointer-events-auto">
+                    <div className="bg-[#080808]/90 border border-white/10 backdrop-blur-3xl p-4 rounded-xl flex items-center justify-between shadow-[0_0_50px_rgba(0,0,0,0.5)] aether-pulse transition-all duration-500 hover:border-white/20">
+                        <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
+                        <div className="flex gap-3">
+                          {SYSTEM_NODES.filter(n => n.isShield || n.isLogs || n.isBridge || n.isAudit).map(node => (
+                            <button 
+                              key={node.id}
+                              onClick={() => setCurrentPage(node.id)} 
+                              className={`px-6 py-2.5 border font-orbitron text-[10px] uppercase tracking-[0.3em] rounded-sm transition-all font-black ${
+                                currentPage === node.id ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_15px_white]' :
+                                node.isShield ? 'bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white' :
+                                node.isLogs ? 'bg-slate-900/10 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
+                                node.isAudit ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg' :
+                                'bg-violet-950/20 border-violet-500/40 text-violet-400 hover:bg-violet-500 hover:text-white'
+                              }`}
+                            >
+                              {node.label}
+                            </button>
+                          ))}
+                        </div>
+                    </div>
+                </footer>
             </div>
-        </footer>
+        )}
       </Layout>
     </ApiKeyGuard>
   );
-
-  return !isInitialized ? (
-    <SovereignPortal onInitialize={handleInitializeNode} />
-  ) : dashboardContent;
 };
 
 export default App;
