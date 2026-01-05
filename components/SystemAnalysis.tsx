@@ -125,8 +125,17 @@ interface SystemAnalysisProps {
 }
 
 export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sophiaEngine, setOrbMode }) => {
-  const { analysis, isLoading, isPredicting, prediction, error, runAnalysis } = useSophiaCore(sophiaEngine, systemState);
+  const { analysis, isLoading, isPredicting, prediction, error, runAnalysis, runPrediction } = useSophiaCore(sophiaEngine, systemState);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Automatically trigger failure prediction analysis on mount and periodically
+  useEffect(() => {
+      runPrediction();
+      const interval = setInterval(() => {
+          runPrediction();
+      }, 60000); // Refresh prediction every 60s
+      return () => clearInterval(interval);
+  }, [sophiaEngine]);
 
   useEffect(() => {
     if (isLoading && scrollContainerRef.current) {

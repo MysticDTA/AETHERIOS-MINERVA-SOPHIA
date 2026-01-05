@@ -1,5 +1,5 @@
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children?: ReactNode;
@@ -15,13 +15,11 @@ interface State {
  * ErrorBoundary - Captures runtime fractures in the UI lattice.
  * Ensures system composure even during component-level decoherence.
  */
-// Fix: Import Component directly and extend it for reliable property access within the class context.
-export class ErrorBoundary extends Component<Props, State> {
+// Fix: Use React.Component to ensure props and state are correctly typed
+export class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
   };
-
-  // Fix: Removed redundant constructor that was simply calling super(props) to streamline class initialization.
 
   public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
