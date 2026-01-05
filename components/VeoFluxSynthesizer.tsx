@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { SystemState } from '../types';
@@ -104,7 +105,7 @@ export const VeoFluxSynthesizer: React.FC<VeoFluxSynthesizerProps> = ({ systemSt
                         className="w-full h-full object-cover animate-fade-in"
                     />
                 ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center pointer-events-none">
                          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '20px 20px' }} />
                          
                          {isGenerating ? (
@@ -144,7 +145,7 @@ export const VeoFluxSynthesizer: React.FC<VeoFluxSynthesizerProps> = ({ systemSt
                 )}
             </div>
 
-            <div className="bg-dark-surface/40 border border-white/5 p-6 rounded-lg flex justify-between items-center">
+            <div className="bg-dark-surface/40 border border-white/5 p-6 rounded-lg flex justify-between items-center relative z-20">
                 <div className="flex flex-col gap-1">
                     <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Causal Input</span>
                     <p className="text-[13px] font-minerva italic text-pearl/80">"Cinematic visualization of aetheric flux at Rho {systemState.resonanceFactorRho.toFixed(4)}"</p>

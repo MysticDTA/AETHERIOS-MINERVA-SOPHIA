@@ -32,7 +32,7 @@ const SidebarSyncHelper: React.FC<{ resonance: number }> = ({ resonance }) => {
     };
 
     return (
-        <div className="bg-violet-950/20 border border-violet-500/30 p-6 rounded-sm mb-8 animate-fade-in relative overflow-hidden group">
+        <div className="bg-violet-950/20 border border-violet-500/30 p-6 rounded-sm mb-8 animate-fade-in relative overflow-hidden group z-10">
             <div className="absolute top-0 right-0 p-3 opacity-5 font-orbitron text-4xl font-black italic">SIDEBAR_SYNC</div>
             <div className="flex items-center gap-4 mb-4">
                 <div className="w-1.5 h-6 bg-violet-400 rounded-full shadow-[0_0_10px_#a78bfa]" />
@@ -163,7 +163,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
     };
 
     return (
-        <div className="w-full h-full flex flex-col gap-8 animate-fade-in relative overflow-hidden pb-20">
+        <div className="w-full h-full flex flex-col gap-8 animate-fade-in relative overflow-hidden pb-32">
             {/* Background Architecture Grid */}
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
@@ -352,7 +352,7 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
                 </div>
             </div>
 
-            <div className="mt-auto py-10 px-12 bg-gold/5 border border-gold/40 rounded-sm flex flex-col md:flex-row justify-between items-center gap-10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-l-8 active:scale-[0.99] transition-transform">
+            <div className="absolute bottom-0 left-0 w-full p-10 bg-[#050505]/95 border-t border-gold/40 flex flex-col md:flex-row justify-between items-center gap-10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] z-50 backdrop-blur-xl">
                 <div className="flex flex-col gap-2 text-center md:text-left">
                     <span className="text-[14px] text-gold font-bold uppercase tracking-[0.4em]">Validate Simulation Logic</span>
                     <p className="text-[17px] font-minerva italic text-pearl/90 max-w-2xl leading-relaxed">

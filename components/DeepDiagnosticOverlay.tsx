@@ -158,7 +158,7 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string }> = ({ activeS
     }, [activeStepId]);
 
     return (
-        <div className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 group shadow-inner">
+        <div className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 group shadow-inner z-10">
             <div className="absolute top-2 left-4 font-mono text-[8px] text-green-400 uppercase tracking-[0.4em] font-bold opacity-80">
                 System_Topology_Map
             </div>
@@ -282,7 +282,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
-          <div className="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-6 scrollbar-thin">
+          <div className="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-6 scrollbar-thin relative z-20">
             <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-bold mb-4">Benchmark Registry</h4>
             {steps.map((step, i) => (
               <div key={step.id} className={`p-5 rounded-sm border transition-all duration-1000 group ${
@@ -306,7 +306,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
             ))}
 
             {auditReport && (
-                <div className="mt-6 p-6 bg-gold/5 border border-gold/30 rounded animate-fade-in shadow-2xl relative overflow-hidden">
+                <div className="mt-6 p-6 bg-gold/5 border border-gold/30 rounded animate-fade-in shadow-2xl relative overflow-hidden z-20">
                     <div className="absolute top-0 left-0 w-1 h-full bg-gold/40" />
                     <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.4em] mb-6 border-b border-gold/10 pb-3 font-bold">Formal Heuristic Conclusion</h4>
                     <div className="text-[12px] text-pearl/80 leading-relaxed font-minerva italic audit-report-content space-y-4 select-text" dangerouslySetInnerHTML={{ __html: auditReport.report }} />
@@ -314,12 +314,12 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
             )}
           </div>
 
-          <div className="lg:col-span-7 flex flex-col gap-6 min-h-0 relative">
+          <div className="lg:col-span-7 flex flex-col gap-6 min-h-0 relative z-20">
             <SystemArchitectureScanner activeStepId={steps[activeStepIdx].id} />
             
             <div 
               ref={terminalRef}
-              className="flex-1 bg-black/90 border border-white/10 rounded-sm p-8 overflow-y-auto scrollbar-thin shadow-2xl relative font-mono text-[11px] select-text"
+              className="flex-1 bg-black/90 border border-white/10 rounded-sm p-8 overflow-y-auto scrollbar-thin shadow-2xl relative font-mono text-[11px] select-text z-20"
             >
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/60" />
               {terminalOutput.map((line, i) => (
@@ -339,32 +339,39 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                 </div>
               )}
             </div>
-
-            {/* Certification Overlay */}
-            {diagnosticStatus === 'COMPLETED' && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#050505] border border-gold p-10 rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.2)] z-50 text-center animate-scale-in max-w-md w-full">
-                    <div className="absolute inset-0 bg-gold/5 pointer-events-none" />
-                    <div className="w-16 h-16 border-2 border-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_gold] animate-pulse">
-                        <svg className="w-8 h-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                    <h2 className="text-3xl font-orbitron text-white font-bold mb-2 tracking-tighter">AUDIT PASSED</h2>
-                    <p className="text-gold font-mono text-[10px] uppercase tracking-[0.4em] mb-8 font-bold">Certificate of Sovereignty</p>
-                    
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-left text-[10px] font-mono text-slate-400 mb-8 border-t border-b border-white/10 py-6">
-                        <div className="flex justify-between"><span>Host Core</span><span className="text-cyan-400 font-bold">{hardwareInfo?.cores || 4} THREADS</span></div>
-                        <div className="flex justify-between"><span>Host Mem</span><span className="text-cyan-400 font-bold">{hardwareInfo?.memory || '8GB'}</span></div>
-                        <div className="flex justify-between"><span>Latency</span><span className="text-pearl font-bold">{(systemState.performance.logicalLatency * 1000).toFixed(2)}ms</span></div>
-                        <div className="flex justify-between"><span>Grade</span><span className="text-emerald-400 font-bold">S-CLASS</span></div>
-                    </div>
-                    
-                    <button onClick={() => { onComplete(); onClose(); }} className="w-full py-4 bg-gold text-black font-orbitron font-bold uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all shadow-lg active:scale-95">
-                        Return to Sanctum
-                    </button>
-                </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* Certification Overlay - Fixed Positioning to prevent overlay overlap issues */}
+      {diagnosticStatus === 'COMPLETED' && (
+          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999] bg-black/80 backdrop-blur-xl animate-fade-in">
+              <div className="bg-[#050505] border-2 border-gold p-12 rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.4)] text-center animate-scale-in max-w-lg w-full relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.15)_0%,transparent_70%)] pointer-events-none" />
+                  <div className="absolute top-0 right-0 p-4 opacity-10 font-orbitron text-9xl text-gold font-black select-none pointer-events-none -mr-10 -mt-10">S</div>
+                  
+                  <div className="w-20 h-20 border-2 border-gold rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_gold] animate-pulse bg-gold/10 relative z-10">
+                      <svg className="w-10 h-10 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  
+                  <div className="relative z-10">
+                      <h2 className="text-4xl font-orbitron text-white font-bold mb-3 tracking-tighter text-glow-pearl">AUDIT PASSED</h2>
+                      <p className="text-gold font-mono text-[11px] uppercase tracking-[0.5em] mb-10 font-bold">Certificate of Sovereignty</p>
+                      
+                      <div className="grid grid-cols-2 gap-y-6 gap-x-10 text-left text-[11px] font-mono text-slate-400 mb-10 border-t border-b border-white/10 py-8 bg-white/[0.02]">
+                          <div className="flex justify-between"><span>Host Core</span><span className="text-cyan-400 font-bold">{hardwareInfo?.cores || 4} THREADS</span></div>
+                          <div className="flex justify-between"><span>Host Mem</span><span className="text-cyan-400 font-bold">{hardwareInfo?.memory || '8GB'}</span></div>
+                          <div className="flex justify-between"><span>Latency</span><span className="text-pearl font-bold">{(systemState.performance.logicalLatency * 1000).toFixed(2)}ms</span></div>
+                          <div className="flex justify-between"><span>Grade</span><span className="text-emerald-400 font-bold">S-CLASS</span></div>
+                      </div>
+                      
+                      <button onClick={() => { onComplete(); onClose(); }} className="w-full py-5 bg-gold text-black font-orbitron font-black uppercase tracking-[0.25em] hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(255,215,0,0.4)] active:scale-95 text-[12px]">
+                          Return to Sanctum
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
       
       <style>{`
         .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 11px; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.25rem; font-weight: bold; }
