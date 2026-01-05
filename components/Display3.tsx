@@ -25,30 +25,33 @@ export const Display3: React.FC<Display3Props> = ({
     sophiaEngine
 }) => {
   return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0 pb-2">
         {/* --- LEFT COLUMN --- */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <LyranStarMap 
-              data={systemState.lyranConcordance}
-              calibrationTargetId={calibrationTargetId}
-              onCalibrate={onStarCalibrate}
-              calibrationEffect={calibrationEffect}
-              vibrationAmplitude={systemState.vibration.amplitude}
-              setOrbMode={setOrbMode}
-          />
+        <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
+          <div className="flex-1 min-h-0 relative">
+             <LyranStarMap 
+                data={systemState.lyranConcordance}
+                calibrationTargetId={calibrationTargetId}
+                onCalibrate={onStarCalibrate}
+                calibrationEffect={calibrationEffect}
+                vibrationAmplitude={systemState.vibration.amplitude}
+                setOrbMode={setOrbMode}
+            />
+          </div>
         </div>
 
         {/* --- RIGHT COLUMN --- */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          {/* FIX: Passed missing systemState prop to CosmicUplinkArray to satisfy its required props */}
-          <CosmicUplinkArray 
-            uplinkData={systemState.satelliteUplink} 
-            relayData={systemState.galacticRelayNetwork}
-            onCalibrate={onRelayCalibration}
-            setOrbMode={setOrbMode}
-            sophiaEngine={sophiaEngine}
-            systemState={systemState}
-          />
+        <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
+          <div className="flex-1 min-h-0 relative">
+            <CosmicUplinkArray 
+                uplinkData={systemState.satelliteUplink} 
+                relayData={systemState.galacticRelayNetwork}
+                onCalibrate={onRelayCalibration}
+                setOrbMode={setOrbMode}
+                sophiaEngine={sophiaEngine}
+                systemState={systemState}
+            />
+          </div>
         </div>
       </div>
   );

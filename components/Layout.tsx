@@ -11,6 +11,9 @@ interface LayoutProps {
   drift?: number;
 }
 
+// Inline Noise SVG Data URI for offline reliability
+const NOISE_DATA_URI = "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E";
+
 const SpectralTicker: React.FC = () => {
     const [telemetry, setTelemetry] = useState<string[]>([]);
     
@@ -44,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
   return (
     <div className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}>
       
-      <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url('https://grainy-gradients.vercel.app/noise.svg')`, opacity: grainOpacity }}></div>
+      <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url("${NOISE_DATA_URI}")`, opacity: grainOpacity }}></div>
 
       <div 
         className="fixed inset-0 pointer-events-none z-0 transition-all duration-[3000ms]"

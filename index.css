@@ -62,6 +62,10 @@ body {
   text-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
 }
 
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(220, 38, 38, 0.6), 0 0 40px rgba(220, 38, 38, 0.3);
+}
+
 /* --- COMPONENT STYLES --- */
 .glass-panel {
   background: rgba(5, 5, 5, 0.6);
@@ -98,12 +102,58 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes blackhole-pulse {
+  0%, 100% { box-shadow: inset 0 0 50px #000; background-color: #000; }
+  50% { box-shadow: inset 0 0 150px #220000; background-color: #0a0000; }
+}
+
+@keyframes shake-damped {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-2px, -2px) rotate(-0.5deg); }
+  20% { transform: translate(2px, 2px) rotate(0.5deg); }
+  30% { transform: translate(-2px, 2px) rotate(0deg); }
+  40% { transform: translate(2px, -2px) rotate(0.5deg); }
+  50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes glitch-anim {
+  0% { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 2px); }
+  20% { clip-path: inset(92% 0 1% 0); transform: translate(2px, -2px); }
+  40% { clip-path: inset(43% 0 1% 0); transform: translate(-2px, 2px); }
+  60% { clip-path: inset(25% 0 58% 0); transform: translate(2px, -2px); }
+  80% { clip-path: inset(54% 0 7% 0); transform: translate(-2px, 2px); }
+  100% { clip-path: inset(58% 0 43% 0); transform: translate(2px, -2px); }
+}
+
+@keyframes glitch-anim-2 {
+  0% { clip-path: inset(24% 0 29% 0); transform: translate(2px, -2px); }
+  20% { clip-path: inset(54% 0 21% 0); transform: translate(-2px, 2px); }
+  40% { clip-path: inset(12% 0 6% 0); transform: translate(2px, -2px); }
+  60% { clip-path: inset(87% 0 3% 0); transform: translate(-2px, 2px); }
+  80% { clip-path: inset(3% 0 61% 0); transform: translate(2px, -2px); }
+  100% { clip-path: inset(61% 0 12% 0); transform: translate(-2px, 2px); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .animate-scale-in {
   animation: scale-in 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.shake-effect-damped {
+  animation: shake-damped 3s infinite;
 }
 
 .logic-trace-bar {
@@ -113,9 +163,9 @@ body {
 }
 
 /* Custom Scrollbar Architecture */
-::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
 .scrollbar-none {
@@ -125,20 +175,20 @@ body {
   display: none;
 }
 
-/* Institutional Scanlines - Lowered z-index and opacity to prevent UI obstruction */
+/* Institutional Scanlines */
 .scanline-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, transparent, rgba(248, 245, 236, 0.01) 50%, transparent);
-    background-size: 100% 8px;
+    background: linear-gradient(to bottom, transparent, rgba(248, 245, 236, 0.02) 50%, transparent);
+    background-size: 100% 4px;
     pointer-events: none;
     z-index: 50; 
-    opacity: 0.1;
-    animation: scanline-move 15s linear infinite;
+    opacity: 0.15;
+    animation: scanline-move 10s linear infinite;
 }
 
 @keyframes scanline-move {
-    from { transform: translateY(-100%); }
+    from { transform: translateY(0%); }
     to { transform: translateY(100%); }
 }
 
@@ -154,7 +204,7 @@ body {
 }
 .interaction-node:hover {
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .institutional-edge-glow {

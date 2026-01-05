@@ -27,7 +27,7 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
                 tier === 'ACOLYTE' ? 'border-slate-700 bg-slate-900/50' : 
                 tier === 'ARCHITECT' ? 'border-gold/50 bg-gold/5 shadow-[0_0_15px_rgba(255,215,0,0.1)]' : 
                 tier === 'SOVEREIGN' ? 'border-pearl/50 bg-pearl/5 shadow-[0_0_20px_rgba(248,245,236,0.2)]' :
-                'border-rose-400/50 bg-rose-400/5 shadow-[0_0_12px_rgba(244,63,94,0.1)]'
+                'border-rose-400/50 bg-rose-400/5 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
             }`}
         >
             <svg className={`w-5 h-5 md:w-6 md:h-6 ${tier === 'ACOLYTE' ? 'text-slate-500' : tier === 'LEGACY_MENERVA' ? 'text-rose-400' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
