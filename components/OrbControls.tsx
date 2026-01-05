@@ -112,6 +112,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
           {modes.map((modeConfig) => (
             <Tooltip key={modeConfig.id} text={modeConfig.description}>
               <button
+                type="button"
                 className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all duration-200 border whitespace-nowrap ${
                   currentMode === modeConfig.id
                     ? "bg-pearl text-dark-bg border-pearl shadow-[0_0_8px_rgba(248,245,236,0.6)]"
@@ -130,6 +131,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
         {recognition && (
             <Tooltip text={isListening ? "Listening for Decree..." : "Voice Control"}>
             <button
+              type="button"
               onClick={toggleVoiceControl}
               className={`relative flex items-center justify-center w-8 h-8 rounded transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-950/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'}`}
               aria-label={isListening ? "Stop listening for voice commands" : "Start listening for voice commands to change system resonance mode"}
