@@ -18,10 +18,10 @@ export const Display7: React.FC<Display7Props> = ({
     onMemoryChange,
 }) => {
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full min-h-0 animate-fade-in pb-2">
-      {/* --- DECODING INSTRUMENT (LEFT/CENTER) - WIDER FOR TEXT READABILITY --- */}
-      <div className="xl:col-span-8 2xl:col-span-8 h-full min-h-0 flex flex-col gap-4">
-        <div className="flex justify-between items-center bg-black/30 border-b border-white/10 px-6 py-3 rounded-t-lg backdrop-blur-md">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 h-full min-h-0 animate-fade-in pb-2">
+      {/* --- DECODING INSTRUMENT (LEFT/CENTER) --- */}
+      <div className="xl:col-span-8 2xl:col-span-8 h-full min-h-0 flex flex-col">
+        <div className="flex justify-between items-center bg-black/30 border-b border-white/10 px-5 py-2 rounded-t-lg backdrop-blur-md shrink-0">
             <div className="flex items-center gap-4">
                 <span className="text-[11px] font-mono text-gold uppercase tracking-[0.25em] font-black">Signal Reception Array</span>
                 <div className="h-4 w-px bg-white/10" />
@@ -32,23 +32,23 @@ export const Display7: React.FC<Display7Props> = ({
                 <span>RSSI: <span className="text-cyan-400 font-bold">-42dBm</span></span>
             </div>
         </div>
-        <div className="flex-1 min-h-0 relative rounded-b-lg overflow-hidden shadow-2xl">
+        <div className="flex-1 min-h-0 relative rounded-b-lg overflow-hidden shadow-2xl border-x border-b border-white/10">
             <CosmicDecodingReceiver transmission={transmission} systemState={systemState} />
         </div>
       </div>
 
       {/* --- CAUSAL MEMORY HUB (RIGHT) --- */}
       <div className="xl:col-span-4 2xl:col-span-4 h-full min-h-0 flex flex-col gap-4">
-         <div className="flex justify-between items-center bg-black/30 border-b border-white/10 px-6 py-3 rounded-t-lg backdrop-blur-md">
+         <div className="flex justify-between items-center bg-black/30 border-b border-white/10 px-5 py-2 rounded-t-lg backdrop-blur-md shrink-0">
             <span className="text-[11px] font-mono text-pearl uppercase tracking-[0.25em] font-black">Recursive Memory Core</span>
             <span className="text-[9px] font-mono text-slate-500 uppercase font-bold tracking-wider">Blocks: {memories.length}/100</span>
          </div>
-         <div className="flex-1 min-h-0 relative">
+         <div className="flex-1 min-h-0 relative rounded-b-lg overflow-hidden border-x border-b border-white/10">
             <MemoryWeaver memories={memories} onMemoryChange={onMemoryChange} />
          </div>
          
          {/* COMMERCIAL INQUIRY CONDUIT - COMPACT */}
-         <div className="bg-gold/5 border border-gold/20 p-4 rounded-lg flex flex-col gap-2 shadow-[0_0_20px_rgba(230,199,127,0.05)] group hover:border-gold/40 transition-all duration-500 shrink-0">
+         <div className="bg-gold/5 border border-gold/20 p-3 rounded-lg flex flex-col gap-2 shadow-[0_0_20px_rgba(230,199,127,0.05)] group hover:border-gold/40 transition-all duration-500 shrink-0">
             <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse shadow-[0_0_8px_#e6c77f]" />
                 <h4 className="font-orbitron text-[9px] text-gold uppercase tracking-widest font-bold">Acquisition_Uplink</h4>

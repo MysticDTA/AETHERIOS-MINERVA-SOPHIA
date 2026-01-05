@@ -43,10 +43,10 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
     }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing]);
 
     const auditData = [
-        { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(2) + "%", status: systemState.performance.visualParity > 0.9 ? 'OPTIMAL' : 'DEVIATING' as any },
-        { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(6), status: systemState.resonanceFactorRho > 0.95 ? 'OPTIMAL' : 'DEVIATING' as any },
+        { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(2) + "%", status: (systemState.performance.visualParity > 0.9 ? 'OPTIMAL' : 'DEVIATING') as any },
+        { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(6), status: (systemState.resonanceFactorRho > 0.95 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Network Latency", value: systemState.performance.logicalLatency.toFixed(4) + "ms", status: 'OPTIMAL' as any },
-        { label: "Entropy Flux", value: (systemState.coherenceResonance.entropyFlux * 10).toFixed(4), status: systemState.coherenceResonance.entropyFlux < 0.2 ? 'OPTIMAL' : 'DEVIATING' as any },
+        { label: "Entropy Flux", value: (systemState.coherenceResonance.entropyFlux * 10).toFixed(4), status: (systemState.coherenceResonance.entropyFlux < 0.2 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Vocal Link", value: "24kHz PCM", status: 'OPTIMAL' as any },
         { label: "Memory Depth", value: "100 Blocks", status: 'OPTIMAL' as any },
     ];

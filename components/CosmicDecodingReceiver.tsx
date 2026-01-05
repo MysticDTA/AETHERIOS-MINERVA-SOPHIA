@@ -102,16 +102,16 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
     };
 
     return (
-        <div className="w-full h-full bg-[#0a0c0f] border border-white/10 p-8 rounded-b-lg backdrop-blur-3xl flex flex-col relative overflow-hidden group">
+        <div className="w-full h-full bg-[#0a0c0f] border-none p-6 rounded-b-lg backdrop-blur-3xl flex flex-col relative overflow-hidden group">
             <FrequencyWaterfall isActive={isActiveSignal} />
             
-            <div className="flex justify-between items-center mb-8 relative z-10">
+            <div className="flex justify-between items-center mb-6 relative z-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
                         <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Deep Space Telemetry Source</span>
                     </div>
-                    <h3 className="font-orbitron text-2xl text-pearl tracking-tighter uppercase font-black pl-3.5">
+                    <h3 className="font-orbitron text-2xl text-pearl tracking-tighter uppercase font-black pl-3.5 truncate max-w-[400px]">
                         {status === 'AWAITING SIGNAL' ? 'SCANNING_SPECTRUM...' : source}
                     </h3>
                 </div>
@@ -123,20 +123,20 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 relative z-10">
                 <div className="lg:col-span-4 flex flex-col gap-4">
-                    <div className="bg-white/[0.02] border border-white/10 rounded p-6 flex flex-col gap-4 shadow-inner hover:border-gold/20 transition-all">
+                    <div className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all">
                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Scientific Metric</span>
                             <span className="text-[9px] text-green-500 font-mono font-bold bg-green-950/30 px-2 py-0.5 rounded">STABLE</span>
                          </div>
-                         <div className="flex flex-col items-center justify-center py-4">
+                         <div className="flex flex-col items-center justify-center py-2">
                             <span className="text-[9px] text-slate-500 uppercase mb-2 tracking-widest">Current State</span>
                             <span className="text-3xl font-orbitron text-pearl text-glow-pearl font-black">{realWorldMetric || '---'}</span>
                          </div>
                     </div>
                     
-                    <div className="bg-white/[0.02] p-6 rounded border border-white/10 flex-1">
+                    <div className="bg-white/[0.02] p-5 rounded border border-white/10 flex-1">
                         <h4 className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-4 border-b border-white/5 pb-2">Live Feed Parity</h4>
                         <div className="space-y-4">
                              <div className="flex justify-between text-[10px] font-mono">
@@ -156,9 +156,9 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-4 min-h-0 h-full">
-                    <div className="flex-1 bg-black/80 rounded border border-white/10 p-8 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black">
+                    <div className="flex-1 bg-black/80 rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] font-orbitron text-7xl font-black pointer-events-none">RX</div>
-                        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
+                        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3 shrink-0">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>
                              <span className="text-[9px] text-slate-600 font-bold">TIMESTAMP: {new Date().toLocaleTimeString()}</span>
                         </div>
@@ -168,7 +168,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                         </p>
                     </div>
 
-                    <div className="flex gap-4 h-14">
+                    <div className="flex gap-4 h-12 shrink-0">
                         {status === 'TRANSMISSION COMPLETE' && (
                             <>
                                 <button 
@@ -190,7 +190,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                     </div>
 
                     {analysisResult && (
-                        <div className="p-5 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[11px] text-pearl/90 italic animate-fade-in shadow-lg">
+                        <div className="p-4 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[11px] text-pearl/90 italic animate-fade-in shadow-lg shrink-0">
                             <span className="text-blue-400 font-black mr-2 uppercase tracking-wider not-italic">[ASTROPHYSICAL_IMPLICATION]</span>
                             {analysisResult}
                         </div>

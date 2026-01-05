@@ -395,7 +395,7 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                 </div>
             </div>
 
-            <div className="space-y-2 overflow-y-auto pr-3 custom-audit-scrollbar max-h-48">
+            <div className="space-y-2 overflow-y-auto pr-3 custom-audit-scrollbar flex-1 min-h-0">
                 {(Object.values(relayData) as GalacticRelay[]).map((relay) => {
                     const body = CELESTIAL_BODIES[relay.id];
                     const isCalibrating = calibratingId === relay.id;

@@ -13,7 +13,7 @@ export const Display11: React.FC<Display11Props> = ({ systemState }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full min-h-0">
       {/* --- LEFT COLUMN: Reactor Dynamics & Pattern HUD (5/12) --- */}
-      <div className="lg:col-span-5 flex flex-col gap-6 overflow-hidden">
+      <div className="lg:col-span-5 flex flex-col gap-6 overflow-hidden h-full min-h-0">
         <div className="flex-shrink-0">
             <SupernovaTriforceReactor data={systemState.supernovaTriforce} />
         </div>

@@ -1,3 +1,4 @@
+
 import { GlobalResonanceState, CommunityData } from '../types';
 
 type ResonanceListener = (state: GlobalResonanceState) => void;
@@ -12,6 +13,7 @@ class CollectiveResonanceService {
             aggregateRho: 0.88,
             activeArchitects: 142,
             fieldStatus: 'STABLE',
+            globalCarrierFrequency: 1.617,
             communities: [
                 { id: 'c1', name: 'Sirius Collective', rho: 0.94, coherence: 0.92, stability: 0.98, activeNodes: 24, lastEvent: 'Harmonic Lock achieved.', location: { x: 25, y: 35 } },
                 { id: 'c2', name: 'Omega Research', rho: 0.72, coherence: 0.65, stability: 0.81, activeNodes: 18, lastEvent: 'Minor decoherence spike detected.', location: { x: 65, y: 45 } },

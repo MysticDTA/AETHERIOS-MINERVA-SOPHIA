@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { MotherboardOverlay } from './MotherboardOverlay';
 import { BreathBar } from './BreathBar';
+import { Tooltip } from './Tooltip';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -71,9 +72,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
               <span className="text-[8px] font-mono text-pearl uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
           </div>
           
-          <div className="absolute top-2 right-4 md:top-4 md:right-6 text-right flex flex-col gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity">
-              <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black">Causal_Drift</span>
-              <span className={`text-[8px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}</span>
+          <div className="absolute top-2 right-4 md:top-4 md:right-6 text-right opacity-20 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
+              <Tooltip text="Measures the temporal misalignment of local causal events from the prime timeline. Drift > 0.05 indicates instability.">
+                  <div className="flex flex-col gap-0.5 items-end">
+                      <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black">Causal_Drift</span>
+                      <span className={`text-[8px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}</span>
+                  </div>
+              </Tooltip>
           </div>
 
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-32 md:h-64 bg-gradient-to-b from-transparent via-white/5 to-transparent" />

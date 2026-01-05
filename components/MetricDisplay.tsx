@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+import { Tooltip } from './Tooltip';
 
 interface MetricDisplayProps {
   label: string;
@@ -9,9 +11,10 @@ interface MetricDisplayProps {
   className?: string;
   secondaryValue?: string;
   showSuccessIndicator?: boolean;
+  tooltip?: string;
 }
 
-export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, value, maxValue, formatAs, isInverse = false, className = '', secondaryValue, showSuccessIndicator = false }) => {
+export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, value, maxValue, formatAs, isInverse = false, className = '', secondaryValue, showSuccessIndicator = false, tooltip }) => {
   const [jitterValue, setJitterValue] = useState(value);
   
   // Real-time visual optimization: subtle jitter to numbers makes it feel 'live'
@@ -63,7 +66,7 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, 
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  return (
+  const content = (
     <div 
         className={`bg-dark-surface/50 border border-white/5 p-5 rounded-lg flex items-center justify-between border-glow-rose backdrop-blur-xl relative overflow-hidden group transition-all duration-700 hover:bg-dark-surface/80 hover:border-white/20 ${className} ${showSuccessIndicator ? 'scan-success-flash' : ''}`}
         role="meter"
@@ -153,4 +156,10 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, 
       `}</style>
     </div>
   );
+
+  if (tooltip) {
+      return <Tooltip text={tooltip}>{content}</Tooltip>;
+  }
+
+  return content;
 });

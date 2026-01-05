@@ -9,7 +9,8 @@ import {
   CoherenceResonanceData,
   PerformanceTelemetry,
   IngestedModule,
-  GlobalResonanceState
+  GlobalResonanceState,
+  HarmonicInterferenceData
 } from './types';
 import { ApiService } from './services/api';
 
@@ -50,9 +51,15 @@ export const initialSystemState: SystemState = {
   resonanceFactorRho: 0.99,
   selfCorrectionField: 0.5,
   resonanceCoherence: {
-    lambda: { frequency: 780 },
-    sigma: { frequency: 450 },
-    tau: { frequency: 120 },
+    lambda: { frequency: 780, amplitude: 0.9, phase: 0, harmonicIndex: 1 },
+    sigma: { frequency: 450, amplitude: 0.85, phase: 120, harmonicIndex: 2 },
+    tau: { frequency: 120, amplitude: 0.95, phase: 240, harmonicIndex: 3 },
+  },
+  harmonicInterference: {
+    beatFrequency: 0.05,
+    constructiveInterference: 0.98,
+    destructiveInterference: 0.02,
+    standingWaveRatio: 1.02
   },
   lyranConcordance: {
     alignmentDrift: 0.0,
@@ -151,6 +158,7 @@ export const initialSystemState: SystemState = {
   globalResonance: {
     aggregateRho: 0.88,
     activeArchitects: 142,
+    globalCarrierFrequency: 1.617,
     fieldStatus: 'STABLE',
     communities: [
         { id: 'c1', name: 'Sirius Collective', rho: 0.94, coherence: 0.92, stability: 0.98, activeNodes: 24, lastEvent: 'Harmonic Lock achieved.', location: { x: 25, y: 35 } },
@@ -169,6 +177,7 @@ export const useSystemSimulation = (
   const [isLoaded, setIsLoaded] = useState(false);
   const [isGrounded, setGrounded] = useState(false);
   const [diagnosticMode, setDiagnosticMode] = useState(false);
+  const tickRef = useRef(0);
   
   const simulationIntervalRef = useRef<number | null>(null);
   const breathIntervalRef = useRef<number | null>(null);
@@ -180,7 +189,15 @@ export const useSystemSimulation = (
         const stored = localStorage.getItem(PERSISTENCE_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
-            setSystemState(prev => ({ ...prev, ...parsed }));
+            // Merge stored data with initial structure to ensure new fields are present
+            setSystemState(prev => ({ 
+                ...initialSystemState,
+                ...parsed,
+                // Ensure deep merge for new nested objects if they didn't exist
+                resonanceCoherence: { ...initialSystemState.resonanceCoherence, ...parsed.resonanceCoherence },
+                harmonicInterference: { ...initialSystemState.harmonicInterference, ...parsed.harmonicInterference },
+                globalResonance: { ...initialSystemState.globalResonance, ...parsed.globalResonance }
+            }));
         }
     } catch (e) { 
         console.warn("Persistence hydration skipped.");
@@ -236,6 +253,8 @@ export const useSystemSimulation = (
   useEffect(() => {
     simulationIntervalRef.current = window.setInterval(() => {
       if (!isMounted.current) return;
+      tickRef.current += 1;
+      
       setSystemState(prev => {
         let newDecoherence = prev.quantumHealing.decoherence;
         
@@ -252,6 +271,43 @@ export const useSystemSimulation = (
         const baseRho = (prev.biometricSync.coherence + prev.schumannResonance.intensity + prev.bohrEinsteinCorrelator.correlation) / 3;
         let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.002));
         
+        // --- WAVE PHYSICS SIMULATION ---
+        const phaseShiftRate = 0.5; // degrees per tick
+        
+        const newLambda = {
+            ...prev.resonanceCoherence.lambda,
+            amplitude: Math.max(0.7, Math.min(1.0, prev.resonanceCoherence.lambda.amplitude + (Math.random() - 0.5) * 0.01)),
+            phase: (prev.resonanceCoherence.lambda.phase + phaseShiftRate * 1) % 360
+        };
+        const newSigma = {
+            ...prev.resonanceCoherence.sigma,
+            amplitude: Math.max(0.6, Math.min(1.0, prev.resonanceCoherence.sigma.amplitude + (Math.random() - 0.5) * 0.02)),
+            phase: (prev.resonanceCoherence.sigma.phase + phaseShiftRate * 1.5) % 360
+        };
+        const newTau = {
+            ...prev.resonanceCoherence.tau,
+            amplitude: Math.max(0.8, Math.min(1.0, prev.resonanceCoherence.tau.amplitude + (Math.random() - 0.5) * 0.005)),
+            phase: (prev.resonanceCoherence.tau.phase + phaseShiftRate * 0.8) % 360
+        };
+
+        // Calculate Harmonic Interference
+        // Standing Wave Ratio (SWR) approx: (1 + ReflectionCoefficient) / (1 - ReflectionCoefficient)
+        // We simulate ReflectionCoefficient based on phase alignment between Lambda and Global Carrier
+        const phaseDiff = Math.abs(newLambda.phase - (tickRef.current % 360));
+        const reflectionCoeff = Math.abs(Math.cos(phaseDiff * (Math.PI / 180))) * (1 - resonanceModifier); // Less reflection at high resonance
+        const swr = (1 + reflectionCoeff) / (1 - reflectionCoeff);
+        
+        const constructive = Math.max(0, 1 - reflectionCoeff);
+        const destructive = reflectionCoeff;
+        const beatFreq = Math.abs(newLambda.frequency - prev.globalResonance.globalCarrierFrequency * 1000) / 1000; // Hz diff
+
+        const newHarmonicInterference: HarmonicInterferenceData = {
+            beatFrequency: beatFreq + (Math.random() * 0.01),
+            constructiveInterference: constructive,
+            destructiveInterference: destructive,
+            standingWaveRatio: Math.min(5.0, swr)
+        };
+
         // PERFORMANCE TELEMETRY
         const newPerformance: PerformanceTelemetry = {
             logicalLatency: 0.0001 + (newDecoherence * 0.008),
@@ -318,6 +374,12 @@ export const useSystemSimulation = (
           },
           resonanceFactorRho: resonanceModifier,
           temporalCoherenceDrift: Math.max(0, prev.temporalCoherenceDrift + driftIncrease),
+          resonanceCoherence: {
+              lambda: newLambda,
+              sigma: newSigma,
+              tau: newTau
+          },
+          harmonicInterference: newHarmonicInterference,
           coherenceResonance: {
               ...prev.coherenceResonance,
               score: coherenceScore,

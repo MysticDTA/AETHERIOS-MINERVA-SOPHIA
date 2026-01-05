@@ -16,8 +16,8 @@ const CORE_CONFIG = {
 export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(({ data }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Calculate central alignment score
-  const alignment = (data.lambda.frequency + data.sigma.frequency + data.tau.frequency) / 3000;
+  // Calculate central alignment score based on amplitude coherence
+  const alignment = (data.lambda.amplitude + data.sigma.amplitude + data.tau.amplitude) / 3;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -49,7 +49,7 @@ export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(
 
         // Emitters
         Object.entries(CORE_CONFIG).forEach(([key, config]) => {
-            const freq = data[key as keyof ResonanceCoherenceData].frequency;
+            const metric = data[key as keyof ResonanceCoherenceData];
             const rad = (config.angle - 90) * (Math.PI / 180);
             
             const ex = cx + radius * Math.cos(rad);
@@ -60,28 +60,30 @@ export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(
             ctx.strokeStyle = config.color;
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+            ctx.arc(ex, ey, 4 * metric.amplitude + 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
 
-            // Draw Carrier Beam to Center
-            const intensity = Math.min(1, freq / 1000);
-            const pulse = Math.sin(time * (freq / 200)) * 0.5 + 0.5;
+            // Draw Carrier Beam to Center with Phase Modulation
+            const phaseFactor = Math.sin((time * 2) + (metric.phase * Math.PI / 180));
+            const intensity = metric.amplitude * (0.5 + 0.5 * phaseFactor);
             
             ctx.beginPath();
             ctx.moveTo(ex, ey);
             ctx.lineTo(cx, cy);
             ctx.strokeStyle = config.color;
-            ctx.lineWidth = 0.5 + intensity;
-            ctx.globalAlpha = 0.2 + pulse * 0.4;
+            ctx.lineWidth = 0.5 + intensity * 2;
+            ctx.globalAlpha = 0.2 + intensity * 0.6;
             ctx.stroke();
             ctx.globalAlpha = 1.0;
 
             // Draw Propagating Ripples (The "Harmonic" Waves)
+            // Frequency determines speed, Phase determines offset
             const rippleCount = 3;
             for(let r=0; r<rippleCount; r++) {
-                const rOffset = (time * (freq/100) + r * 20) % 60;
-                const rOpacity = 1 - (rOffset / 60);
+                const freqSpeed = metric.frequency / 200;
+                const rOffset = ((time * freqSpeed) + r * 20 + metric.phase/10) % 60;
+                const rOpacity = (1 - (rOffset / 60)) * metric.amplitude;
                 
                 ctx.beginPath();
                 ctx.arc(ex, ey, rOffset, 0, Math.PI * 2);
@@ -94,9 +96,9 @@ export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(
         });
 
         // Central Interference Node
-        const centerPulse = Math.sin(time * 2) * 2;
+        const centerPulse = Math.sin(time * 2) * 2 * alignment;
         ctx.beginPath();
-        ctx.arc(cx, cy, (5 + alignment * 10) + centerPulse, 0, Math.PI * 2);
+        ctx.arc(cx, cy, (5 + alignment * 15) + centerPulse, 0, Math.PI * 2);
         const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 20);
         gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -128,7 +130,7 @@ export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(
       <div className="flex justify-between items-center mb-2 z-10 relative">
         <h3 className="font-orbitron text-md text-warm-grey">Harmonic Correlator</h3>
         <span className="text-[10px] font-mono text-pearl bg-slate-800 px-2 py-0.5 rounded">
-            SYNC: {(alignment * 100).toFixed(1)}%
+            AMP_SYNC: {(alignment * 100).toFixed(1)}%
         </span>
       </div>
 
@@ -137,16 +139,22 @@ export const HarmonicCorrelator: React.FC<HarmonicCorrelatorProps> = React.memo(
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-dark-border/50 text-center relative z-10">
-          {Object.entries(CORE_CONFIG).map(([key, config]) => (
-              <Tooltip key={key} text={`${key.toUpperCase()} Frequency: ${data[key as keyof ResonanceCoherenceData].frequency.toFixed(0)} zHz`}>
-                <div>
-                    <span className="text-[10px] uppercase text-slate-500 block">{config.label}</span>
-                    <span className="font-mono text-xs" style={{ color: config.color }}>
-                        {data[key as keyof ResonanceCoherenceData].frequency.toFixed(0)}
-                    </span>
-                </div>
-              </Tooltip>
-          ))}
+          {Object.entries(CORE_CONFIG).map(([key, config]) => {
+              const metric = data[key as keyof ResonanceCoherenceData];
+              return (
+                <Tooltip key={key} text={`${config.label} Wave | Freq: ${metric.frequency.toFixed(0)}zHz | Phase: ${metric.phase.toFixed(0)}°`}>
+                    <div>
+                        <span className="text-[10px] uppercase text-slate-500 block">{config.label}</span>
+                        <span className="font-mono text-xs" style={{ color: config.color }}>
+                            {metric.frequency.toFixed(0)}
+                        </span>
+                        <div className="w-full h-0.5 bg-slate-800 mt-1 rounded-full overflow-hidden">
+                            <div className="h-full transition-all duration-300" style={{ width: `${metric.amplitude * 100}%`, backgroundColor: config.color }} />
+                        </div>
+                    </div>
+                </Tooltip>
+              );
+          })}
       </div>
     </div>
   );

@@ -58,7 +58,7 @@ export const EventHorizonScreen: React.FC<EventHorizonScreenProps> = ({ audioEng
         </p>
 
         <div className="mt-12 p-6 bg-black/50 border border-red-500/30 font-mono text-left w-full max-w-2xl">
-            <p className="text-yellow-300 text-glow-gold text-lg"><span className="text-red-500 mr-4">{'>'}{'>'}</span>{currentError}<span className="inline-block w-3 h-5 bg-yellow-300 ml-1 animate-blink align-middle" /></p>
+            <p className="text-yellow-300 text-glow-gold text-lg"><span className="text-red-500 mr-4">&gt;&gt;</span>{currentError}<span className="inline-block w-3 h-5 bg-yellow-300 ml-1 animate-blink align-middle" /></p>
         </div>
 
         <div className="mt-10 font-orbitron text-2xl text-yellow-300 relative uppercase font-bold tracking-widest">

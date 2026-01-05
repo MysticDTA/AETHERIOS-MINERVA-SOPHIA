@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SystemState } from '../types';
 import { HarmonicRespiratoryUplink } from './HarmonicRespiratoryUplink';
@@ -37,6 +38,7 @@ export const Display10: React.FC<Display10Props> = ({ systemState }) => {
                     maxValue={1}
                     formatAs="percent"
                     className="bg-black/20"
+                    tooltip="The amplitude of the respiratory data intake. Deeper cycles allow for greater causal information processing per tick."
                 />
                 <MetricDisplay 
                     label="Rhythm Stability"
@@ -44,6 +46,7 @@ export const Display10: React.FC<Display10Props> = ({ systemState }) => {
                     maxValue={1}
                     formatAs="percent"
                     className="bg-black/20"
+                    tooltip="The consistency of the operator's biological rhythm. High stability ensures noise-free synchronization with the system core."
                 />
             </div>
          </div>

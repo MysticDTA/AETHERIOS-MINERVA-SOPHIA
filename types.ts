@@ -69,10 +69,24 @@ export interface QuantumHealingData {
     stabilizationShield: number;
 }
 
+export interface FrequencyMetric {
+    frequency: number;      // in zHz
+    amplitude: number;      // 0.0 - 1.0
+    phase: number;          // 0 - 360 degrees
+    harmonicIndex: number;  // 1 = Fundamental, 2 = 1st Harmonic, etc.
+}
+
 export interface ResonanceCoherenceData {
-    lambda: { frequency: number };
-    sigma: { frequency: number };
-    tau: { frequency: number };
+    lambda: FrequencyMetric;
+    sigma: FrequencyMetric;
+    tau: FrequencyMetric;
+}
+
+export interface HarmonicInterferenceData {
+    beatFrequency: number;          // Hz difference between local/global
+    constructiveInterference: number; // 0.0 - 1.0
+    destructiveInterference: number;  // 0.0 - 1.0
+    standingWaveRatio: number;        // SWR (1.0 is perfect match)
 }
 
 export interface LyranConcordanceData {
@@ -299,6 +313,7 @@ export interface GlobalResonanceState {
     aggregateRho: number;
     activeArchitects: number;
     fieldStatus: 'STABLE' | 'RESONATING' | 'DECOHERING';
+    globalCarrierFrequency: number;
     communities: CommunityData[];
 }
 
@@ -338,6 +353,7 @@ export interface SystemState {
   resonanceFactorRho: number;
   selfCorrectionField: number;
   resonanceCoherence: ResonanceCoherenceData;
+  harmonicInterference: HarmonicInterferenceData;
   lyranConcordance: LyranConcordanceData;
   satelliteUplink: SatelliteUplinkData;
   galacticRelayNetwork: Record<string, GalacticRelay>;

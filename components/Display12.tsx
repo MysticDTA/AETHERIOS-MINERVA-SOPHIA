@@ -123,6 +123,7 @@ export const Display12: React.FC<Display12Props> = ({ systemState }) => {
             maxValue={1}
             formatAs="percent"
             className="h-32"
+            tooltip="The overall structural integrity of the operator's bio-field, calculated from HRV coherence and optical aura analysis."
          />
          
          <ResonanceHistoryChart currentRho={systemState.resonanceFactorRho} />

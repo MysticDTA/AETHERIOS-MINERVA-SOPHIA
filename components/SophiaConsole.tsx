@@ -133,7 +133,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   return (
     <div className="w-full h-full flex flex-col bg-[#030303]/40 border border-white/5 rounded-2xl backdrop-blur-3xl shadow-2xl relative overflow-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 border-b border-white/5 bg-black/20 z-30 shrink-0">
+      <div className="flex justify-between items-center px-5 py-3 border-b border-white/5 bg-black/20 z-30 shrink-0">
         <div className="flex items-center gap-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${isReplying ? 'border-violet-500 bg-violet-500/10' : 'border-emerald-500/50 bg-emerald-500/5'}`}>
                 <span className={`font-orbitron font-bold text-xs ${isReplying ? 'text-violet-400 animate-pulse' : 'text-emerald-400'}`}>S</span>
@@ -149,19 +149,19 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       {/* Messages Area */}
       <div 
         ref={scrollRef} 
-        className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10"
+        className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin relative z-10"
       >
         {messages.map((msg, idx) => {
             const isUser = msg.sender === 'user';
             return (
                 <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                    <div className={`max-w-[85%] flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
+                    <div className={`max-w-[85%] flex flex-col gap-1.5 ${isUser ? 'items-end' : 'items-start'}`}>
                         <div className="flex items-center gap-3 opacity-60">
                             <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">{isUser ? 'OPERATOR' : 'MINERVA_SOPHIA'}</span>
                             <span className="text-[7px] font-mono text-slate-700">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                         </div>
                         
-                        <div className={`relative p-5 rounded-lg border backdrop-blur-sm ${
+                        <div className={`relative p-4 rounded-lg border backdrop-blur-sm ${
                             isUser 
                             ? 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 text-pearl font-mono text-xs shadow-lg' 
                             : 'bg-black/40 border-white/5 text-pearl/90 font-minerva italic text-[14px] leading-relaxed shadow-xl'
@@ -200,8 +200,8 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       </div>
 
       {/* Command Cradle Input */}
-      <div className="p-6 pt-2 bg-gradient-to-t from-black/80 to-transparent z-20">
-        <div className="relative bg-black/60 border border-white/10 rounded-xl p-2 flex items-end gap-3 shadow-2xl backdrop-blur-md transition-all focus-within:border-white/20 ring-1 ring-white/0 focus-within:ring-white/5">
+      <div className="p-4 bg-gradient-to-t from-black/80 to-transparent z-20">
+        <div className="relative bg-black/60 border border-white/10 rounded-xl p-2 flex items-end gap-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-white/20 ring-1 ring-white/0 focus-within:ring-white/5">
             <button 
                 onClick={() => fileInputRef.current?.click()} 
                 className={`p-3 rounded-lg transition-all duration-300 border flex-shrink-0 group ${attachedImage ? 'bg-gold/10 border-gold/40 text-gold' : 'bg-transparent border-transparent hover:bg-white/5 text-slate-500 hover:text-pearl'}`}
@@ -248,7 +248,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                 )}
             </button>
         </div>
-        <div className="text-[8px] font-mono text-slate-600 text-center mt-3 uppercase tracking-[0.2em] opacity-40">
+        <div className="text-[8px] font-mono text-slate-600 text-center mt-2 uppercase tracking-[0.2em] opacity-40">
             Authorized for High-Reasoning Synthesis [32k]
         </div>
       </div>

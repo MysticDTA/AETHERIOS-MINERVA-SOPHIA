@@ -71,7 +71,7 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 z-10 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 z-10 overflow-hidden min-h-0">
                 <div className="lg:col-span-7 flex flex-col gap-6 overflow-hidden">
                     {/* Strategy Architect Panel */}
                     <div className="bg-violet-950/20 border border-violet-500/30 rounded-xl p-6 relative overflow-hidden group shadow-inner">
@@ -140,8 +140,8 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                     </div>
                 </div>
 
-                <div className="lg:col-span-5 flex flex-col gap-6 overflow-hidden">
-                    <div className="bg-slate-800/20 border border-slate-700/30 p-5 rounded-xl shadow-inner">
+                <div className="lg:col-span-5 flex flex-col gap-6 overflow-hidden h-full min-h-0">
+                    <div className="bg-slate-800/20 border border-slate-700/30 p-5 rounded-xl shadow-inner flex-shrink-0">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Aggregate Coefficient</span>
                             <span className="font-orbitron text-2xl text-pearl font-black">{(score * 100).toFixed(2)}%</span>
@@ -151,7 +151,7 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 flex-shrink-0">
                         <div className="bg-black/40 border border-slate-700/30 p-4 rounded-xl shadow-inner">
                             <span className="text-[9px] text-slate-500 uppercase font-black block mb-1.5 tracking-widest">Entropy Flux</span>
                             <span className={`font-mono text-xl font-bold ${entropyFlux > 0.4 ? 'text-gold' : 'text-cyan-400'}`}>{(entropyFlux * 10).toFixed(4)}</span>
@@ -164,7 +164,7 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
 
                     <div className="flex-1 bg-slate-950/60 border border-slate-800/50 rounded-xl flex flex-col min-h-0 overflow-hidden shadow-2xl relative">
                         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.2),transparent_70%)]" />
-                        <div className="px-6 py-3 border-b border-white/5 bg-white/[0.02]">
+                        <div className="px-6 py-3 border-b border-white/5 bg-white/[0.02] flex-shrink-0">
                             <h4 className="text-[10px] text-slate-500 uppercase tracking-widest font-black opacity-60">Heuristic Trace Log</h4>
                         </div>
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">

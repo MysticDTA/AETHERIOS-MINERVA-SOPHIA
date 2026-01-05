@@ -85,6 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     formatAs="decimal" 
                     className="hover:border-gold/30"
                     secondaryValue={`Δ+${(systemState.resonanceFactorRho * 0.04).toFixed(6)}Ψ`}
+                    tooltip="The primary coefficient of systemic harmony. A value of 1.0 represents perfect causal alignment between the local node and the universal lattice."
                 />
             </div>
         </div>
