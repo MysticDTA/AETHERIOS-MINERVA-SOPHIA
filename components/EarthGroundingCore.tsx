@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { EarthGroundingData } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
@@ -23,6 +24,21 @@ const getStatusConfig = (status: EarthGroundingData['status']) => {
             return { color: 'text-warm-grey', label: 'UNKNOWN', particleColor: 'hsl(0, 0%, 50%)' };
     }
 }
+
+const SeismicMeter: React.FC<{ value: number; label: string; color: string }> = ({ value, label, color }) => (
+    <div className="flex flex-col gap-1 w-full">
+        <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+            <span>{label}</span>
+            <span style={{ color }}>{(value * 100).toFixed(1)}%</span>
+        </div>
+        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div 
+                className="h-full transition-all duration-700" 
+                style={{ width: `${value * 100}%`, backgroundColor: color, boxShadow: `0 0 5px ${color}` }} 
+            />
+        </div>
+    </div>
+);
 
 const GroundingVisual: React.FC<{ data: EarthGroundingData }> = ({ data }) => {
     const { conductivity, status } = data;
@@ -110,16 +126,22 @@ const GroundingVisual: React.FC<{ data: EarthGroundingData }> = ({ data }) => {
 
 
 export const EarthGroundingCore: React.FC<EarthGroundingCoreProps> = ({ data, onDischarge, isDischarging }) => {
-    const { charge, conductivity, status } = data;
+    const { charge, conductivity, status, seismicActivity, telluricCurrent, feedbackLoopStatus } = data;
     const config = getStatusConfig(status);
     const canDischarge = charge > 0.75 && !isDischarging;
+    const isCorrecting = feedbackLoopStatus === 'CORRECTING';
 
     return (
-        <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
+        <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm flex flex-col h-full justify-between">
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <h3 className="font-orbitron text-md text-warm-grey">Earth Grounding Core</h3>
-                    <p className={`font-orbitron font-bold text-md ${config.color} ${status !== 'STABLE' ? 'animate-pulse' : ''}`}>{config.label}</p>
+                    <div className="flex items-center gap-2">
+                        <p className={`font-orbitron font-bold text-md ${config.color} ${status !== 'STABLE' ? 'animate-pulse' : ''}`}>{config.label}</p>
+                        {isCorrecting && (
+                            <span className="text-[8px] font-mono bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded animate-pulse">AUTO-STABILIZING</span>
+                        )}
+                    </div>
                 </div>
                 <button 
                     onClick={onDischarge}
@@ -132,7 +154,12 @@ export const EarthGroundingCore: React.FC<EarthGroundingCoreProps> = ({ data, on
             
             <GroundingVisual data={data} />
 
-            <div className="mt-2 grid grid-cols-2 gap-x-4 text-sm">
+            <div className="mt-3 space-y-2">
+                <SeismicMeter value={seismicActivity || 0} label="Seismic Tremor" color={seismicActivity > 0.1 ? '#fb923c' : '#a78bfa'} />
+                <SeismicMeter value={telluricCurrent || 0} label="Telluric Flux" color={telluricCurrent > 0.1 ? '#facc15' : '#67e8f9'} />
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-x-4 text-sm border-t border-dark-border/50 pt-2">
                 <Tooltip text="The amount of stabilized telluric energy stored in the grounding core. This energy can be discharged to rapidly reduce system-wide decoherence.">
                     <div>
                         <span className="text-warm-grey text-xs uppercase">Charge Level</span>

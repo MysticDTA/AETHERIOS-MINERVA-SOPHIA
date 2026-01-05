@@ -58,6 +58,67 @@ const projectCelestial = (ra: number, dec: number) => {
     };
 };
 
+const StarfieldCanvas: React.FC = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const width = 320; 
+        const height = 320;
+        canvas.width = width;
+        canvas.height = height;
+
+        const stars = Array.from({ length: 150 }).map(() => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 1.5,
+            opacity: Math.random(),
+            twinkleSpeed: 0.02 + Math.random() * 0.05
+        }));
+
+        let animationFrame: number;
+
+        const render = () => {
+            ctx.clearRect(0, 0, width, height);
+            
+            stars.forEach(star => {
+                star.opacity += star.twinkleSpeed;
+                if (star.opacity > 1 || star.opacity < 0.2) star.twinkleSpeed *= -1;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(star.opacity)})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw celestial grid lines (static)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, width * 0.48, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, width * 0.3, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(width/2, 0); ctx.lineTo(width/2, height);
+            ctx.moveTo(0, height/2); ctx.lineTo(width, height/2);
+            ctx.stroke();
+
+            animationFrame = requestAnimationFrame(render);
+        };
+
+        render();
+        return () => cancelAnimationFrame(animationFrame);
+    }, []);
+
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
+};
+
 const CelestialNavigator: React.FC<{ 
     relays: Record<string, GalacticRelay>; 
     lockStatus: SatelliteLockStatus;
@@ -66,25 +127,18 @@ const CelestialNavigator: React.FC<{
     liveTelemetry: any;
     coherence: number;
 }> = ({ relays, lockStatus, onCalibrate, calibratingId, liveTelemetry, coherence }) => {
-    const stars = useMemo(() => Array.from({ length: 150 }).map((_, i) => ({
-        id: i, 
-        cx: Math.random() * 100, 
-        cy: Math.random() * 100, 
-        r: Math.random() * 0.4 + 0.05, 
-        opacity: Math.random() * 0.5,
-        twinkle: Math.random() * 5 + 2
-    })), []);
-
+    
     const ripples = useMemo(() => [0, 1, 2], []);
 
     return (
         <div className="relative w-full aspect-square bg-[#050505] rounded-full border border-white/[0.08] overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,1)] ring-1 ring-white/5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.05)_0%,transparent_70%)]" />
             
-            <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible relative z-10">
+            <StarfieldCanvas />
+
+            <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible relative z-10 pointer-events-none">
                 <defs>
                     <filter id="stellarGlow"><feGaussianBlur stdDeviation="0.6" /><feComposite in="SourceGraphic" operator="over" /></filter>
-                    <filter id="dataGlow"><feGaussianBlur stdDeviation="2" /><feColorMatrix type="matrix" values="0 0 0 0 1   0 0 0 0 0.8   0 0 0 0 0.5  0 0 0 1 0" /></filter>
                     <radialGradient id="radarSweep" cx="50%" cy="50%" r="50%">
                         <stop offset="0%" stopColor="transparent" />
                         <stop offset="90%" stopColor="rgba(230, 199, 127, 0.02)" />
@@ -111,19 +165,6 @@ const CelestialNavigator: React.FC<{
                     ))}
                 </g>
 
-                {/* Star Field with Twinkle */}
-                {stars.map(s => (
-                    <circle key={s.id} cx={s.cx} cy={s.cy} r={s.r} fill="white" opacity={s.opacity}>
-                        <animate attributeName="opacity" values={`${s.opacity};${s.opacity * 0.2};${s.opacity}`} dur={`${s.twinkle}s`} repeatCount="indefinite" />
-                    </circle>
-                ))}
-
-                {/* Celestial Grid */}
-                <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.1" />
-                <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.1" />
-                <line x1="50" y1="2" x2="50" y2="98" stroke="white" strokeWidth="0.05" opacity="0.03" />
-                <line x1="2" y1="50" x2="98" y2="50" stroke="white" strokeWidth="0.05" opacity="0.03" />
-                
                 {/* Active Scanning Sweep */}
                 {lockStatus === 'ACQUIRING' && (
                     <g className="animate-[spin_10s_linear_infinite]" style={{ transformOrigin: '50% 50%' }}>
@@ -150,7 +191,7 @@ const CelestialNavigator: React.FC<{
                 {/* Local Node Origin */}
                 <circle cx="50" cy="50" r="0.8" fill="var(--pearl)" filter="url(#stellarGlow)" className="animate-pulse" />
 
-                {/* Celestial Relay Nodes & Tolerance Rings */}
+                {/* Celestial Relay Nodes & Tolerance Rings - Interactive Layer */}
                 {(Object.values(relays) as GalacticRelay[]).map((relay) => {
                     const body = CELESTIAL_BODIES[relay.id];
                     if (!body) return null;
@@ -160,7 +201,7 @@ const CelestialNavigator: React.FC<{
                     const magFactor = Math.max(0.5, 2 - (body.mag + 1.5) / 5);
                     
                     return (
-                        <g key={`relay-${relay.id}`}>
+                        <g key={`relay-${relay.id}`} className="pointer-events-auto">
                             {/* Tolerance Ring */}
                             <circle 
                                 cx={cx} cy={cy} r={magFactor * 3} 
@@ -218,7 +259,7 @@ const CelestialNavigator: React.FC<{
             
             {/* Telemetry Display Overlay */}
             {liveTelemetry && (
-                <div className="absolute top-6 left-6 right-6 p-4 bg-black/70 border border-white/10 rounded-sm backdrop-blur-xl animate-fade-in z-30 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-l-4 border-l-gold">
+                <div className="absolute top-6 left-6 right-6 p-4 bg-black/70 border border-white/10 rounded-sm backdrop-blur-xl animate-fade-in z-30 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-l-4 border-l-gold pointer-events-none">
                     <div className="flex justify-between items-start mb-3 border-b border-white/10 pb-2">
                         <div>
                             <span className="text-[8px] font-mono text-gold uppercase tracking-[0.3em] font-bold">CELESTIAL_LOCK_ACTIVE</span>

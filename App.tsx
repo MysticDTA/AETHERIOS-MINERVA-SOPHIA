@@ -13,7 +13,6 @@ import { cosmosCommsService } from './services/cosmosCommsService';
 import { useSystemSimulation } from './useSystemSimulation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Display4 } from './components/Display4';
-import { OrbControls } from './components/OrbControls';
 import { Display5 } from './components/Display5';
 import { Display6 } from './components/Display6';
 import { Display7 } from './components/Display7';
@@ -39,6 +38,9 @@ import { DeploymentManifest } from './components/DeploymentManifest';
 import { EventLog } from './components/EventLog';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
+import { SystemFooter } from './components/SystemFooter';
+import { SimulationControls } from './components/SimulationControls';
+import { Modal } from './components/Modal';
 import { SYSTEM_NODES, TIER_REGISTRY } from './Registry';
 
 const AETHERIOS_MANIFEST = `
@@ -58,7 +60,7 @@ const orbModes: OrbModeConfig[] = [
 ];
 
 const App: React.FC = () => {
-  const [simulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
+  const [simulationParams, setSimulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [currentPage, setCurrentPage] = useState(1); 
   const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
@@ -66,6 +68,7 @@ const App: React.FC = () => {
   const [transmission, setTransmission] = useState<TransmissionState>(cosmosCommsService.initialState);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isRecalibrating, setIsRecalibrating] = useState(false);
   const [logFilter, setLogFilter] = useState<LogType | 'ALL'>('ALL');
@@ -73,7 +76,7 @@ const App: React.FC = () => {
   const audioEngine = useRef<AudioEngine | null>(null);
   const sophiaEngine = useRef<SophiaEngineCore | null>(null);
   
-  const { systemState, setSystemState, addLogEntry, setDiagnosticMode } = useSystemSimulation(simulationParams, orbMode);
+  const { systemState, setSystemState, addLogEntry, setDiagnosticMode, setGrounded } = useSystemSimulation(simulationParams, orbMode);
 
   useEffect(() => {
     sophiaEngine.current = new SophiaEngineCore(systemInstruction);
@@ -137,7 +140,53 @@ const App: React.FC = () => {
     setTimeout(() => setIsRecalibrating(false), 2000);
   };
 
+  const handleGrounding = useCallback(() => {
+      setGrounded(true);
+      setSystemState(prev => ({ ...prev, isGrounded: true }));
+      audioEngine.current?.playGroundingDischarge();
+      addLogEntry(LogType.INFO, "TELLURIC ANCHOR: Grounding protocol active. Discharging entropy.");
+      setTimeout(() => {
+          setGrounded(false);
+          setSystemState(prev => ({ ...prev, isGrounded: false }));
+          addLogEntry(LogType.INFO, "TELLURIC ANCHOR: System stable.");
+      }, 5000);
+  }, [setGrounded, setSystemState, addLogEntry]);
+
   const voiceInterface = useVoiceInterface({ addLogEntry, systemInstruction, onSetOrbMode: setOrbMode });
+
+  // Global Hotkeys Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        const isInputActive = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '');
+        
+        // Command Console (/) - Only if not typing
+        if (e.key === '/' && !isInputActive) {
+            e.preventDefault();
+            setCurrentPage(4);
+            audioEngine.current?.playUIClick();
+        }
+
+        // System Scan (Ctrl + S)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            handleTriggerScan();
+        }
+
+        // Voice Command Toggle (Ctrl + V)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+             e.preventDefault();
+             if (voiceInterface.isSessionActive) {
+                 voiceInterface.closeVoiceSession();
+             } else {
+                 voiceInterface.startVoiceSession();
+             }
+             audioEngine.current?.playUIClick();
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleTriggerScan, voiceInterface]);
 
   const {
     handlePillarBoost,
@@ -202,6 +251,18 @@ const App: React.FC = () => {
             <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
           </ErrorBoundary>
         )}
+
+        <Modal isOpen={showConfigModal} onClose={() => setShowConfigModal(false)}>
+            <SimulationControls 
+                params={simulationParams} 
+                onParamsChange={(key, val) => setSimulationParams(prev => ({ ...prev, [key]: val }))}
+                onScenarioChange={setSimulationParams}
+                onManualReset={handleManualReset}
+                onGrounding={handleGrounding}
+                isGrounded={systemState.isGrounded}
+                audioEngine={audioEngine.current}
+            />
+        </Modal>
         
         {!isInitialized ? (
             <SovereignPortal onInitialize={handleInitializeNode} />
@@ -222,33 +283,15 @@ const App: React.FC = () => {
                     <ErrorBoundary>{pageContent}</ErrorBoundary>
                 </main>
                 
-                <footer className="relative z-40 flex-shrink-0 w-full mb-1 md:mb-2 pointer-events-auto">
-                    <div className="bg-[#080808]/90 border border-white/10 backdrop-blur-3xl p-3 md:p-4 rounded-xl flex items-center justify-between shadow-[0_0_80px_rgba(0,0,0,0.8)] border-glow-rose transition-all duration-500 hover:border-white/20">
-                        <div className="flex items-center gap-6">
-                            <OrbControls modes={orbModes} currentMode={orbMode} setMode={setOrbMode} />
-                            <div className="h-6 w-px bg-white/10 hidden xl:block" />
-                            <div className="hidden xl:flex items-center gap-6">
-                                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-black">Control_Nexus_Active</span>
-                            </div>
-                        </div>
-                        <div className="hidden lg:flex gap-3 items-center">
-                          {SYSTEM_NODES.filter(n => n.isShield || n.isLogs || n.isBridge || n.isAudit).map(node => (
-                            <button 
-                              key={node.id}
-                              onClick={() => setCurrentPage(node.id)} 
-                              className={`px-5 py-2 border font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm transition-all font-black active:scale-95 shadow-md ${
-                                currentPage === node.id ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_15px_white]' :
-                                node.isShield ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white' :
-                                node.isLogs ? 'bg-slate-900/10 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
-                                node.isAudit ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg' :
-                                'bg-violet-950/20 border-violet-500/30 text-violet-400 hover:bg-violet-500 hover:text-white'
-                              }`}
-                            >
-                              {node.label}
-                            </button>
-                          ))}
-                        </div>
-                    </div>
+                <footer className="relative z-40 flex-shrink-0 w-full mb-1 md:mb-2 pointer-events-auto flex justify-center">
+                    <SystemFooter 
+                        orbModes={orbModes} 
+                        currentMode={orbMode} 
+                        setMode={setOrbMode} 
+                        currentPage={currentPage} 
+                        setCurrentPage={setCurrentPage} 
+                        onOpenConfig={() => setShowConfigModal(true)}
+                    />
                 </footer>
             </div>
         )}

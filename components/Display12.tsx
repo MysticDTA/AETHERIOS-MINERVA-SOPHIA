@@ -12,11 +12,13 @@ const CHART_WIDTH = 400;
 const ResonanceHistoryChart: React.FC<{ currentRho: number }> = ({ currentRho }) => {
     const [history, setHistory] = useState<number[]>(new Array(HISTORY_LENGTH).fill(currentRho));
 
+    // Update history specifically when the resonance factor changes from the parent simulation tick
     useEffect(() => {
-        const interval = setInterval(() => {
-            setHistory(prev => [...prev.slice(1), currentRho]);
-        }, 1000);
-        return () => clearInterval(interval);
+        setHistory(prev => {
+            const next = [...prev, currentRho];
+            if (next.length > HISTORY_LENGTH) return next.slice(1);
+            return next;
+        });
     }, [currentRho]);
 
     const pathData = useMemo(() => {
@@ -106,7 +108,6 @@ const ResonanceHistoryChart: React.FC<{ currentRho: number }> = ({ currentRho })
     );
 };
 
-// FIX: Added missing Display12Props interface
 interface Display12Props {
   systemState: SystemState;
 }

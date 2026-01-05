@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tooltip } from './Tooltip';
 
 interface CoherenceResonanceMonitorProps {
@@ -10,7 +10,13 @@ interface CoherenceResonanceMonitorProps {
 
 const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const rhoRef = useRef(rho); // Mutable ref to hold latest rho without triggering re-effects
     const particles = useRef<{ x: number; y: number; vx: number; vy: number; life: number; color: string; size: number }[]>([]);
+
+    // Keep ref in sync
+    useEffect(() => {
+        rhoRef.current = rho;
+    }, [rho]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -25,15 +31,18 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
         canvas.height = height;
 
         const animate = () => {
-            ctx.fillStyle = 'rgba(2, 2, 2, 0.15)';
+            const currentRho = rhoRef.current;
+            
+            // Trail effect
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
             ctx.fillRect(0, 0, width, height);
 
             // High-fidelity particle emission
-            const emissionCount = Math.floor(1 + rho * 4);
+            const emissionCount = Math.floor(1 + currentRho * 4);
             for(let i=0; i<emissionCount; i++) {
-                if (Math.random() < rho) {
+                if (Math.random() < currentRho) {
                     const angle = Math.random() * Math.PI * 2;
-                    const speed = 0.8 + rho * 3;
+                    const speed = 0.8 + currentRho * 3;
                     particles.current.push({
                         x: width / 2,
                         y: height / 2,
@@ -49,9 +58,9 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
             particles.current = particles.current.filter(p => {
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= 0.003;
+                p.life -= 0.005; // Slightly faster decay for sharpness
 
-                const alpha = p.life * (0.4 + rho * 0.6);
+                const alpha = p.life * (0.4 + currentRho * 0.6);
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = alpha;
                 ctx.beginPath();
@@ -59,9 +68,9 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
                 ctx.fill();
 
                 // Connect particles subtly
-                if (rho > 0.9 && Math.random() > 0.99) {
+                if (currentRho > 0.9 && Math.random() > 0.98) {
                     ctx.strokeStyle = p.color;
-                    ctx.globalAlpha = alpha * 0.2;
+                    ctx.globalAlpha = alpha * 0.15;
                     ctx.beginPath();
                     ctx.moveTo(p.x, p.y);
                     ctx.lineTo(width/2, height/2);
@@ -73,7 +82,8 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
             ctx.globalAlpha = 1.0;
 
             // Radiant Core
-            const coreRadius = 25 + rho * 40 + Math.sin(Date.now() / 150) * 8;
+            const time = Date.now() / 200;
+            const coreRadius = 25 + currentRho * 40 + Math.sin(time) * 8;
             const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, coreRadius);
             gradient.addColorStop(0, 'rgba(248, 245, 236, 0.9)');
             gradient.addColorStop(0.3, 'rgba(255, 215, 0, 0.4)');
@@ -90,11 +100,11 @@ const ResonanceSpectrum: React.FC<{ rho: number }> = ({ rho }) => {
 
         animate();
         return () => cancelAnimationFrame(animationFrame);
-    }, [rho]);
+    }, []); // Empty dependency array = persistent loop
 
     return (
         <div className="relative w-full h-full flex items-center justify-center">
-            <canvas ref={canvasRef} className="w-full h-full rounded-full opacity-80 mix-blend-screen" />
+            <canvas ref={canvasRef} className="w-full h-full rounded-full opacity-90 mix-blend-screen" />
             <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none shadow-[inset_0_0_80px_rgba(109,40,217,0.1)]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] border border-gold/5 rounded-full animate-[spin_60s_linear_infinite]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-pearl/5 rounded-full animate-[spin_90s_linear_infinite_reverse]" />

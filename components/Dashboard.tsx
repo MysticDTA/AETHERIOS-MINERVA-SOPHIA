@@ -61,7 +61,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             onClick={onTriggerScan}
                             className="px-5 py-1.5 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
                         >
-                            INIT_SCAN
+                            PERF_AUDIT
                         </button>
                     </div>
                     <p className="text-[11px] font-minerva italic text-pearl/50 leading-relaxed relative z-10 group-hover:text-pearl/80 transition-colors">

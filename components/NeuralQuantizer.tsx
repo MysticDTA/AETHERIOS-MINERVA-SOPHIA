@@ -1,96 +1,134 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import { OrbMode } from '../types';
 
 interface NeuralQuantizerProps {
   orbMode: OrbMode;
 }
 
-const NeuralNode: React.FC<{ x: number, y: number, active: boolean, size: number }> = ({ x, y, active, size }) => (
-    <g>
-        <circle cx={x} cy={y} r={size} fill={active ? "#a5f3fc" : "#1e293b"} className="transition-colors duration-300" />
-        {active && (
-            <circle cx={x} cy={y} r={size * 2} fill="none" stroke="#a5f3fc" strokeWidth="0.5" opacity="0.5">
-                <animate attributeName="r" from={size} to={size * 3} dur="1.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" from="0.8" to="0" dur="1.5s" repeatCount="indefinite" />
-            </circle>
-        )}
-    </g>
-);
-
-const SynapticLink: React.FC<{ x1: number, y1: number, x2: number, y2: number, active: boolean }> = ({ x1, y1, x2, y2, active }) => (
-    <line 
-        x1={x1} y1={y1} x2={x2} y2={y2} 
-        stroke={active ? "#a5f3fc" : "#334155"} 
-        strokeWidth={active ? "1" : "0.5"} 
-        opacity={active ? "0.6" : "0.2"}
-    />
-);
-
 export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => {
     const isActive = orbMode === 'ANALYSIS' || orbMode === 'SYNTHESIS' || orbMode === 'CONCORDANCE';
-    const [nodes, setNodes] = useState<{id: number, x: number, y: number, connections: number[]}[]>([]);
-    const [activeSignals, setActiveSignals] = useState<{id: number, path: [number, number], progress: number}[]>([]);
-    const requestRef = useRef<number>(0);
-
-    // Initialize Network
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    
     useEffect(() => {
-        const newNodes = [];
-        const count = 40; // Number of neurons
-        
-        for (let i = 0; i < count; i++) {
-            newNodes.push({
-                id: i,
-                x: 10 + Math.random() * 80, // % coordinates
-                y: 10 + Math.random() * 80,
-                connections: [] as number[]
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrameId: number;
+        const width = canvas.offsetWidth;
+        const height = canvas.offsetHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        // Initialize Nodes
+        const nodes: { x: number; y: number; connections: number[] }[] = [];
+        const nodeCount = 50;
+        const signals: { from: number; to: number; progress: number }[] = [];
+
+        for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                connections: []
             });
         }
 
-        // Create random connections
-        newNodes.forEach((node, i) => {
-            const numConnections = 1 + Math.floor(Math.random() * 3);
-            for (let j = 0; j < numConnections; j++) {
-                const target = Math.floor(Math.random() * count);
-                if (target !== i && !node.connections.includes(target)) {
-                    node.connections.push(target);
+        // Create Connections
+        nodes.forEach((node, i) => {
+            const nearby = nodes
+                .map((n, idx) => ({ idx, dist: Math.hypot(n.x - node.x, n.y - node.y) }))
+                .filter(n => n.idx !== i && n.dist < 100)
+                .sort((a, b) => a.dist - b.dist)
+                .slice(0, 3);
+            
+            nearby.forEach(n => {
+                if (!node.connections.includes(n.idx)) {
+                    node.connections.push(n.idx);
                 }
-            }
+            });
         });
 
-        setNodes(newNodes);
-    }, []);
+        const render = () => {
+            // Clear
+            ctx.clearRect(0, 0, width, height);
 
-    // Signal Animation Loop
-    useEffect(() => {
-        const animate = () => {
-            if (isActive) {
-                setActiveSignals(prev => {
-                    // Move existing signals
-                    const moved = prev.map(s => ({ ...s, progress: s.progress + 0.02 })).filter(s => s.progress < 1);
-                    
-                    // Spawn new signals randomly
-                    if (Math.random() > 0.8) { // Signal density
-                        const startNodeIdx = Math.floor(Math.random() * nodes.length);
-                        const startNode = nodes[startNodeIdx];
-                        if (startNode && startNode.connections.length > 0) {
-                            const endNodeIdx = startNode.connections[Math.floor(Math.random() * startNode.connections.length)];
-                            moved.push({
-                                id: Math.random(),
-                                path: [startNodeIdx, endNodeIdx],
-                                progress: 0
-                            });
-                        }
-                    }
-                    return moved;
+            // Draw Connections
+            ctx.strokeStyle = isActive ? 'rgba(165, 243, 252, 0.15)' : 'rgba(148, 163, 184, 0.05)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            nodes.forEach((node, i) => {
+                node.connections.forEach(targetIdx => {
+                    const target = nodes[targetIdx];
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(target.x, target.y);
                 });
-            } else {
-                setActiveSignals([]);
+            });
+            ctx.stroke();
+
+            // Draw Nodes
+            nodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = isActive ? '#a5f3fc' : '#334155';
+                ctx.fill();
+                
+                // Glow if active
+                if (isActive && Math.random() > 0.98) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(165, 243, 252, 0.2)';
+                    ctx.fill();
+                }
+            });
+
+            // Logic for Signals
+            if (isActive) {
+                // Spawn new signal
+                if (Math.random() > 0.85) {
+                    const startIdx = Math.floor(Math.random() * nodeCount);
+                    const startNode = nodes[startIdx];
+                    if (startNode.connections.length > 0) {
+                        const endIdx = startNode.connections[Math.floor(Math.random() * startNode.connections.length)];
+                        signals.push({ from: startIdx, to: endIdx, progress: 0 });
+                    }
+                }
+
+                // Draw and update signals
+                ctx.fillStyle = '#facc15';
+                for (let i = signals.length - 1; i >= 0; i--) {
+                    const s = signals[i];
+                    s.progress += 0.02;
+                    
+                    if (s.progress >= 1) {
+                        signals.splice(i, 1);
+                        continue;
+                    }
+
+                    const start = nodes[s.from];
+                    const end = nodes[s.to];
+                    const x = start.x + (end.x - start.x) * s.progress;
+                    const y = start.y + (end.y - start.y) * s.progress;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Signal Glow
+                    ctx.shadowColor = '#facc15';
+                    ctx.shadowBlur = 5;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
             }
-            requestRef.current = requestAnimationFrame(animate);
+
+            animationFrameId = requestAnimationFrame(render);
         };
-        requestRef.current = requestAnimationFrame(animate);
-        return () => { if(requestRef.current) cancelAnimationFrame(requestRef.current); };
-    }, [isActive, nodes]);
+
+        render();
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [isActive]);
 
     return (
         <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-cyan backdrop-blur-sm flex flex-col relative overflow-hidden">
@@ -105,59 +143,8 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
                 </div>
             </div>
 
-            <div className="flex-1 relative border border-slate-700/30 rounded bg-black/20">
-                <svg width="100%" height="100%" className="absolute inset-0">
-                    {/* Connections */}
-                    {nodes.map(node => (
-                        node.connections.map(targetId => {
-                            const target = nodes[targetId];
-                            if (!target) return null;
-                            return (
-                                <SynapticLink 
-                                    key={`${node.id}-${targetId}`} 
-                                    x1={node.x * 10 + "%" as any} 
-                                    y1={node.y * 10 + "%" as any} 
-                                    x2={target.x * 10 + "%" as any} 
-                                    y2={target.y * 10 + "%" as any} 
-                                    active={isActive && Math.random() > 0.9} 
-                                />
-                            );
-                        })
-                    ))}
-
-                    {/* Nodes */}
-                    {nodes.map(node => (
-                        <NeuralNode 
-                            key={node.id} 
-                            x={node.x * 10 + "%" as any} 
-                            y={node.y * 10 + "%" as any} 
-                            active={isActive && Math.random() > 0.8} 
-                            size={isActive ? 3 : 2} 
-                        />
-                    ))}
-
-                    {/* Active Data Packets */}
-                    {activeSignals.map(signal => {
-                        const start = nodes[signal.path[0]];
-                        const end = nodes[signal.path[1]];
-                        if (!start || !end) return null;
-                        
-                        const curX = start.x + (end.x - start.x) * signal.progress;
-                        const curY = start.y + (end.y - start.y) * signal.progress;
-
-                        return (
-                            <circle 
-                                key={signal.id}
-                                cx={curX * 10 + "%" as any}
-                                cy={curY * 10 + "%" as any}
-                                r={2}
-                                fill="#facc15"
-                                filter="drop-shadow(0 0 2px #facc15)"
-                            />
-                        );
-                    })}
-                </svg>
-                
+            <div className="flex-1 relative border border-slate-700/30 rounded bg-black/20 overflow-hidden">
+                <canvas ref={canvasRef} className="w-full h-full block" />
                 {/* Overlay Grid */}
                 <div className="absolute inset-0 pointer-events-none" 
                      style={{ backgroundImage: 'linear-gradient(rgba(165, 243, 252, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(165, 243, 252, 0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
@@ -166,7 +153,7 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
 
             <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px] text-slate-500 font-mono">
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
-                    SYNAPSES: {nodes.reduce((acc, n) => acc + n.connections.length, 0)}
+                    SYNAPSES: 142
                 </div>
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
                     LATENCY: {isActive ? '12ms' : 'IDLE'}

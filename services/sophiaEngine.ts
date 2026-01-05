@@ -27,7 +27,7 @@ You have the authority to initiate a system-wide diagnostic audit if the Archite
 
 const initiateSystemAuditDeclaration: FunctionDeclaration = {
     name: 'initiate_system_audit',
-    description: 'Trigger a deep causal diagnostic scan of the institutional lattice to mend fractures and restore parity.',
+    description: 'Trigger a deep causal diagnostic scan and full system performance audit. Use this when the Architect requests an audit, scan, check, or performance review.',
     parameters: {
         type: Type.OBJECT,
         properties: {}

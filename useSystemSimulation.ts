@@ -97,6 +97,9 @@ export const initialSystemState: SystemState = {
     charge: 0.8,
     conductivity: 0.95,
     status: 'STABLE',
+    seismicActivity: 0.02,
+    telluricCurrent: 0.05,
+    feedbackLoopStatus: 'IDLE'
   },
   tesseract: {
     flux: 0.2,
@@ -282,6 +285,27 @@ export const useSystemSimulation = (
             }))
         };
 
+        // --- EARTH GROUNDING FEEDBACK LOOP ---
+        const seismicNoise = (Math.random() - 0.4) * 0.05; // Slightly biased towards stability
+        const telluricInput = (Math.random() - 0.4) * 0.02;
+
+        let newSeismicActivity = Math.max(0, Math.min(1, (prev.earthGrounding.seismicActivity || 0.02) + seismicNoise * 0.1));
+        let newTelluricCurrent = Math.max(0, Math.min(1, (prev.earthGrounding.telluricCurrent || 0.05) + telluricInput * 0.1));
+
+        let newConductivity = prev.earthGrounding.conductivity - (newSeismicActivity * 0.005);
+        let newCharge = prev.earthGrounding.charge + (newTelluricCurrent * 0.005);
+        let feedbackStatus: 'IDLE' | 'CORRECTING' = 'IDLE';
+
+        // Auto-Stabilization Trigger
+        if (newConductivity < 0.8 && newCharge > 0.2) {
+            feedbackStatus = 'CORRECTING';
+            newCharge -= 0.005; // Consume charge to stabilize
+            newConductivity += 0.01; // Restore conductivity
+        }
+
+        newConductivity = Math.max(0, Math.min(1, newConductivity));
+        newCharge = Math.max(0, Math.min(1, newCharge));
+
         return {
           ...prev,
           isGrounded,
@@ -302,7 +326,15 @@ export const useSystemSimulation = (
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
           },
-          globalResonance: newGlobalResonance
+          globalResonance: newGlobalResonance,
+          earthGrounding: {
+              ...prev.earthGrounding,
+              seismicActivity: newSeismicActivity,
+              telluricCurrent: newTelluricCurrent,
+              charge: newCharge,
+              conductivity: newConductivity,
+              feedbackLoopStatus: feedbackStatus
+          }
         };
       });
     }, 1000);

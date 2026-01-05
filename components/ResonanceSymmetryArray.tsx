@@ -1,6 +1,5 @@
 
-import React, { useMemo, useEffect, useState } from 'react';
-import { Tooltip } from './Tooltip';
+import React, { useEffect, useRef } from 'react';
 
 interface ResonanceSymmetryArrayProps {
     rho: number;
@@ -8,45 +7,104 @@ interface ResonanceSymmetryArrayProps {
 }
 
 export const ResonanceSymmetryArray: React.FC<ResonanceSymmetryArrayProps> = ({ rho, isOptimizing }) => {
-    const [time, setTime] = useState(0);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        let frame = requestAnimationFrame(function animate(t) {
-            setTime(t / 1000);
-            frame = requestAnimationFrame(animate);
-        });
-        return () => cancelAnimationFrame(frame);
-    }, []);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-    const symmetryPaths = useMemo(() => {
+        let animationFrameId: number;
+        let time = 0;
+
         const petals = 8;
-        const pointsPerPetal = 30;
         const baseRadius = 40;
-        const jitter = isOptimizing ? 0 : (1 - rho) * 20;
-        
-        return Array.from({ length: petals }).map((_, petalIdx) => {
-            const petalRotation = (petalIdx / petals) * Math.PI * 2;
-            let d = "M ";
-            
-            for (let i = 0; i <= pointsPerPetal; i++) {
-                const step = i / pointsPerPetal;
-                const angle = (step * Math.PI) - (Math.PI / 2);
+
+        const render = () => {
+            time += 0.01;
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Clear with trail effect
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)'; // Dark surface color
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw Background Grid (Static-ish)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            [20, 40, 60, 80].forEach(r => {
+                ctx.moveTo(centerX + r, centerY);
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+            });
+            ctx.stroke();
+
+            // Rotate entire system
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(time * 0.2); // Slow rotation
+
+            // Draw Petals
+            ctx.beginPath();
+            for (let i = 0; i < petals; i++) {
+                const angleOffset = (i / petals) * Math.PI * 2;
                 
-                // Mathematical flower petal logic influenced by Rho
-                const r = baseRadius * Math.sin(angle) * Math.cos(petalIdx + time) * (rho + 0.2);
-                const x = 50 + r * Math.cos(petalRotation + angle * (1 - rho));
-                const y = 50 + r * Math.sin(petalRotation + angle * (1 - rho));
-                
-                if (i === 0) d += `${x} ${y}`;
-                else d += ` L ${x} ${y}`;
+                for (let j = 0; j <= 30; j++) {
+                    const step = j / 30;
+                    const angle = (step * Math.PI) - (Math.PI / 2);
+                    
+                    // Math logic from previous version, optimized for canvas
+                    const dynamicRho = rho + (Math.sin(time * 2) * 0.05); // Add subtle breath
+                    const r = baseRadius * Math.sin(angle) * Math.cos(i + time) * (dynamicRho + 0.2);
+                    
+                    // Polar to Cartesian conversion
+                    const petalAngle = angleOffset + angle * (1 - dynamicRho);
+                    const x = r * Math.cos(petalAngle);
+                    const y = r * Math.sin(petalAngle);
+
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
             }
-            return d + " Z";
-        });
-    }, [rho, time, isOptimizing]);
+            
+            ctx.closePath();
+            
+            // Dynamic Styling
+            ctx.strokeStyle = isOptimizing ? '#ffffff' : '#6d28d9'; // Pearl or Violet
+            ctx.lineWidth = isOptimizing ? 1.5 : 0.8;
+            ctx.stroke();
+            
+            // Glow
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = isOptimizing ? '#ffffff' : '#6d28d9';
+            if (rho > 0.8) ctx.fillStyle = 'rgba(109, 40, 217, 0.1)';
+            else ctx.fillStyle = 'transparent';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Central Core
+            const coreRadius = 2 + rho * 3 + Math.sin(time * 5) * 1;
+            ctx.beginPath();
+            ctx.arc(0, 0, coreRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#f8f5ec';
+            ctx.fill();
+
+            ctx.restore();
+
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        render();
+
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [rho, isOptimizing]);
 
     return (
         <div className="w-full h-full bg-dark-surface/40 border border-dark-border/60 rounded-lg p-5 backdrop-blur-md relative overflow-hidden group">
-            <div className="flex justify-between items-center mb-4 z-10 border-b border-white/5 pb-2">
+            <div className="flex justify-between items-center mb-4 z-10 border-b border-white/5 pb-2 absolute top-5 left-5 right-5">
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-sm rotate-45 ${isOptimizing ? 'bg-pearl animate-ping' : 'bg-violet-500'}`} />
                     <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.3em] font-bold">Phase Symmetry V1</h3>
@@ -56,50 +114,11 @@ export const ResonanceSymmetryArray: React.FC<ResonanceSymmetryArrayProps> = ({ 
                 )}
             </div>
 
-            <div className="flex-1 flex items-center justify-center relative min-h-[220px]">
-                <svg viewBox="0 0 100 100" className="w-full h-full max-h-[200px]">
-                    <defs>
-                        <filter id="symmetryGlow"><feGaussianBlur stdDeviation="1" /></filter>
-                        <linearGradient id="symGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="var(--aether-blue)" />
-                            <stop offset="100%" stopColor="var(--pearl)" />
-                        </linearGradient>
-                    </defs>
-                    
-                    {/* Background Grid Lines */}
-                    {[20, 40, 60, 80].map(r => (
-                        <circle key={r} cx="50" cy="50" r={r/2} fill="none" stroke="var(--dark-border)" strokeWidth="0.1" strokeDasharray="1 4" />
-                    ))}
-
-                    <g style={{ transformOrigin: 'center', transition: 'transform 2s ease-in-out', transform: `rotate(${time * 5}deg)` }}>
-                        {symmetryPaths.map((path, i) => (
-                            <path 
-                                key={i}
-                                d={path}
-                                fill="none"
-                                stroke="url(#symGrad)"
-                                strokeWidth={isOptimizing ? "0.4" : "0.2"}
-                                opacity={0.3 + (rho * 0.4)}
-                                filter="url(#symmetryGlow)"
-                                className="transition-all duration-1000"
-                            />
-                        ))}
-                    </g>
-
-                    {/* Central Core Pulse */}
-                    <circle cx="50" cy="50" r={2 + rho * 3} fill="var(--pearl)" opacity={0.1}>
-                        <animate attributeName="r" values={`${2 + rho * 3};${5 + rho * 5};${2 + rho * 3}`} dur="3s" repeatCount="indefinite" />
-                    </circle>
-                </svg>
-
-                {/* Real-time jitter indicator */}
-                <div className="absolute bottom-2 left-2 font-mono text-[8px] text-slate-500 uppercase space-y-1">
-                    <p>Phase_Lock: {(rho * 100).toFixed(2)}%</p>
-                    <p>Causal_Sym: {isOptimizing ? 'MAX' : 'DIVERGING'}</p>
-                </div>
+            <div className="w-full h-full flex items-center justify-center">
+                <canvas ref={canvasRef} width={300} height={300} className="w-full h-full max-h-[250px] object-contain" />
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/5">
+            <div className="absolute bottom-5 left-5 right-5 pt-3 border-t border-white/5">
                 <div className="flex justify-between items-end">
                     <div className="space-y-1">
                          <span className="text-[7px] text-slate-600 uppercase tracking-widest block font-bold">Harmonic Variance</span>

@@ -137,6 +137,9 @@ export interface EarthGroundingData {
     charge: number;
     conductivity: number;
     status: 'STABLE' | 'CHARGING' | 'DISCHARGING' | 'WEAK';
+    seismicActivity: number;
+    telluricCurrent: number;
+    feedbackLoopStatus: 'IDLE' | 'CORRECTING';
 }
 
 export interface TesseractData {
