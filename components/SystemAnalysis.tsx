@@ -5,39 +5,50 @@ import { SophiaEngineCore } from '../services/sophiaEngine';
 import { useSophiaCore } from './hooks/useSophiaCore';
 import { HeuristicFailurePredictor } from './HeuristicFailurePredictor';
 
-const SCAN_STEPS = [
-    { id: 'flux', label: 'Analyzing Aetheric Gestation' },
-    { id: 'parity', label: 'Verifying Causal Parity' },
-    { id: 'rho', label: 'Gauging Resonance Rho' },
-    { id: 'heuristic', label: 'Syncing Heuristic Logic' },
-    { id: 'sovereign', label: 'Validating Radiant Sovereignty' }
-];
+const LogicTraceStream: React.FC<{ active: boolean }> = ({ active }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
-const SynapticLogicTrace: React.FC = () => {
-    const [streams, setStreams] = useState<{ id: number; bits: string; opacity: number }[]>([]);
-    
     useEffect(() => {
-        const interval = setInterval(() => {
-            const newStream = {
-                id: Date.now(),
-                bits: Array.from({length: 12}).map(() => Math.random() > 0.5 ? '1' : '0').join(''),
-                opacity: 1
-            };
-            setStreams(prev => [newStream, ...prev].slice(0, 10));
-        }, 300);
-        return () => clearInterval(interval);
-    }, []);
+        const canvas = canvasRef.current;
+        if (!canvas || !active) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const cols = Math.floor(canvas.width / 10);
+        const yPos = Array(cols).fill(0);
+
+        let animationFrame: number;
+
+        const render = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#67e8f9';
+            ctx.font = '8px monospace';
+
+            yPos.forEach((y, index) => {
+                const text = Math.random() > 0.5 ? '1' : '0';
+                const x = index * 10;
+                
+                ctx.globalAlpha = Math.random();
+                ctx.fillText(text, x, y);
+                
+                if (y > canvas.height + Math.random() * 10000) {
+                    yPos[index] = 0;
+                } else {
+                    yPos[index] = y + 10;
+                }
+            });
+            ctx.globalAlpha = 1;
+            animationFrame = requestAnimationFrame(render);
+        };
+
+        render();
+        return () => cancelAnimationFrame(animationFrame);
+    }, [active]);
 
     return (
-        <div className="flex flex-col gap-1 font-mono text-[8px] text-cyan-400/40 h-24 mb-10 overflow-hidden select-none italic">
-            {streams.map((s, i) => (
-                <div key={s.id} className="transition-all duration-1000 flex gap-4" style={{ opacity: 1 - (i / 10) }}>
-                    <span className="text-slate-700">0x{(s.id % 0xFFFF).toString(16).padStart(4, '0')}</span>
-                    <span className="tracking-[0.5em]">{s.bits}</span>
-                    <span className="text-gold/30">TRACE_ACTIVE</span>
-                </div>
-            ))}
-        </div>
+        <canvas ref={canvasRef} width={600} height={150} className="w-full h-32 opacity-40 mix-blend-screen" />
     );
 };
 
@@ -115,7 +126,6 @@ interface SystemAnalysisProps {
 
 export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sophiaEngine, setOrbMode }) => {
   const { analysis, isLoading, isPredicting, prediction, error, runAnalysis } = useSophiaCore(sophiaEngine, systemState);
-  const [activeStep, setActiveStep] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -128,15 +138,9 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
     }
   }, [analysis, isLoading]);
 
-  useEffect(() => {
-    if (isLoading && !analysis) {
-        const interval = setInterval(() => setActiveStep(prev => (prev + 1) % SCAN_STEPS.length), 1500);
-        return () => clearInterval(interval);
-    }
-  }, [isLoading, analysis]);
-
   return (
     <div className="w-full h-full glass-panel rounded-2xl flex flex-col overflow-hidden relative group transition-all duration-1000 shadow-2xl">
+      {/* Header */}
       <div className="flex justify-between items-center px-8 py-6 flex-shrink-0 border-b border-white/[0.05] bg-black/20 z-20">
         <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
@@ -154,6 +158,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
         </div>
       </div>
 
+      {/* Main Content */}
       <div 
         ref={scrollContainerRef} 
         className="flex-grow min-h-0 overflow-y-auto px-8 py-6 relative z-10 select-text scrollbar-thin flex flex-col"
@@ -171,46 +176,30 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
 
         <div className="flex-grow">
             {isLoading && !analysis ? (
-              <div className="h-full flex flex-col py-6 animate-fade-in">
-                <SynapticLogicTrace />
-                <div className="space-y-4 w-full max-w-sm ml-4">
-                    {SCAN_STEPS.map((step, i) => (
-                        <div key={step.id} className={`flex items-center justify-between text-[10px] font-mono transition-all duration-1000 ${i === activeStep ? 'opacity-100 text-pearl translate-x-2' : i < activeStep ? 'opacity-40 text-gold' : 'opacity-10 text-slate-700'}`}>
-                            <div className="flex items-center gap-4">
-                                <span className="w-4 font-black">{i < activeStep ? '✔' : i === activeStep ? '⟳' : '○'}</span>
-                                <span className="uppercase tracking-[0.2em] font-bold">{step.label}</span>
-                            </div>
-                        </div>
-                    ))}
+              <div className="h-full flex flex-col py-6 animate-fade-in relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#050505] z-10" />
+                <LogicTraceStream active={isLoading} />
+                <div className="relative z-20 text-center space-y-4 pt-10">
+                    <p className="font-orbitron text-[10px] text-gold uppercase tracking-[0.5em] animate-pulse">Siphoning_Reality_Lattice</p>
+                    <p className="text-[11px] font-minerva italic text-slate-500">"Constructing causal logic paths..."</p>
                 </div>
               </div>
-            ) : analysis ? (
-                <div className="pb-16 max-w-4xl mx-auto">
-                    <RenderedAnalysis htmlContent={analysis} />
-                </div>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center opacity-20 py-20 border border-dashed border-white/5 rounded-xl mt-4 group-hover:opacity-40 transition-opacity duration-1000">
-                    <div className="w-14 h-14 border border-white/10 rounded-full flex items-center justify-center mb-6 relative">
-                        <div className="absolute inset-0 border-t-gold border rounded-full animate-spin-slow" />
-                        <span className="font-orbitron text-xl text-white opacity-40 italic">Σ</span>
-                    </div>
-                    <p className="text-[10px] text-warm-grey font-orbitron uppercase tracking-[0.8em] font-black">Awaiting Decree</p>
-                </div>
+              <RenderedAnalysis htmlContent={analysis} />
             )}
         </div>
       </div>
 
-      <div className="p-8 bg-black/40 border-t border-white/[0.05] flex-shrink-0 z-20 shadow-2xl">
-        <button 
-          onClick={runAnalysis} 
-          disabled={isLoading || !sophiaEngine} 
-          className="w-full py-4 rounded-xl bg-violet-600/5 hover:bg-violet-600/10 border border-violet-500/10 hover:border-violet-500/30 text-pearl/50 hover:text-white font-orbitron font-black text-[11px] uppercase tracking-[0.6em] transition-all disabled:opacity-20 active:scale-[0.98] relative overflow-hidden group/btn shadow-lg"
-        >
-            <div className="absolute inset-0 bg-white/5 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-[1500ms]" />
-            <span className="relative z-10">
-                {isLoading ? 'ANALYZING_PARITY...' : 'EXECUTE_SWEEP'}
-            </span>
-        </button>
+      {/* Action Deck (Footer) */}
+      <div className="p-6 bg-[#050505] border-t border-white/[0.05] z-20 flex gap-4">
+          <button 
+            onClick={() => runAnalysis()}
+            disabled={isLoading}
+            className={`flex-1 py-4 bg-white/[0.02] border border-white/10 hover:bg-gold/10 hover:border-gold/30 hover:text-gold transition-all rounded-sm font-orbitron text-[9px] uppercase tracking-[0.3em] font-bold shadow-lg active:scale-[0.98] group relative overflow-hidden ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+              <div className="absolute inset-0 bg-gold/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+              <span className="relative z-10">{isLoading ? 'Scanning...' : 'Execute_Heuristic_Sweep'}</span>
+          </button>
       </div>
     </div>
   );

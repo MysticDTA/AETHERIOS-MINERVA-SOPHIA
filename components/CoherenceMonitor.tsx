@@ -84,10 +84,10 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                             <button 
                                 onClick={runStrategySynthesis}
                                 disabled={isStrategizing}
-                                className="px-6 py-2.5 bg-violet-600/10 border border-violet-500/40 text-violet-200 font-orbitron text-[9px] uppercase tracking-[0.3em] font-bold hover:bg-violet-600 hover:text-white transition-all rounded-sm disabled:opacity-20 active:scale-95 shadow-lg group/btn relative overflow-hidden"
+                                className="px-8 py-3 bg-violet-600/10 border border-violet-500/40 text-violet-200 font-orbitron text-[10px] uppercase tracking-[0.3em] font-black hover:bg-violet-600 hover:text-white transition-all rounded-sm disabled:opacity-20 active:scale-95 shadow-lg group/btn relative overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                <span className="relative z-10">{isStrategizing ? 'Synthesizing...' : 'Sync Roadmap'}</span>
+                                <span className="relative z-10">{isStrategizing ? 'SYNTHESIZING...' : 'HEURISTIC TRIGGER'}</span>
                             </button>
                         </div>
 
@@ -123,15 +123,16 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                         <div className="flex justify-between items-center px-5 py-3 border-b border-white/5 flex-shrink-0 bg-white/[0.02]">
                             <span className="text-[10px] text-warm-grey uppercase tracking-widest font-black opacity-60">Coherence Spectral Flux</span>
                         </div>
-                        <div className="flex-1 p-6">
+                        <div className="flex-1 p-6 relative">
                             <svg viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
                                 <defs>
-                                    <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor={config.color} stopOpacity="0.15" />
-                                        <stop offset="100%" stopColor={config.color} stopOpacity="0" />
+                                    <linearGradient id="spectralFluxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#ffd700" stopOpacity="0.4" /> {/* Gold */}
+                                        <stop offset="50%" stopColor="#a78bfa" stopOpacity="0.2" /> {/* Violet */}
+                                        <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" /> {/* Red */}
                                     </linearGradient>
                                 </defs>
-                                <path d={graphPath.area} fill={`url(#areaGrad)`} className="transition-all duration-300" />
+                                <path d={graphPath.area} fill="url(#spectralFluxGrad)" className="transition-all duration-300" />
                                 <path d={graphPath.stroke} fill="none" stroke={config.color} strokeWidth="2" className="transition-all duration-300" />
                                 <circle cx={GRAPH_WIDTH} cy={GRAPH_HEIGHT - (score * GRAPH_HEIGHT * 0.8) - (GRAPH_HEIGHT * 0.1)} r="4" fill={config.color} className="animate-pulse shadow-[0_0_10px_currentColor]" />
                             </svg>

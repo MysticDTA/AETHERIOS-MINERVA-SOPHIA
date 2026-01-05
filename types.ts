@@ -17,7 +17,6 @@ declare global {
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
 
-// Added missing Collaborator interface
 export interface Collaborator {
     id: string;
     name: string;
@@ -358,4 +357,5 @@ export interface SystemState {
   isGrounded: boolean;
   isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
+  globalResonance: GlobalResonanceState;
 }

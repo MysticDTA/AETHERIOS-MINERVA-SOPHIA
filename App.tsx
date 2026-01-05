@@ -38,6 +38,7 @@ import { SatelliteUplink } from './components/SatelliteUplink';
 import { DeploymentManifest } from './components/DeploymentManifest';
 import { EventLog } from './components/EventLog';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
+import { EventHorizonScreen } from './components/EventHorizonScreen';
 import { SYSTEM_NODES, TIER_REGISTRY } from './Registry';
 
 const AETHERIOS_MANIFEST = `
@@ -102,6 +103,22 @@ const App: React.FC = () => {
     setShowDiagnosticScan(true);
   }, [setDiagnosticMode]);
 
+  const handleManualReset = useCallback(() => {
+    setSystemState(prev => ({
+        ...prev,
+        quantumHealing: { ...prev.quantumHealing, health: 1.0, decoherence: 0.0, lesions: 0 },
+        governanceAxiom: 'REGENERATIVE CYCLE',
+        resonanceFactorRho: 0.99
+    }));
+    audioEngine.current?.playEffect('reset');
+    addLogEntry(LogType.SYSTEM, "MANUAL_CORE_RESET: System restored to baseline parameters.");
+    
+    // Smooth transition back to normal
+    setTimeout(() => {
+        setSystemState(prev => ({ ...prev, governanceAxiom: 'SOVEREIGN EMBODIMENT' }));
+    }, 3000);
+  }, [setSystemState, addLogEntry]);
+
   const handleDiagnosticComplete = async () => {
     setIsRecalibrating(true);
     setSystemState(prev => ({
@@ -165,6 +182,10 @@ const App: React.FC = () => {
           default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={false} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
       }
   }, [currentPage, systemState, orbMode, transmission, voiceInterface, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, logFilter]);
+
+  if (systemState.governanceAxiom === 'SYSTEM COMPOSURE FAILURE') {
+      return <EventHorizonScreen audioEngine={audioEngine.current} onManualReset={handleManualReset} />;
+  }
 
   return (
     <ApiKeyGuard>

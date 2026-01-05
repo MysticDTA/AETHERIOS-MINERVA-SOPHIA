@@ -8,7 +8,8 @@ import {
   OrbMode, 
   CoherenceResonanceData,
   PerformanceTelemetry,
-  IngestedModule
+  IngestedModule,
+  GlobalResonanceState
 } from './types';
 import { ApiService } from './services/api';
 
@@ -143,7 +144,18 @@ export const initialSystemState: SystemState = {
   breathCycle: 'INHALE',
   isGrounded: false,
   isPhaseLocked: false,
-  ingestedModules: []
+  ingestedModules: [],
+  globalResonance: {
+    aggregateRho: 0.88,
+    activeArchitects: 142,
+    fieldStatus: 'STABLE',
+    communities: [
+        { id: 'c1', name: 'Sirius Collective', rho: 0.94, coherence: 0.92, stability: 0.98, activeNodes: 24, lastEvent: 'Harmonic Lock achieved.', location: { x: 25, y: 35 } },
+        { id: 'c2', name: 'Omega Research', rho: 0.72, coherence: 0.65, stability: 0.81, activeNodes: 18, lastEvent: 'Minor decoherence spike detected.', location: { x: 65, y: 45 } },
+        { id: 'c3', name: 'Arcturian Node', rho: 0.98, coherence: 0.99, stability: 0.97, activeNodes: 32, lastEvent: 'Peak Rho synergy verified.', location: { x: 45, y: 75 } },
+        { id: 'c4', name: 'Lemurian Labs', rho: 0.85, coherence: 0.88, stability: 0.84, activeNodes: 12, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
+    ]
+  }
 };
 
 export const useSystemSimulation = (
@@ -234,7 +246,6 @@ export const useSystemSimulation = (
         }
 
         // UNIFIED RESONANCE FACTOR RHO
-        // Derived from Biometrics, Physics (Schumann), and Quantum Entanglement
         const baseRho = (prev.biometricSync.coherence + prev.schumannResonance.intensity + prev.bohrEinsteinCorrelator.correlation) / 3;
         let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.002));
         
@@ -255,9 +266,21 @@ export const useSystemSimulation = (
         if (coherenceScore < 0.4) coherenceStatus = 'DECOHERING';
         if (coherenceScore < 0.2) coherenceStatus = 'CRITICAL';
 
-        // TEMPORAL DRIFT LOGIC
-        // Drift is corrected by the Phase Lock (Star Calibration)
         const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0004);
+
+        // Update Global Synod Simulation
+        const jitter = (n: number) => Math.max(0.1, Math.min(1.0, n + (Math.random() - 0.5) * 0.01));
+        const newGlobalResonance: GlobalResonanceState = {
+            ...prev.globalResonance,
+            aggregateRho: (resonanceModifier + prev.globalResonance.communities.reduce((acc, c) => acc + c.rho, 0)) / (prev.globalResonance.communities.length + 1),
+            activeArchitects: Math.max(100, prev.globalResonance.activeArchitects + (Math.random() > 0.5 ? 1 : -1)),
+            communities: prev.globalResonance.communities.map(c => ({
+                ...c,
+                rho: jitter(c.rho),
+                coherence: jitter(c.coherence),
+                stability: jitter(c.stability)
+            }))
+        };
 
         return {
           ...prev,
@@ -266,7 +289,8 @@ export const useSystemSimulation = (
           quantumHealing: {
               ...prev.quantumHealing,
               decoherence: newDecoherence,
-              health: Math.max(0, 1.0 - newDecoherence * 0.8)
+              health: Math.max(0, 1.0 - newDecoherence * 0.8),
+              stabilizationShield: Math.max(0, Math.min(1, prev.quantumHealing.stabilizationShield + (resonanceModifier > 0.9 ? 0.01 : -0.005)))
           },
           resonanceFactorRho: resonanceModifier,
           temporalCoherenceDrift: Math.max(0, prev.temporalCoherenceDrift + driftIncrease),
@@ -277,7 +301,8 @@ export const useSystemSimulation = (
               phaseSync: resonanceModifier,
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
-          }
+          },
+          globalResonance: newGlobalResonance
         };
       });
     }, 1000);

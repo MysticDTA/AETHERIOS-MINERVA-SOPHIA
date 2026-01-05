@@ -18,7 +18,7 @@ interface HeaderProps {
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
     const config = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
-    const isHighTier = tier === 'ARCHITECT' || tier === 'SOVEREIGN';
+    const isHighTier = tier === 'ARCHITECT' || tier === 'SOVEREIGN' || tier === 'LEGACY_MENERVA';
 
     return (
         <button 
@@ -30,11 +30,13 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
                 'border-rose-400/50 bg-rose-400/5 shadow-[0_0_12px_rgba(244,63,94,0.1)]'
             }`}
         >
-            <svg className={`w-5 h-5 md:w-6 md:h-6 ${tier === 'ACOLYTE' ? 'text-slate-500' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className={`w-5 h-5 md:w-6 md:h-6 ${tier === 'ACOLYTE' ? 'text-slate-500' : tier === 'LEGACY_MENERVA' ? 'text-rose-400' : 'text-pearl'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-dark-bg ${
-                !isHighTier ? 'bg-slate-700' : 'bg-gold animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.8)]'
+                !isHighTier ? 'bg-slate-700' : 
+                tier === 'LEGACY_MENERVA' ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]' : 
+                'bg-gold animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.8)]'
             }`} />
         </button>
     );

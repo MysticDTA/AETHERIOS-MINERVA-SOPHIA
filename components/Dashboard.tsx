@@ -96,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- COLUMN 3: COGNITIVE ANALYSIS & ARCHIVE (4/12) --- */}
-      <div className="xl:col-span-4 flex flex-col gap-6 h-full min-h-0">
+      <div className="xl:col-span-4 flex flex-col gap-6 h-full min-h-0 overflow-hidden">
         <div className="flex-shrink-0 h-[360px]">
              <SophiaCognitiveCore 
                 systemState={systemState} 
@@ -105,9 +105,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 setOrbMode={setOrbMode} 
              />
         </div>
-        <div className="flex-grow min-h-0 bg-black/30 rounded-2xl border border-white/5 overflow-hidden shadow-inner relative group">
-            <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity">SYNTHESIS</div>
-            <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
+        <div className="flex-grow min-h-0 bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">
+            <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity pointer-events-none">SYNTHESIS</div>
+            <div className="flex-1 min-h-0 relative">
+                <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
+            </div>
         </div>
       </div>
     </div>
