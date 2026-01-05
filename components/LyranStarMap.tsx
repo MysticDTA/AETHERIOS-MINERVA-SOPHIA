@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LyranConcordanceData, OrbMode } from '../types';
 import { Tooltip } from './Tooltip';
@@ -53,10 +54,13 @@ export const LyranStarMap: React.FC<LyranStarMapProps> = React.memo(({ data, cal
   }
 
   return (
-    <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
-      <h3 className="font-orbitron text-md text-warm-grey mb-2 text-center">Calibrate Concordance Field</h3>
-      <div className="w-full aspect-video bg-black/20 rounded-md p-2 relative overflow-hidden">
-        <svg viewBox="0 0 110 100" className={`w-full h-full ${isVibrationHigh ? 'shake-effect' : ''}`}>
+    <div className="w-full h-full flex flex-col bg-dark-surface/50 border border-dark-border/50 p-6 rounded-lg border-glow-gold backdrop-blur-sm relative overflow-hidden transition-all duration-500">
+      <h3 className="font-orbitron text-md text-warm-grey mb-4 text-center tracking-[0.2em] font-bold">Calibrate Concordance Field</h3>
+      
+      <div className="flex-1 w-full bg-black/40 rounded-lg relative overflow-hidden border border-white/5 shadow-inner">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05)_0%,transparent_70%)]" />
+        
+        <svg viewBox="0 0 110 100" className={`w-full h-full ${isVibrationHigh ? 'shake-effect' : ''}`} preserveAspectRatio="xMidYMid meet">
           <defs>
             <filter id="starGlow">
               <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
@@ -136,16 +140,17 @@ export const LyranStarMap: React.FC<LyranStarMapProps> = React.memo(({ data, cal
           ))}
         </svg>
       </div>
-      <div className="mt-3 pt-3 border-t border-dark-border/50 flex justify-between text-xs">
+      
+      <div className="mt-4 pt-4 border-t border-dark-border/50 flex justify-between text-xs items-end">
         <div className='text-left'>
-            <p className='text-warm-grey uppercase'>Connection Stability</p>
-            <p className='font-orbitron text-lg text-pearl'>{(stability * 100).toFixed(1)}%</p>
+            <p className='text-warm-grey uppercase tracking-widest text-[10px] mb-1'>Connection Stability</p>
+            <p className='font-orbitron text-xl text-pearl'>{(stability * 100).toFixed(1)}%</p>
         </div>
         <div className='text-right'>
             <Tooltip text="Lower is better. Represents the deviation from the optimal harmonic resonance with the Lyran network. High drift can lead to data corruption.">
-                <p className='text-warm-grey uppercase cursor-help'>Alignment Drift</p>
+                <p className='text-warm-grey uppercase cursor-help tracking-widest text-[10px] mb-1'>Alignment Drift</p>
             </Tooltip>
-            <p className={`font-orbitron text-lg ${drift > 0.1 ? 'text-gold' : 'text-pearl'}`}>
+            <p className={`font-orbitron text-xl ${drift > 0.1 ? 'text-gold' : 'text-pearl'}`}>
                 {(drift * 100).toFixed(3)}%
             </p>
         </div>

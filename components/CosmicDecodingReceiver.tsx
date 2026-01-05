@@ -155,33 +155,33 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                     </div>
                 </div>
 
-                <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
+                <div className="lg:col-span-8 flex flex-col gap-4 min-h-0 h-full">
                     <div className="flex-1 bg-black/80 rounded border border-white/10 p-8 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] font-orbitron text-7xl font-black pointer-events-none">RX</div>
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>
                              <span className="text-[9px] text-slate-600 font-bold">TIMESTAMP: {new Date().toLocaleTimeString()}</span>
                         </div>
-                        <p className="relative z-10 text-pearl/90 font-medium">
-                            {displayedMessage}
-                            {status === 'DECODING...' && <span className="inline-block w-2.5 h-5 bg-gold ml-1 animate-pulse align-middle shadow-[0_0_10px_gold]" />}
+                        <p className="relative z-10 text-pearl font-medium text-xl leading-relaxed tracking-wide">
+                            {displayedMessage || <span className="opacity-30 italic">Awaiting carrier signal lock...</span>}
+                            {status === 'DECODING...' && <span className="inline-block w-3 h-6 bg-gold ml-2 animate-pulse align-middle shadow-[0_0_10px_gold]" />}
                         </p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 h-14">
                         {status === 'TRANSMISSION COMPLETE' && (
                             <>
                                 <button 
                                     onClick={audioBuffer ? handlePlayAudio : handleSynthesize} 
                                     disabled={isSynthesizing} 
-                                    className="flex-1 py-4 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[10px] tracking-[0.2em] font-bold hover:bg-gold hover:text-black transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(255,215,0,0.1)]"
+                                    className="flex-1 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[10px] tracking-[0.2em] font-bold hover:bg-gold hover:text-black transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(255,215,0,0.1)] flex items-center justify-center"
                                 >
                                     {isSynthesizing ? 'Buffering Voice...' : audioBuffer ? 'Play Sonic Report' : 'Synthesize Telemetry Audio'}
                                 </button>
                                 <button 
                                     onClick={handleAstrophysicalAnalysis} 
                                     disabled={isAnalyzing} 
-                                    className="flex-1 py-4 bg-blue-900/20 border border-blue-500/40 text-blue-300 font-orbitron text-[10px] tracking-[0.2em] font-bold hover:bg-blue-600 hover:text-white transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.2)]"
+                                    className="flex-1 bg-blue-900/20 border border-blue-500/40 text-blue-300 font-orbitron text-[10px] tracking-[0.2em] font-bold hover:bg-blue-600 hover:text-white transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.2)] flex items-center justify-center"
                                 >
                                     {isAnalyzing ? 'Analyzing Physics...' : 'Interpretation Scan'}
                                 </button>
