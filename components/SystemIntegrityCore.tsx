@@ -22,13 +22,17 @@ export const SystemIntegrityCore: React.FC<SystemIntegrityCoreProps> = ({ data, 
   return (
     <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-5 rounded-lg border-glow-rose backdrop-blur-md relative overflow-hidden flex flex-col h-full transition-all duration-1000 group">
       <div className="flex justify-between items-center mb-4 z-10 border-b border-white/5 pb-2">
-        <h3 className="font-orbitron text-xs text-warm-grey uppercase tracking-[0.2em] font-bold">Integrity Core V2.0</h3>
-        <div className="flex items-center gap-2">
-            <span className={`w-1.5 h-1.5 rounded-full ${decoherence < 0.1 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gold animate-pulse'}`} />
-            <span className="font-mono text-[9px] text-pearl uppercase tracking-widest">
-                {decoherence < 0.1 ? 'COHERENCE_LOCKED' : 'RECALIBRATING'}
-            </span>
-        </div>
+        <Tooltip text="The central logic integrity processor. Monitors for decoherence fractures in the code-reality bridge.">
+            <h3 className="font-orbitron text-xs text-warm-grey uppercase tracking-[0.2em] font-bold cursor-help">Integrity Core V2.0</h3>
+        </Tooltip>
+        <Tooltip text="Current coherence status. LOCKED means no significant entropy. RECALIBRATING indicates active self-repair.">
+            <div className="flex items-center gap-2 cursor-help">
+                <span className={`w-1.5 h-1.5 rounded-full ${decoherence < 0.1 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gold animate-pulse'}`} />
+                <span className="font-mono text-[9px] text-pearl uppercase tracking-widest">
+                    {decoherence < 0.1 ? 'COHERENCE_LOCKED' : 'RECALIBRATING'}
+                </span>
+            </div>
+        </Tooltip>
       </div>
 
       <div className="flex-1 relative flex items-center justify-center min-h-[180px]">

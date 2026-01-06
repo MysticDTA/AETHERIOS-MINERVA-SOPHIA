@@ -93,6 +93,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleInitializeNode = useCallback(() => {
+      audioEngine.current?.resumeContext();
       audioEngine.current?.playHighResonanceChime(); 
       setIsInitialized(true); 
       cosmosCommsService.start();

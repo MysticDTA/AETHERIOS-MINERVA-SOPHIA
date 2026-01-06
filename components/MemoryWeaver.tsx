@@ -41,7 +41,7 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
         const r = ORBIT_RADIUS + (index % 2 === 0 ? 10 : -10); // Stagger radius
         const x = CENTER + r * Math.cos(angle);
         const y = CENTER + r * Math.sin(angle);
-        return { ...mem, x, y };
+        return { ...mem, x, y, angle };
     });
   }, [visualMemories]);
 
@@ -111,35 +111,40 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                 );
             })}
 
-            {/* Nodes */}
+            {/* Nodes (Petals) */}
             {memoryNodes.map(node => {
                 const isActive = activeMemory?.id === node.id;
+                // Petal shape logic: align rotation so it points outward
+                const rotation = (node.angle * 180) / Math.PI + 90; 
+                
                 return (
                     <g 
                         key={node.id}
-                        className="cursor-pointer transition-all duration-300"
+                        className="cursor-pointer transition-all duration-300 group/node"
                         onMouseEnter={() => setActiveMemory(node)}
+                        transform={`translate(${node.x}, ${node.y}) rotate(${rotation})`}
                     >
-                        {/* Interactive Hit Area */}
-                        <circle cx={node.x} cy={node.y} r={15} fill="transparent" />
+                        {/* Interactive Hit Area (Larger) */}
+                        <circle cx={0} cy={0} r={15} fill="transparent" />
                         
-                        {/* Visible Node */}
-                        <circle
-                            cx={node.x}
-                            cy={node.y}
-                            r={isActive ? 6 : 3}
+                        {/* Petal Shape */}
+                        <path
+                            d="M 0 -6 Q 4 0 0 6 Q -4 0 0 -6 Z"
                             fill={isActive ? 'var(--pearl)' : 'var(--dark-bg)'}
                             stroke={isActive ? 'var(--gold)' : 'var(--slate-500)'}
                             strokeWidth={isActive ? 1.5 : 0.5}
                             style={{
                                 filter: isActive ? 'url(#nodeGlow)' : 'none',
+                                transform: isActive ? 'scale(1.5)' : 'scale(1)',
                                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                             }}
                         />
+                        
+                        {/* Hover Ring Animation */}
                         {isActive && (
-                            <circle cx={node.x} cy={node.y} r={12} fill="none" stroke="var(--gold)" strokeWidth="0.5" opacity="0.5">
-                                <animate attributeName="r" values="6;14" dur="1s" repeatCount="indefinite" />
-                                <animate attributeName="opacity" values="0.8;0" dur="1s" repeatCount="indefinite" />
+                            <circle cx={0} cy={0} r={12} fill="none" stroke="var(--gold)" strokeWidth="0.5" opacity="0.5">
+                                <animate attributeName="r" values="6;16" dur="1.5s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" values="0.8;0" dur="1.5s" repeatCount="indefinite" />
                             </circle>
                         )}
                     </g>
@@ -148,43 +153,48 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
           </svg>
         </div>
 
-        {/* Structured Memory Readout Panel - EXPANDS TO FILL */}
+        {/* Structured Memory Readout Panel - High Readability */}
         <div className={`
-            flex-1 min-h-[100px] bg-black/60 border rounded-lg p-5 transition-all duration-500 flex flex-col gap-3 shadow-inner relative overflow-hidden backdrop-blur-md
-            ${activeMemory ? 'border-gold/30 shadow-[0_0_30px_rgba(255,215,0,0.05)]' : 'border-white/5'}
+            flex-1 min-h-[120px] bg-black/80 border rounded-lg p-5 transition-all duration-500 flex flex-col gap-3 shadow-inner relative overflow-hidden backdrop-blur-xl
+            ${activeMemory ? 'border-gold/30 shadow-[0_0_30px_rgba(255,215,0,0.05)]' : 'border-white/5 opacity-80'}
         `}>
-            {/* Background Gradient for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80 pointer-events-none" />
-            
             {activeMemory ? (
-                <div className="relative z-10 animate-fade-in flex flex-col h-full">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-2 shrink-0">
-                        <span className="text-[9px] font-mono text-gold uppercase tracking-[0.2em] font-bold">
-                            Block_ID: {activeMemory.id.split('_')[2]}
-                        </span>
+                <div className="relative z-10 animate-fade-in flex flex-col h-full gap-2">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-gold rounded-full shadow-[0_0_5px_gold]" />
+                            <span className="text-[9px] font-mono text-gold uppercase tracking-[0.2em] font-bold">
+                                Block_ID: {activeMemory.id.split('_')[2] || 'UNKNOWN'}
+                            </span>
+                        </div>
                         <div className="flex items-center gap-3">
-                            <span className="text-[9px] font-mono text-slate-500">
+                            <span className="text-[9px] font-mono text-slate-400">
                                 {new Date(activeMemory.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
                             <button 
                                 onClick={() => handleCopy(activeMemory.content)}
-                                className={`text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${copied ? 'border-green-500 text-green-400' : 'border-white/10 text-slate-500 hover:text-pearl'}`}
+                                className={`text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${copied ? 'border-green-500 text-green-400' : 'border-white/10 text-slate-500 hover:text-pearl hover:bg-white/10'}`}
                             >
                                 {copied ? 'COPIED' : 'COPY'}
                             </button>
                         </div>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto scrollbar-thin pr-2">
-                        <p className="text-[13px] font-minerva text-pearl leading-relaxed antialiased whitespace-pre-wrap">
+                    <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 bg-white/[0.02] rounded p-2 border border-white/5 shadow-inner">
+                        <p className="text-[13px] font-minerva text-pearl leading-relaxed antialiased whitespace-pre-wrap selection:bg-gold/30 selection:text-white">
                             {activeMemory.content}
                         </p>
                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-white/5 flex justify-between items-center shrink-0">
-                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest font-bold">
-                            Context: {activeMemory.pillarContext || 'GENERAL_LOGIC'}
-                        </span>
+                    <div className="mt-1 pt-2 border-t border-white/5 flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">
+                                Context:
+                            </span>
+                            <span className="text-[8px] font-mono text-violet-300 uppercase tracking-widest font-bold bg-violet-900/20 px-2 py-0.5 rounded border border-violet-500/20">
+                                {activeMemory.pillarContext || 'GENERAL_LOGIC'}
+                            </span>
+                        </div>
                         <div className="flex gap-1">
                             <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
                             <div className="w-1.5 h-1.5 bg-gold rounded-full opacity-50" />
@@ -193,9 +203,9 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center h-full relative z-10 opacity-30 gap-3">
-                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-500 animate-[spin_10s_linear_infinite] flex items-center justify-center">
-                        <div className="w-2 h-2 bg-slate-500 rounded-full" />
+                <div className="flex flex-col items-center justify-center h-full relative z-10 opacity-40 gap-3">
+                    <div className="w-12 h-12 rounded-full border border-dashed border-slate-500 animate-[spin_20s_linear_infinite] flex items-center justify-center">
+                        <div className="w-1 h-1 bg-slate-500 rounded-full" />
                     </div>
                     <span className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold">
                         Hover Node to Decrypt

@@ -10,6 +10,7 @@ import { SophiaEngineCore } from '../services/sophiaEngine';
 import { SystemIntegrityCore } from './SystemIntegrityCore';
 import { PerformanceMetricsChart } from './PerformanceMetricsChart';
 import { NodeStabilityMatrix } from './NodeStabilityMatrix';
+import { Tooltip } from './Tooltip';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -36,7 +37,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex flex-col">
-                    <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.6em] font-black leading-none">Topology_Lattice</h4>
+                    <Tooltip text="The structural layout of the local reality node within the global ÆTHERIOS lattice.">
+                        <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.6em] font-black leading-none cursor-help">Topology_Lattice</h4>
+                    </Tooltip>
                     <span className="text-[7px] font-mono text-slate-600 uppercase tracking-widest mt-1">Node_Registry: 0x88_ALPHA</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -76,7 +79,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="xl:col-span-5 flex flex-col items-center gap-6 overflow-y-auto px-2 hide-scrollbar">
         <div className="w-full flex flex-col items-center justify-center min-h-[440px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
-            <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
+            
+            <Tooltip text="Causal Health Visualization: Represents the structural integrity of the local reality shard. A stable, coherent core indicates optimal logic flow (1.0), while fragmentation or red-shifting warns of decoherence and potential causal fractures.">
+                <div className="cursor-help">
+                    <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
+                </div>
+            </Tooltip>
+
             <div className="mt-8 w-full max-w-[420px]">
                 <MetricDisplay 
                     label="Resonance Rho" 

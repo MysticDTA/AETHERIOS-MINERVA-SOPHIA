@@ -92,7 +92,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
       <MotherboardOverlay />
       
       {/* Optimized Main Content Area with maximized screen real-estate */}
-      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-6 md:py-4 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
+      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-4 md:py-3 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
         {children}
       </div>
       
