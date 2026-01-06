@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { SystemState, FailurePrediction, CausalStrategy } from '../../types';
 import { SophiaEngineCore } from '../../services/sophiaEngine';
@@ -70,7 +71,7 @@ export const useSophiaCore = (
       const res = await sophiaEngine.getFailurePrediction(systemStateRef.current);
       setPrediction(res);
     } catch (e) {
-      console.error("Prediction failed", e);
+      console.warn("Prediction sequence bypassed:", e);
     } finally {
       setIsPredicting(false);
     }
@@ -83,7 +84,7 @@ export const useSophiaCore = (
         const res = await sophiaEngine.getComplexStrategy(systemStateRef.current);
         setStrategy(res);
     } catch (e) {
-        console.error("Strategy synthesis failed", e);
+        console.warn("Strategy synthesis skipped:", e);
     } finally {
         setIsStrategizing(false);
     }

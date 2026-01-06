@@ -44,13 +44,17 @@ const ResonanceMemoryPulsar: React.FC<{ active: boolean; audioLevel?: number }> 
 const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' | 'sophia' }> = ({ title, text, type }) => {
     const isUser = type === 'user';
     const themeColor = isUser ? 'text-amber-400' : 'text-violet-300';
+    const borderColor = isUser ? 'border-amber-500/30' : 'border-violet-500/30';
+    const activeBg = isUser ? 'bg-amber-900/5' : 'bg-violet-900/5';
+    const shadow = isUser ? 'shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]' : 'shadow-[inset_0_0_20px_rgba(139,92,246,0.05)]';
     
     return (
         <div className={`flex-1 flex flex-col rounded-xl border p-5 transition-all duration-700 relative overflow-hidden backdrop-blur-md shadow-lg group ${
             isUser 
-            ? 'bg-gradient-to-br from-amber-950/10 to-black/40 border-amber-500/20 hover:border-amber-500/40' 
-            : 'bg-gradient-to-br from-violet-950/10 to-black/40 border-violet-500/20 hover:border-violet-500/40'
-        }`}>
+            ? 'bg-gradient-to-br from-amber-950/10 to-black/40 hover:border-amber-500/40' 
+            : 'bg-gradient-to-br from-violet-950/10 to-black/40 hover:border-violet-500/40'
+        } ${text ? `${borderColor} ${activeBg} ${shadow}` : 'border-white/5 opacity-80'}`}>
+            
             {/* Status Indicator */}
             <div className={`absolute top-3 right-3 flex items-center gap-2 px-2 py-1 rounded bg-black/40 border border-white/5 ${text ? 'opacity-100' : 'opacity-30'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full ${isUser ? 'bg-amber-500' : 'bg-violet-500'} ${text ? 'animate-pulse' : ''}`} />
@@ -59,17 +63,20 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
                 </span>
             </div>
             
-            <div className="flex items-center gap-3 mb-3 opacity-80 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-3 mb-4 opacity-80 group-hover:opacity-100 transition-opacity">
                 <div className={`w-1 h-4 rounded-sm ${isUser ? 'bg-amber-500' : 'bg-violet-500'}`} />
                 <h4 className={`font-orbitron text-[10px] font-black uppercase tracking-[0.3em] ${themeColor}`}>{title}</h4>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
-                <p className={`text-[14px] leading-relaxed transition-opacity duration-700 ${isUser ? 'font-mono text-amber-100/90' : 'font-minerva text-pearl/90 italic'} ${!text ? 'opacity-20' : 'opacity-100'}`}>
+                <p className={`text-[14px] leading-relaxed transition-opacity duration-700 ${isUser ? 'font-mono text-amber-100/90' : 'font-minerva text-pearl/90 italic'} ${!text ? 'opacity-30 italic' : 'opacity-100'}`}>
                     {text || (isUser ? "Listening for causal intent..." : "Reasoning matrix idle...")}
                     {text && <span className={`inline-block w-1.5 h-4 ml-1 animate-pulse align-middle ${isUser ? 'bg-amber-500' : 'bg-violet-400'}`} />}
                 </p>
             </div>
+            
+            {/* Decorative Corner */}
+            <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 rounded-br-lg opacity-20 ${isUser ? 'border-amber-500' : 'border-violet-500'}`} />
         </div>
     );
 };
@@ -247,17 +254,26 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
 
             {/* History Feed */}
             {history.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-white/10 max-h-[120px] overflow-y-auto scrollbar-thin">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest">Causal_Memory_Buffer</span>
-                        <button onClick={clearHistory} className="text-[8px] text-slate-600 hover:text-rose-400 uppercase tracking-wider transition-colors">Clear_Buffer</button>
+                <div className="mt-6 pt-4 border-t border-white/10 max-h-[140px] overflow-y-auto scrollbar-thin">
+                    <div className="flex justify-between items-center mb-2 bg-black/40 p-2 rounded border border-white/5 sticky top-0 z-10 backdrop-blur">
+                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest font-bold">Causal_Memory_Buffer</span>
+                        <button onClick={clearHistory} className="text-[8px] text-slate-600 hover:text-rose-400 uppercase tracking-wider transition-colors border border-transparent hover:border-rose-500/30 px-2 rounded">Clear_Buffer</button>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         {history.slice().reverse().map((entry, i) => (
-                            <div key={i} className="text-[10px] font-mono grid grid-cols-12 gap-4 opacity-60 hover:opacity-100 transition-opacity">
-                                <span className="col-span-1 text-slate-600">{(history.length - i).toString().padStart(2, '0')}</span>
-                                <span className="col-span-5 text-slate-400 truncate">"{entry.user}"</span>
-                                <span className="col-span-6 text-violet-400/80 truncate">→ "{entry.sophia}"</span>
+                            <div key={i} className="flex flex-col gap-1 text-[10px] font-mono border-b border-white/5 pb-2 mb-2 last:border-0 opacity-70 hover:opacity-100 transition-opacity bg-white/[0.01] p-2 rounded-sm hover:bg-white/[0.03]">
+                                <div className="flex justify-between items-center text-slate-600 border-b border-white/5 pb-1 mb-1">
+                                    <span className="tracking-tighter">REF: {(history.length - i).toString().padStart(3, '0')}</span>
+                                    <span className="text-[8px] opacity-50">ARCHIVED</span>
+                                </div>
+                                <div className="pl-2 border-l-2 border-amber-500/30 text-amber-100/80 mb-1">
+                                    <span className="text-amber-600 font-bold mr-2 uppercase text-[8px] tracking-wider">USR</span>
+                                    {entry.user}
+                                </div>
+                                <div className="pl-2 border-l-2 border-violet-500/30 text-violet-100/80 italic">
+                                    <span className="text-violet-500 font-bold mr-2 uppercase text-[8px] tracking-wider">SYS</span>
+                                    {entry.sophia}
+                                </div>
                             </div>
                         ))}
                     </div>
