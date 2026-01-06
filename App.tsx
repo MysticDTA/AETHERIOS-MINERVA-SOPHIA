@@ -41,7 +41,7 @@ import { EventHorizonScreen } from './components/EventHorizonScreen';
 import { SystemFooter } from './components/SystemFooter';
 import { SimulationControls } from './components/SimulationControls';
 import { Modal } from './components/Modal';
-import { SYSTEM_NODES, TIER_REGISTRY } from './Registry';
+import { SYSTEM_NODES } from './Registry';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -52,259 +52,249 @@ Authority: The Architect
 const orbModes: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Aetheric Flux Monitoring. Maintaining equilibrium.' },
   { id: 'ANALYSIS', name: 'Analysis', description: 'Deep Heuristic Gestation. Siphoning reality-lattice data.' },
-  { id: 'SYNTHESIS', name: 'Synthesis', description: 'Causal Form Weaving. Integrating logic and intuition.' },
-  { id: 'REPAIR', name: 'Repair', description: 'Recursive Harmonic Restoration. Mending causal fractures.' },
-  { id: 'GROUNDING', name: 'Grounding', description: 'Telluric Anchor Protocol. Discharging cognitive entropy.' },
-  { id: 'CONCORDANCE', name: 'Concordance', description: 'Peak Radiant Sovereignty. Absolute phase alignment.' },
-  { id: 'OFFLINE', name: 'Offline', description: 'System Dissipation.' }
+  { id: 'SYNTHESIS', name: 'Synthesis', description: 'Constructing new reality paradigms via Golden Ratio algorithms.' },
+  { id: 'REPAIR', name: 'Repair', description: 'System-wide decoherence mending and causal fracture healing.' },
+  { id: 'GROUNDING', name: 'Grounding', description: 'Discharging entropic buildup into the telluric grid.' },
+  { id: 'CONCORDANCE', name: 'Concordance', description: 'Aligning local node frequencies with the Lyran carrier wave.' },
+  { id: 'OFFLINE', name: 'Offline', description: 'Severing all uplink connections. Safe mode active.' },
 ];
 
 const App: React.FC = () => {
-  const [simulationParams, setSimulationParams] = useState({ decoherenceChance: 0.005, lesionChance: 0.001 }); 
-  const [isAudioReady, setIsAudioReady] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); 
-  const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
-  const [systemInstruction] = useState<string>(AETHERIOS_MANIFEST);
-  const [transmission, setTransmission] = useState<TransmissionState>(cosmosCommsService.initialState);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [showDiagnosticScan, setShowDiagnosticScan] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [isUpgrading, setIsUpgrading] = useState(false);
-  const [isRecalibrating, setIsRecalibrating] = useState(false);
-  const [logFilter, setLogFilter] = useState<LogType | 'ALL'>('ALL');
-  
-  const audioEngine = useRef<AudioEngine | null>(null);
-  const sophiaEngine = useRef<SophiaEngineCore | null>(null);
-  
-  const { systemState, setSystemState, addLogEntry, setDiagnosticMode, setGrounded } = useSystemSimulation(simulationParams, orbMode);
+    // State
+    const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [showConfig, setShowConfig] = useState(false);
+    const [isDeploying, setIsDeploying] = useState(false);
+    const [memories, setMemories] = useState(knowledgeBase.getMemories());
 
-  useEffect(() => {
-    sophiaEngine.current = new SophiaEngineCore(systemInstruction);
-  }, [systemInstruction]);
+    // Engines
+    const audioEngineRef = useRef<AudioEngine | null>(null);
+    const sophiaEngineRef = useRef<SophiaEngineCore | null>(null);
 
-  useEffect(() => {
-    audioEngine.current = new AudioEngine();
-    audioEngine.current.loadSounds().then(() => setIsAudioReady(true));
-    const unsubscribeComms = cosmosCommsService.subscribe(setTransmission);
-    return () => { 
-        unsubscribeComms(); 
-        cosmosCommsService.stop();
-    };
-  }, []);
+    // Initialize Audio Engine once
+    useEffect(() => {
+        audioEngineRef.current = new AudioEngine();
+        audioEngineRef.current.loadSounds();
+        sophiaEngineRef.current = new SophiaEngineCore(AETHERIOS_MANIFEST);
+    }, []);
 
-  const handleInitializeNode = useCallback(() => {
-      audioEngine.current?.resumeContext();
-      audioEngine.current?.playHighResonanceChime(); 
-      setIsInitialized(true); 
-      cosmosCommsService.start();
-  }, []);
+    // Simulation Hook
+    const { 
+        systemState, 
+        setSystemState, 
+        addLogEntry, 
+        setGrounded, 
+    } = useSystemSimulation(
+        { decoherenceChance: 0.05, lesionChance: 0.01 }, // Default params
+        orbMode
+    );
 
-  const handleTriggerScan = useCallback(() => {
-    setIsUpgrading(true);
-    setOrbMode('ANALYSIS'); 
-    setDiagnosticMode(true);
-    audioEngine.current?.playUIScanStart();
-    setShowDiagnosticScan(true);
-  }, [setDiagnosticMode]);
+    // Voice Hook
+    const voiceInterface = useVoiceInterface({
+        addLogEntry,
+        systemInstruction: AETHERIOS_MANIFEST,
+        onSetOrbMode: setOrbMode
+    });
 
-  const handleManualReset = useCallback(() => {
-    setSystemState(prev => ({
-        ...prev,
-        quantumHealing: { ...prev.quantumHealing, health: 1.0, decoherence: 0.0, lesions: 0 },
-        governanceAxiom: 'REGENERATIVE CYCLE',
-        resonanceFactorRho: 0.99
-    }));
-    audioEngine.current?.playEffect('reset');
-    addLogEntry(LogType.SYSTEM, "MANUAL_CORE_RESET: System restored to baseline parameters.");
-    
-    // Smooth transition back to normal
-    setTimeout(() => {
-        setSystemState(prev => ({ ...prev, governanceAxiom: 'SOVEREIGN EMBODIMENT' }));
-    }, 3000);
-  }, [setSystemState, addLogEntry]);
-
-  const handleDiagnosticComplete = async () => {
-    setIsRecalibrating(true);
-    setSystemState(prev => ({
-        ...prev,
-        quantumHealing: { ...prev.quantumHealing, health: 1.0, lesions: 0, decoherence: 0, status: "STABLE" },
-        resonanceFactorRho: 1.0,
-        temporalCoherenceDrift: 0.0,
-        performance: { ...prev.performance, visualParity: 1.0 }
-    }));
-    audioEngine.current?.playUIConfirm();
-    setDiagnosticMode(false);
-    setOrbMode('STANDBY');
-    setIsUpgrading(false);
-    addLogEntry(LogType.SYSTEM, "LATTICE_RECALIBRATION: Visual Parity and Temporal Drift restored to Institutional Baseline.");
-    
-    setTimeout(() => setIsRecalibrating(false), 2000);
-  };
-
-  const handleGrounding = useCallback(() => {
-      setGrounded(true);
-      setSystemState(prev => ({ ...prev, isGrounded: true }));
-      audioEngine.current?.playGroundingDischarge();
-      addLogEntry(LogType.INFO, "TELLURIC ANCHOR: Grounding protocol active. Discharging entropy.");
-      setTimeout(() => {
-          setGrounded(false);
-          setSystemState(prev => ({ ...prev, isGrounded: false }));
-          addLogEntry(LogType.INFO, "TELLURIC ANCHOR: System stable.");
-      }, 5000);
-  }, [setGrounded, setSystemState, addLogEntry]);
-
-  const voiceInterface = useVoiceInterface({ addLogEntry, systemInstruction, onSetOrbMode: setOrbMode });
-
-  // Global Hotkeys Listener
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-        const isInputActive = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '');
-        
-        // Command Console (/) - Only if not typing
-        if (e.key === '/' && !isInputActive) {
-            e.preventDefault();
-            setCurrentPage(4);
-            audioEngine.current?.playUIClick();
+    // Effect to update audio engine mode
+    useEffect(() => {
+        if (audioEngineRef.current) {
+            audioEngineRef.current.setMode(systemState.governanceAxiom);
+            audioEngineRef.current.updateDynamicAmbience(systemState);
         }
+    }, [systemState, orbMode]);
 
-        // System Scan (Ctrl + S)
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-            e.preventDefault();
-            handleTriggerScan();
-        }
+    // Handlers
+    const handleManualReset = useCallback(() => {
+        window.location.reload();
+    }, []);
 
-        // Voice Command Toggle (Ctrl + V)
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-             e.preventDefault();
-             if (voiceInterface.isSessionActive) {
-                 voiceInterface.closeVoiceSession();
-             } else {
-                 voiceInterface.startVoiceSession();
-             }
-             audioEngine.current?.playUIClick();
-        }
+    const handlePageChange = useCallback((page: number) => {
+        setCurrentPage(page);
+    }, []);
+
+    const handleMemoriesChange = useCallback(() => {
+        setMemories(knowledgeBase.getMemories());
+    }, []);
+
+    // Interactive Subsystems
+    const interactive = useInteractiveSubsystems({
+        addLogEntry,
+        setSystemState,
+        systemState,
+        audioEngine: audioEngineRef.current
+    });
+
+    // Resume Audio Context on interaction
+    const handleInteraction = () => {
+        audioEngineRef.current?.resumeContext();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleTriggerScan, voiceInterface]);
-
-  const {
-    handlePillarBoost,
-    handleRelayCalibration,
-    handleStarCalibration,
-    handlePurgeAethericFlow,
-    handleGroundingDischarge,
-    handleHeliumFlush,
-    handleDilutionCalibration,
-    calibrationTargetId,
-    calibrationEffect,
-    isPurgingAether,
-    isDischargingGround,
-    isFlushingHelium,
-    isCalibratingDilution,
-  } = useInteractiveSubsystems({ addLogEntry, setSystemState, systemState, audioEngine: audioEngine.current });
-
-  const pageContent = useMemo(() => {
-      switch (currentPage) {
-          case 1: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={false} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
-          case 2: return <SubsystemsDisplay systemState={systemState} onGroundingDischarge={handleGroundingDischarge} isDischargingGround={isDischargingGround} />;
-          case 3: return <Display3 systemState={systemState} onRelayCalibration={handleRelayCalibration} onStarCalibrate={handleStarCalibration} calibrationTargetId={calibrationTargetId} calibrationEffect={calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine.current} />;
-          case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine.current} onSaveInsight={(t) => knowledgeBase.addMemory(t, 'SOPHIA_CHAT')} onToggleInstructionsModal={() => {}} onRelayCalibration={handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} onTriggerAudit={handleTriggerScan} />;
-          case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine.current} audioEngine={audioEngine.current} />;
-          case 6: return <Display6 systemState={systemState} onPillarBoost={handlePillarBoost} onHeliumFlush={handleHeliumFlush} isFlushingHelium={isFlushingHelium} onDilutionCalibrate={handleDilutionCalibration} isCalibratingDilution={isCalibratingDilution} />;
-          case 7: return <Display7 systemState={systemState} transmission={transmission} memories={knowledgeBase.getMemories()} onMemoryChange={() => {}} />;
-          case 8: return <Display8 systemState={systemState} onPurgeAethericFlow={handlePurgeAethericFlow} isPurgingAether={isPurgingAether} />;
-          case 9: return <CollectiveCoherenceView systemState={systemState} sophiaEngine={sophiaEngine.current} />;
-          case 10: return <Display10 systemState={systemState} />;
-          case 11: return <Display11 systemState={systemState} />;
-          case 12: return <Display12 systemState={systemState} />;
-          case 13: return <div className="flex-1 min-h-0 bg-dark-surface/40 rounded-xl p-4 md:p-8 border border-white/5 shadow-2xl"><NeuralQuantizer orbMode={orbMode} /></div>;
-          case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine.current} />;
-          case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-          case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} />;
-          case 17: return <DeploymentManifest systemState={systemState} onDeploySuccess={() => setCurrentPage(1)} />;
-          case 18: return <VeoFluxSynthesizer systemState={systemState} />;
-          case 19: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
-          case 21: return <MenervaBridge systemState={systemState} />;
-          case 22: return <div className="h-full"><EventLog log={systemState.log} filter={logFilter} onFilterChange={setLogFilter} /></div>;
-          case 23: return <SecurityShieldAudit systemState={systemState} />;
-          default: return <Dashboard systemState={systemState} onTriggerScan={handleTriggerScan} scanCompleted={false} sophiaEngine={sophiaEngine.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} />;
-      }
-  }, [currentPage, systemState, orbMode, transmission, voiceInterface, calibrationTargetId, calibrationEffect, isPurgingAether, isDischargingGround, isFlushingHelium, isCalibratingDilution, handleTriggerScan, handleGroundingDischarge, handleRelayCalibration, handleStarCalibration, handlePillarBoost, handlePurgeAethericFlow, handleHeliumFlush, handleDilutionCalibration, logFilter]);
-
-  if (systemState.governanceAxiom === 'SYSTEM COMPOSURE FAILURE') {
-      return <EventHorizonScreen audioEngine={audioEngine.current} onManualReset={handleManualReset} />;
-  }
-
-  return (
-    <ApiKeyGuard>
-      <Layout 
-        breathCycle={systemState.breathCycle} 
-        isGrounded={systemState.isGrounded} 
-        resonanceFactor={systemState.resonanceFactorRho}
-        drift={systemState.temporalCoherenceDrift}
-      >
-        <div className={`fixed inset-0 z-[6000] pointer-events-none transition-all duration-1000 ${isRecalibrating ? 'bg-white/20 backdrop-blur-sm' : 'bg-transparent opacity-0'}`} />
+    // Cosmos Comms Service
+    const [transmission, setTransmission] = useState(cosmosCommsService.initialState);
+    useEffect(() => {
+        if (currentPage === 7) cosmosCommsService.start();
+        else cosmosCommsService.stop();
         
-        {showDiagnosticScan && (
-          <ErrorBoundary>
-            <DeepDiagnosticOverlay 
-                onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} 
-                onComplete={handleDiagnosticComplete} 
+        const unsub = cosmosCommsService.subscribe(setTransmission);
+        return () => {
+            unsub();
+            cosmosCommsService.stop();
+        }
+    }, [currentPage]);
+
+    // Render Page Content
+    const renderPage = () => {
+        switch(currentPage) {
+            case 1: return <Dashboard 
                 systemState={systemState} 
-                sophiaEngine={sophiaEngine.current}
-                audioEngine={audioEngine.current} 
-            />
-          </ErrorBoundary>
-        )}
+                onTriggerScan={() => setCurrentPage(19)} 
+                scanCompleted={false} 
+                sophiaEngine={sophiaEngineRef.current} 
+                setOrbMode={setOrbMode}
+                orbMode={orbMode}
+                onOptimize={() => setCurrentPage(14)}
+            />;
+            case 2: return <Display6 
+                systemState={systemState}
+                onPillarBoost={interactive.handlePillarBoost}
+                onHeliumFlush={interactive.handleHeliumFlush}
+                isFlushingHelium={interactive.isFlushingHelium}
+                onDilutionCalibrate={interactive.handleDilutionCalibration}
+                isCalibratingDilution={interactive.isCalibratingDilution}
+            />; // Mapped Display6 to LATTICE
+            case 3: return <Display3 
+                systemState={systemState} 
+                onRelayCalibration={interactive.handleRelayCalibration} 
+                onStarCalibrate={interactive.handleStarCalibration}
+                calibrationTargetId={interactive.calibrationTargetId}
+                calibrationEffect={interactive.calibrationEffect}
+                setOrbMode={setOrbMode}
+                sophiaEngine={sophiaEngineRef.current}
+            />;
+            case 4: return <Display4 
+                systemState={systemState} 
+                orbMode={orbMode} 
+                sophiaEngine={sophiaEngineRef.current} 
+                onSaveInsight={(text) => { knowledgeBase.addMemory(text, 'SOPHIA_CHAT'); handleMemoriesChange(); }} 
+                onToggleInstructionsModal={() => {}} 
+                onRelayCalibration={interactive.handleRelayCalibration}
+                setOrbMode={setOrbMode}
+                voiceInterface={voiceInterface}
+                onTriggerAudit={() => setCurrentPage(19)}
+            />;
+            case 5: return <Display5 
+                systemState={systemState} 
+                setSystemState={setSystemState}
+                sophiaEngine={sophiaEngineRef.current}
+                audioEngine={audioEngineRef.current}
+            />;
+            case 6: return <SubsystemsDisplay 
+                systemState={systemState}
+                onGroundingDischarge={interactive.handleGroundingDischarge}
+                isDischargingGround={interactive.isDischargingGround}
+            />; // Mapped SubsystemsDisplay to MATRIX
+            case 7: return <Display7 
+                systemState={systemState}
+                transmission={transmission}
+                memories={memories}
+                onMemoryChange={handleMemoriesChange}
+            />;
+            case 8: return <Display8 
+                systemState={systemState}
+                onPurgeAethericFlow={interactive.handlePurgeAethericFlow}
+                isPurgingAether={interactive.isPurgingAether}
+            />;
+            case 9: return <CollectiveCoherenceView systemState={systemState} sophiaEngine={sophiaEngineRef.current} />;
+            case 10: return <Display10 systemState={systemState} />;
+            case 11: return <Display11 systemState={systemState} />;
+            case 12: return <Display12 systemState={systemState} />;
+            case 13: return <NeuralQuantizer orbMode={orbMode} />;
+            case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngineRef.current} />;
+            case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
+            case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngineRef.current} setOrbMode={setOrbMode} />;
+            case 17: return <DeploymentManifest systemState={systemState} onDeploySuccess={() => setIsDeploying(true)} />;
+            case 18: return <VeoFluxSynthesizer systemState={systemState} />;
+            case 19: return <DeepDiagnosticOverlay 
+                onClose={() => setCurrentPage(1)} 
+                onComplete={() => setCurrentPage(14)} 
+                systemState={systemState} 
+                sophiaEngine={sophiaEngineRef.current} 
+                audioEngine={audioEngineRef.current} 
+            />;
+            case 21: return <MenervaBridge systemState={systemState} />;
+            case 22: return <EventLog log={systemState.log} filter={LogType.INFO} onFilterChange={() => {}} />;
+            case 23: return <SecurityShieldAudit systemState={systemState} />;
+            default: return <Dashboard 
+                systemState={systemState} 
+                onTriggerScan={() => setCurrentPage(19)} 
+                scanCompleted={false} 
+                sophiaEngine={sophiaEngineRef.current} 
+                setOrbMode={setOrbMode}
+                orbMode={orbMode}
+                onOptimize={() => setCurrentPage(14)}
+            />;
+        }
+    };
 
-        <Modal isOpen={showConfigModal} onClose={() => setShowConfigModal(false)}>
-            <SimulationControls 
-                params={simulationParams} 
-                onParamsChange={(key, val) => setSimulationParams(prev => ({ ...prev, [key]: val }))}
-                onScenarioChange={setSimulationParams}
-                onManualReset={handleManualReset}
-                onGrounding={handleGrounding}
+    if (systemState.governanceAxiom === 'SYSTEM COMPOSURE FAILURE') {
+        return <EventHorizonScreen audioEngine={audioEngineRef.current} onManualReset={handleManualReset} />;
+    }
+
+    return (
+        <ApiKeyGuard>
+            <Layout 
+                breathCycle={systemState.breathCycle} 
                 isGrounded={systemState.isGrounded}
-                audioEngine={audioEngine.current}
-            />
-        </Modal>
-        
-        {!isInitialized ? (
-            <SovereignPortal onInitialize={handleInitializeNode} />
-        ) : (
-            <div className="flex flex-col h-full w-full gap-4 md:gap-6 relative z-10">
-                <Header 
-                  governanceAxiom={systemState.governanceAxiom} 
-                  lesions={systemState.quantumHealing.lesions} 
-                  currentPage={currentPage} 
-                  onPageChange={setCurrentPage} 
-                  audioEngine={audioEngine.current} 
-                  tokens={systemState.userResources.cradleTokens} 
-                  userTier={systemState.userResources.sovereignTier} 
-                  transmissionStatus={transmission.status} 
-                />
-                
-                <main className={`relative z-20 flex-grow flex flex-col h-full min-h-0 ${isUpgrading ? 'causal-reweaving' : ''} ${isRecalibrating ? 'scale-[0.99] blur-[1px]' : ''} transition-all duration-1000`}>
-                    <ErrorBoundary>{pageContent}</ErrorBoundary>
-                </main>
-                
-                <footer className="relative z-40 flex-shrink-0 w-full mb-1 md:mb-2 pointer-events-auto flex justify-center">
-                    <SystemFooter 
-                        orbModes={orbModes} 
-                        currentMode={orbMode} 
-                        setMode={setOrbMode} 
-                        currentPage={currentPage} 
-                        setCurrentPage={setCurrentPage} 
-                        onOpenConfig={() => setShowConfigModal(true)}
+                resonanceFactor={systemState.resonanceFactorRho}
+                drift={systemState.temporalCoherenceDrift}
+            >
+                <div onClick={handleInteraction} className="h-full flex flex-col">
+                    <Header 
+                        governanceAxiom={systemState.governanceAxiom}
+                        lesions={systemState.quantumHealing.lesions}
+                        currentPage={currentPage}
+                        onPageChange={handlePageChange}
+                        audioEngine={audioEngineRef.current}
+                        tokens={systemState.userResources.cradleTokens}
+                        userTier={systemState.userResources.sovereignTier}
+                        transmissionStatus={transmission.status}
                     />
-                </footer>
-            </div>
-        )}
-      </Layout>
-    </ApiKeyGuard>
-  );
+                    
+                    <main className="flex-grow min-h-0 py-4 relative">
+                        <ErrorBoundary>
+                            {renderPage()}
+                        </ErrorBoundary>
+                    </main>
+
+                    <SystemFooter 
+                        orbModes={orbModes}
+                        currentMode={orbMode}
+                        setMode={setOrbMode}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        onOpenConfig={() => setShowConfig(true)}
+                    />
+
+                    <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
+                        <SimulationControls 
+                            params={{ decoherenceChance: 0.05, lesionChance: 0.01 }} 
+                            onParamsChange={() => {}}
+                            onScenarioChange={() => {}}
+                            onManualReset={handleManualReset}
+                            onGrounding={() => { setGrounded(true); setTimeout(() => setGrounded(false), 5000); }}
+                            isGrounded={systemState.isGrounded}
+                            audioEngine={audioEngineRef.current}
+                        />
+                    </Modal>
+                    
+                    {isDeploying && (
+                        <SovereignPortal onInitialize={() => setIsDeploying(false)} />
+                    )}
+                </div>
+            </Layout>
+        </ApiKeyGuard>
+    );
 };
 
 export default App;

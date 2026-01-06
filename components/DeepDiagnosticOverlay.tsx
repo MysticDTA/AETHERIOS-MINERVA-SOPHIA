@@ -14,6 +14,7 @@ interface DeepDiagnosticOverlayProps {
 
 const FILE_AUDIT_SEQUENCE: DiagnosticStep[] = [
   { id: 'perf_telemetry', label: 'UPLINK_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'prod_env', label: 'PROD_ENV_VERIFICATION :: NODE_ENV', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'gpu_compute', label: 'GPU_COMPUTE_STRESS :: WEBGL_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'hardware_scan', label: 'HOST_NODE_INTERROGATION :: HARDWARE_ID', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'memory_heap', label: 'MEMORY_HEAP_SNAPSHOT :: GARBAGE_COLLECTION', status: 'PENDING', progress: 0, sublogs: [] },
@@ -43,6 +44,7 @@ const SCAN_TELEMETRY = [
 // Mapping steps to visual nodes in the 3D graph
 const NODE_MAPPING: Record<string, string> = {
   'perf_telemetry': 'UPLINK',
+  'prod_env': 'HOST',
   'gpu_compute': 'RENDER',
   'hardware_scan': 'HOST',
   'memory_heap': 'MEM',
@@ -272,7 +274,7 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     return (
         <div ref={containerRef} className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 lg:h-80 group shadow-inner z-10 w-full transition-colors duration-500 hover:border-white/10">
             <div className="absolute top-2 left-4 font-mono text-[8px] text-green-400 uppercase tracking-[0.4em] font-bold opacity-80 z-20">
-                System_Topology_Map v4.3
+                System_Topology_Map v4.3_PROD
             </div>
             {foundDefect && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
@@ -299,7 +301,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
   const [steps, setSteps] = useState<DiagnosticStep[]>(FILE_AUDIT_SEQUENCE);
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [diagnosticStatus, setDiagnosticStatus] = useState<DiagnosticStatus>('SCANNING');
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(["INIT FULL SYSTEM PERFORMANCE AUDIT v2.0...", "TARGET: KERNEL_LATENCY_OPTIMIZATION", "BENCHMARK_PROTOCOL: ACTIVE"]);
+  const [terminalOutput, setTerminalOutput] = useState<string[]>(["INIT FULL SYSTEM PERFORMANCE AUDIT v2.1-PROD...", "TARGET: KERNEL_LATENCY_OPTIMIZATION", "BENCHMARK_PROTOCOL: ACTIVE"]);
   const [auditReport, setAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [hardwareInfo, setHardwareInfo] = useState<any>(null);
@@ -316,7 +318,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         audioEngine?.playUIClick(); // Sound on step change
         
         // Simulate finding a defect in the Memory Heap or GPU step randomly
-        const triggerDefect = (i === 3 || i === 1) && Math.random() > 0.5; // Randomize defect
+        const triggerDefect = (i === 4 || i === 2) && Math.random() > 0.5; // Randomize defect (Memory or GPU)
         
         const iterations = 15; 
         for (let p = 0; p <= iterations; p++) {
@@ -337,6 +339,10 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           if (Math.random() > 0.4) {
              if (steps[i].id === 'perf_telemetry') {
                  setTerminalOutput(prev => [...prev.slice(-50), `[TELEMETRY] Latency: ${(systemState.performance.logicalLatency * 1000).toFixed(2)}ms | Throughput: ${systemState.performance.throughput} TB/s`]);
+             } else if (steps[i].id === 'prod_env') {
+                 // Simulate Env Check
+                 const env = process.env.NODE_ENV || 'development';
+                 setTerminalOutput(prev => [...prev.slice(-50), `[ENV_CHECK] NODE_ENV: ${env.toUpperCase()}`, `[ENV_CHECK] MINIFICATION: ${env === 'production' ? 'ENABLED' : 'OPTIMIZED_DEV'}`]);
              } else if (steps[i].id === 'hardware_scan' && !hardwareInfo) {
                  const nav = window.navigator as any;
                  const hw = {
@@ -460,7 +466,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
               {terminalOutput.map((line, i) => (
                 <div key={i} className="leading-relaxed mb-2 flex gap-6 group">
                   <span className="text-slate-700 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">0x{(i * 4).toString(16).padStart(4, '0')}</span>
-                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : line.includes('[WARN]') ? 'text-red-400 font-bold' : line.includes('[AUTO-FIX]') ? 'text-blue-400' : line.includes('[GPU]') || line.includes('[MEM]') || line.includes('[HOST]') ? 'text-cyan-300' : 'text-pearl/70'}>
+                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : line.includes('[WARN]') ? 'text-red-400 font-bold' : line.includes('[AUTO-FIX]') ? 'text-blue-400' : line.includes('[GPU]') || line.includes('[MEM]') || line.includes('[HOST]') || line.includes('[ENV_CHECK]') ? 'text-cyan-300' : 'text-pearl/70'}>
                     {line}
                   </span>
                 </div>
@@ -506,8 +512,8 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                                   <span className="text-cyan-400 font-bold text-sm">{hardwareInfo?.cores || 4} THREADS</span>
                               </div>
                               <div className="flex flex-col gap-1 text-right">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Host Mem</span>
-                                  <span className="text-cyan-400 font-bold text-sm">{hardwareInfo?.memory || '8GB'}</span>
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Env Status</span>
+                                  <span className="text-cyan-400 font-bold text-sm">PRODUCTION</span>
                               </div>
                               <div className="flex flex-col gap-1">
                                   <span className="uppercase tracking-widest text-[8px] text-slate-600">Latency</span>
