@@ -78,7 +78,8 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 100)}px`;
+      const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 50), 200);
+      textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [input]);
 
@@ -131,16 +132,16 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#030303]/40 border border-white/5 rounded-2xl backdrop-blur-3xl shadow-2xl relative overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-[#030303]/60 border border-white/5 rounded-2xl backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
       {/* Header */}
-      <div className="flex justify-between items-center px-5 py-3 border-b border-white/5 bg-black/20 z-30 shrink-0">
+      <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-black/40 z-30 shrink-0">
         <div className="flex items-center gap-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${isReplying ? 'border-violet-500 bg-violet-500/10' : 'border-emerald-500/50 bg-emerald-500/5'}`}>
-                <span className={`font-orbitron font-bold text-xs ${isReplying ? 'text-violet-400 animate-pulse' : 'text-emerald-400'}`}>S</span>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 ${isReplying ? 'border-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'border-emerald-500/50 bg-emerald-500/5'}`}>
+                <span className={`font-orbitron font-bold text-sm ${isReplying ? 'text-violet-400 animate-pulse' : 'text-emerald-400'}`}>S</span>
             </div>
             <div className="flex flex-col">
-                <h3 className="font-orbitron text-[10px] text-pearl uppercase tracking-[0.3em] font-black">Minerva_Console</h3>
-                <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest">Protocol: Direct_Causal_Link</span>
+                <h3 className="font-orbitron text-[11px] text-pearl uppercase tracking-[0.3em] font-black">Minerva_Console</h3>
+                <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Protocol: Direct_Causal_Link</span>
             </div>
         </div>
         <ResonanceSyncMeter rho={systemState.resonanceFactorRho} isReplying={isReplying} />
@@ -149,37 +150,41 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       {/* Messages Area */}
       <div 
         ref={scrollRef} 
-        className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin relative z-10"
+        className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10"
       >
         {messages.map((msg, idx) => {
             const isUser = msg.sender === 'user';
             return (
                 <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                    <div className={`max-w-[85%] flex flex-col gap-1.5 ${isUser ? 'items-end' : 'items-start'}`}>
-                        <div className="flex items-center gap-3 opacity-60">
-                            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">{isUser ? 'OPERATOR' : 'MINERVA_SOPHIA'}</span>
+                    <div className={`max-w-[85%] flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-center gap-3 opacity-60 px-1">
+                            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-bold">{isUser ? 'OPERATOR' : 'MINERVA_SOPHIA'}</span>
                             <span className="text-[7px] font-mono text-slate-700">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                         </div>
                         
-                        <div className={`relative p-4 rounded-lg border backdrop-blur-sm ${
+                        <div className={`relative p-5 rounded-xl border backdrop-blur-md shadow-lg transition-all ${
                             isUser 
-                            ? 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 text-pearl font-mono text-xs shadow-lg' 
-                            : 'bg-black/40 border-white/5 text-pearl/90 font-minerva italic text-[14px] leading-relaxed shadow-xl'
+                            ? 'bg-gradient-to-br from-gold/5 to-black/60 border-gold/20 text-pearl font-mono text-sm rounded-tr-none hover:border-gold/40' 
+                            : 'bg-gradient-to-br from-violet-900/10 to-black/60 border-violet-500/20 text-pearl/90 font-minerva italic text-[15px] leading-relaxed rounded-tl-none hover:border-violet-500/40'
                         }`}>
                             {msg.image && (
-                                <img src={msg.image} alt="Artifact" className="max-w-[200px] rounded border border-white/10 mb-3 opacity-80" />
+                                <img src={msg.image} alt="Artifact" className="max-w-[200px] rounded border border-white/10 mb-3 opacity-90" />
                             )}
                             <div className="whitespace-pre-wrap">{msg.text}</div>
                             {msg.sender === 'sophia' && !msg.isComplete && (
-                                <span className="inline-block w-1.5 h-3 bg-violet-400 ml-1 animate-pulse align-middle shadow-[0_0_8px_#a78bfa]" />
+                                <div className="inline-flex gap-1 ml-2 align-middle">
+                                    <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
+                                    <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                    <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                                </div>
                             )}
                         </div>
 
                         {msg.sources && msg.sources.length > 0 && (
-                            <div className="flex gap-2 flex-wrap max-w-full">
+                            <div className="flex gap-2 flex-wrap max-w-full pl-2">
                                 {msg.sources.map((src, i) => (
-                                    <a key={i} href={src.web.uri} target="_blank" rel="noopener noreferrer" className="text-[8px] font-mono text-gold/60 border border-gold/20 px-2 py-1 rounded-full hover:bg-gold/10 hover:text-gold transition-colors truncate max-w-[150px]">
-                                        {src.web.title}
+                                    <a key={i} href={src.web.uri} target="_blank" rel="noopener noreferrer" className="text-[9px] font-mono text-cyan-400/80 border border-cyan-500/20 px-3 py-1 rounded-sm hover:bg-cyan-500/10 hover:text-cyan-300 transition-colors truncate max-w-[200px] flex items-center gap-2">
+                                        <span className="text-[8px]">🔗</span> {src.web.title}
                                     </a>
                                 ))}
                             </div>
@@ -188,9 +193,10 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                         {msg.sender === 'sophia' && msg.isComplete && (
                             <button 
                                 onClick={() => onSaveInsight(msg.text)} 
-                                className="text-[8px] font-mono text-slate-600 hover:text-violet-400 uppercase tracking-widest flex items-center gap-1 transition-colors"
+                                className="text-[9px] font-mono text-slate-600 hover:text-violet-400 uppercase tracking-widest flex items-center gap-1.5 transition-colors pl-2"
                             >
-                                <span>+ Save_Memory</span>
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                <span>Save_Memory</span>
                             </button>
                         )}
                     </div>
@@ -200,8 +206,8 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       </div>
 
       {/* Command Cradle Input */}
-      <div className="p-4 bg-gradient-to-t from-black/80 to-transparent z-20">
-        <div className="relative bg-black/60 border border-white/10 rounded-xl p-2 flex items-end gap-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-white/20 ring-1 ring-white/0 focus-within:ring-white/5">
+      <div className="p-6 bg-gradient-to-t from-[#020202] via-[#050505] to-transparent z-20">
+        <div className="relative bg-black/80 border border-white/10 rounded-xl p-2 flex items-end gap-3 shadow-2xl backdrop-blur-xl transition-all focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 focus-within:bg-black group/input">
             <button 
                 onClick={() => fileInputRef.current?.click()} 
                 className={`p-3 rounded-lg transition-all duration-300 border flex-shrink-0 group ${attachedImage ? 'bg-gold/10 border-gold/40 text-gold' : 'bg-transparent border-transparent hover:bg-white/5 text-slate-500 hover:text-pearl'}`}
@@ -226,7 +232,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Enter Causal Decree..."
-                className="w-full bg-transparent border-none focus:ring-0 text-sm text-pearl font-mono placeholder-slate-600 resize-none py-3 max-h-[120px] scrollbar-none outline-none leading-relaxed"
+                className="w-full bg-transparent border-none focus:ring-0 text-sm text-pearl font-mono placeholder-slate-600 resize-none py-3 min-h-[50px] scrollbar-thin outline-none leading-relaxed transition-all"
                 rows={1}
             />
 
@@ -248,8 +254,11 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                 )}
             </button>
         </div>
-        <div className="text-[8px] font-mono text-slate-600 text-center mt-2 uppercase tracking-[0.2em] opacity-40">
-            Authorized for High-Reasoning Synthesis [32k]
+        <div className="flex justify-between items-center mt-3 px-1">
+            <span className="text-[8px] font-mono text-slate-600 uppercase tracking-[0.2em] opacity-40">Authorized for High-Reasoning Synthesis [32k]</span>
+            <span className={`text-[8px] font-mono uppercase tracking-widest transition-opacity duration-500 ${isReplying ? 'text-violet-400 animate-pulse opacity-100' : 'text-slate-600 opacity-0'}`}>
+                Thinking...
+            </span>
         </div>
       </div>
     </div>

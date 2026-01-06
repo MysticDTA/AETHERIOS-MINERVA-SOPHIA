@@ -15,12 +15,19 @@ const CENTER = CANVAS_SIZE / 2;
 export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryChange }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [activeMemory, setActiveMemory] = useState<Memory | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleClear = () => {
     knowledgeBase.clearMemories();
     onMemoryChange();
     setActiveMemory(null);
     setShowConfirm(false);
+  };
+
+  const handleCopy = (text: string) => {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
   };
   
   // Limit to most recent 24 memories for visual clarity in the circle
@@ -97,7 +104,7 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                         x1={CENTER} y1={CENTER}
                         x2={node.x} y2={node.y}
                         stroke={isActive ? 'var(--gold)' : 'var(--warm-grey)'}
-                        strokeWidth={isActive ? 1 : 0.3}
+                        strokeWidth={isActive ? 1.5 : 0.3}
                         opacity={isActive ? 0.8 : 0.15}
                         className="transition-all duration-300"
                     />
@@ -112,10 +119,9 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                         key={node.id}
                         className="cursor-pointer transition-all duration-300"
                         onMouseEnter={() => setActiveMemory(node)}
-                        onMouseLeave={() => setActiveMemory(null)}
                     >
                         {/* Interactive Hit Area */}
-                        <circle cx={node.x} cy={node.y} r={10} fill="transparent" />
+                        <circle cx={node.x} cy={node.y} r={15} fill="transparent" />
                         
                         {/* Visible Node */}
                         <circle
@@ -124,7 +130,7 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                             r={isActive ? 6 : 3}
                             fill={isActive ? 'var(--pearl)' : 'var(--dark-bg)'}
                             stroke={isActive ? 'var(--gold)' : 'var(--slate-500)'}
-                            strokeWidth={isActive ? 1 : 0.5}
+                            strokeWidth={isActive ? 1.5 : 0.5}
                             style={{
                                 filter: isActive ? 'url(#nodeGlow)' : 'none',
                                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
@@ -156,13 +162,21 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                         <span className="text-[9px] font-mono text-gold uppercase tracking-[0.2em] font-bold">
                             Block_ID: {activeMemory.id.split('_')[2]}
                         </span>
-                        <span className="text-[9px] font-mono text-slate-500">
-                            {new Date(activeMemory.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[9px] font-mono text-slate-500">
+                                {new Date(activeMemory.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                            <button 
+                                onClick={() => handleCopy(activeMemory.content)}
+                                className={`text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${copied ? 'border-green-500 text-green-400' : 'border-white/10 text-slate-500 hover:text-pearl'}`}
+                            >
+                                {copied ? 'COPIED' : 'COPY'}
+                            </button>
+                        </div>
                     </div>
                     
                     <div className="flex-1 overflow-y-auto scrollbar-thin pr-2">
-                        <p className="text-[13px] font-minerva text-pearl leading-relaxed antialiased">
+                        <p className="text-[13px] font-minerva text-pearl leading-relaxed antialiased whitespace-pre-wrap">
                             {activeMemory.content}
                         </p>
                     </div>
@@ -172,7 +186,7 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                             Context: {activeMemory.pillarContext || 'GENERAL_LOGIC'}
                         </span>
                         <div className="flex gap-1">
-                            <div className="w-1.5 h-1.5 bg-gold rounded-full" />
+                            <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
                             <div className="w-1.5 h-1.5 bg-gold rounded-full opacity-50" />
                             <div className="w-1.5 h-1.5 bg-gold rounded-full opacity-25" />
                         </div>
@@ -180,7 +194,9 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full relative z-10 opacity-30 gap-3">
-                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-500 animate-[spin_10s_linear_infinite]" />
+                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-500 animate-[spin_10s_linear_infinite] flex items-center justify-center">
+                        <div className="w-2 h-2 bg-slate-500 rounded-full" />
+                    </div>
                     <span className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold">
                         Hover Node to Decrypt
                     </span>

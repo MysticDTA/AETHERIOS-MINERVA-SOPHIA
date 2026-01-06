@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import '../types'; // Ensure global window types are loaded
 
 interface ApiKeyGuardProps {
   children: React.ReactNode;

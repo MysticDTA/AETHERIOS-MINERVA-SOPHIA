@@ -60,19 +60,23 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
       />
 
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
-      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-2 md:m-4 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-1 md:m-2 overflow-hidden rounded-lg">
           {/* Top Ticker Array */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-5 flex items-center overflow-hidden border-x border-white/5 bg-black/40">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-4 flex items-center overflow-hidden border-x border-b border-white/5 bg-black/40 backdrop-blur-sm rounded-b-sm">
               <SpectralTicker />
           </div>
 
           {/* Micro Labels positioned for 0 obstruction */}
-          <div className="absolute top-2 left-4 md:top-4 md:left-6 flex flex-col gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity">
-              <span className="text-[6px] font-mono text-gold uppercase tracking-[0.4em] font-black">Institutional_Node</span>
-              <span className="text-[8px] font-mono text-pearl uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
+          <div className="absolute top-2 left-4 md:top-3 md:left-5 flex flex-col gap-0.5 opacity-30 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
+              <Tooltip text="Your unique institutional node identifier within the ÆTHERIOS lattice. Used for routing causal decrees.">
+                  <div>
+                      <span className="text-[6px] font-mono text-gold uppercase tracking-[0.4em] font-black">Institutional_Node</span>
+                      <span className="text-[8px] font-mono text-pearl uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
+                  </div>
+              </Tooltip>
           </div>
           
-          <div className="absolute top-2 right-4 md:top-4 md:right-6 text-right opacity-20 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
+          <div className="absolute top-2 right-4 md:top-3 md:right-5 text-right opacity-30 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
               <Tooltip text="Measures the temporal misalignment of local causal events from the prime timeline. Drift > 0.05 indicates instability.">
                   <div className="flex flex-col gap-0.5 items-end">
                       <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black">Causal_Drift</span>
@@ -87,7 +91,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
       
       <MotherboardOverlay />
       
-      <div className="relative z-20 flex-grow flex flex-col px-4 py-4 md:px-16 md:py-8 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
+      {/* Optimized Main Content Area with maximized screen real-estate */}
+      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-6 md:py-4 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
         {children}
       </div>
       

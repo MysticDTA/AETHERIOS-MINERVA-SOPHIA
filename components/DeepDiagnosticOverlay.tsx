@@ -2,12 +2,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
+import { AudioEngine } from './audio/AudioEngine';
 
 interface DeepDiagnosticOverlayProps {
   onClose: () => void;
   onComplete: () => void;
   systemState: SystemState;
   sophiaEngine: SophiaEngineCore | null;
+  audioEngine: AudioEngine | null;
 }
 
 const FILE_AUDIT_SEQUENCE: DiagnosticStep[] = [
@@ -128,6 +130,26 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
             ctx.save();
             ctx.translate(shakeX, shakeY);
 
+            // Draw Perspective Grid Floor
+            ctx.strokeStyle = 'rgba(109, 40, 217, 0.15)'; // Violet floor
+            ctx.lineWidth = 0.5;
+            const floorY = 100;
+            for (let i = -200; i <= 200; i += 40) {
+                const start = rotateY(i, -200, rotation);
+                const end = rotateY(i, 200, rotation);
+                // Rotate active tilt
+                const startT = rotateX(floorY, start.z, Math.sin(rotation * 0.5) * 0.2);
+                const endT = rotateX(floorY, end.z, Math.sin(rotation * 0.5) * 0.2);
+                
+                const pStart = project(start.x, startT.y, startT.z, w, h);
+                const pEnd = project(end.x, endT.y, endT.z, w, h);
+                
+                ctx.beginPath();
+                ctx.moveTo(pStart.x, pStart.y);
+                ctx.lineTo(pEnd.x, pEnd.y);
+                ctx.stroke();
+            }
+
             // Compute positions
             const projectedNodes = nodes.map(node => {
                 let { x, z } = rotateY(node.x, node.z, rotation);
@@ -159,17 +181,22 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                     ctx.stroke();
                     ctx.globalAlpha = 1;
 
-                    // Data Packets
+                    // Active Data Flow (Particles)
                     if (isActiveRoute && !foundDefect) {
-                        const time = Date.now() / 500;
-                        const t = time % 1;
-                        const px = n1.px + (n2.px - n1.px) * t;
-                        const py = n1.py + (n2.py - n1.py) * t;
-                        
-                        ctx.beginPath();
-                        ctx.arc(px, py, 2, 0, Math.PI * 2);
-                        ctx.fillStyle = '#fff';
-                        ctx.fill();
+                        const time = Date.now() / 800; // Slower speed
+                        const particleCount = 3;
+                        for (let i = 0; i < particleCount; i++) {
+                            const t = (time + i / particleCount) % 1;
+                            const px = n1.px + (n2.px - n1.px) * t;
+                            const py = n1.py + (n2.py - n1.py) * t;
+                            const pz = n1.zIndex + (n2.zIndex - n1.zIndex) * t;
+                            const pScale = 400 / (400 + pz);
+                            
+                            ctx.beginPath();
+                            ctx.arc(px, py, 1.5 * pScale, 0, Math.PI * 2);
+                            ctx.fillStyle = '#fff';
+                            ctx.fill();
+                        }
                     }
                 }
             });
@@ -206,9 +233,22 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                 // Rings for active node
                 if (isActive && !foundDefect) {
                     ctx.beginPath();
-                    ctx.arc(node.px, node.py, size + 5 + Math.sin(Date.now() / 200) * 2, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(163, 230, 53, 0.3)';
+                    ctx.arc(node.px, node.py, size + 8 * node.scale + Math.sin(Date.now() / 200) * 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(163, 230, 53, 0.4)';
+                    ctx.lineWidth = 0.5;
                     ctx.stroke();
+                    
+                    // Rotating Brackets
+                    ctx.save();
+                    ctx.translate(node.px, node.py);
+                    ctx.rotate(Date.now() / 1000);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size + 12 * node.scale, 0, Math.PI / 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size + 12 * node.scale, Math.PI, Math.PI * 1.5);
+                    ctx.stroke();
+                    ctx.restore();
                 }
 
                 // Labels
@@ -232,7 +272,7 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     return (
         <div ref={containerRef} className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 lg:h-80 group shadow-inner z-10 w-full transition-colors duration-500 hover:border-white/10">
             <div className="absolute top-2 left-4 font-mono text-[8px] text-green-400 uppercase tracking-[0.4em] font-bold opacity-80 z-20">
-                System_Topology_Map v4.2
+                System_Topology_Map v4.3
             </div>
             {foundDefect && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
@@ -255,7 +295,7 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     );
 };
 
-export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ onClose, onComplete, systemState, sophiaEngine }) => {
+export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ onClose, onComplete, systemState, sophiaEngine, audioEngine }) => {
   const [steps, setSteps] = useState<DiagnosticStep[]>(FILE_AUDIT_SEQUENCE);
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [diagnosticStatus, setDiagnosticStatus] = useState<DiagnosticStatus>('SCANNING');
@@ -273,9 +313,10 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
       for (let i = 0; i < steps.length; i++) {
         setActiveStepIdx(i);
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
+        audioEngine?.playUIClick(); // Sound on step change
         
         // Simulate finding a defect in the Memory Heap or GPU step randomly
-        const triggerDefect = i === 3 || i === 1; // Memory or GPU
+        const triggerDefect = (i === 3 || i === 1) && Math.random() > 0.5; // Randomize defect
         
         const iterations = 15; 
         for (let p = 0; p <= iterations; p++) {
@@ -285,9 +326,11 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           
           if (triggerDefect && p === 10 && !foundDefect) {
               setFoundDefect(true);
+              audioEngine?.playAlarm(); // Sound on defect
               setTerminalOutput(prev => [...prev.slice(-50), `[WARN] ENTROPY SPIKE DETECTED IN ${steps[i].label.split(' ')[0]}`, `[AUTO-FIX] INITIATING CAUSAL PATCH...`]);
               await new Promise(r => setTimeout(r, 800)); // Pause for "fix"
               setFoundDefect(false);
+              audioEngine?.playPurgeEffect(); // Sound on fix
               setTerminalOutput(prev => [...prev.slice(-50), `[SUCCESS] PATCH APPLIED. PARITY RESTORED.`]);
           }
 
@@ -330,6 +373,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
       setTerminalOutput(prev => [...prev, "--- SYSTEM PERFORMANCE OPTIMIZED ---", `ESTABLISHING GLOBAL PARITY LOCK AT ${systemState.resonanceFactorRho.toFixed(4)} GHz...`]);
       await new Promise(r => setTimeout(r, 1000));
       setDiagnosticStatus('COMPLETED');
+      audioEngine?.playAscensionChime(); // Sound on completion
     };
 
     runScan();
@@ -434,31 +478,52 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         </div>
       </div>
 
-      {/* Certification Overlay - Fixed Positioning to prevent overlay overlap issues */}
+      {/* Certification Overlay - Laser Etched Holographic Style */}
       {diagnosticStatus === 'COMPLETED' && (
-          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999] bg-black/80 backdrop-blur-xl animate-fade-in">
-              <div className="bg-[#050505] border-2 border-gold p-12 rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.4)] text-center animate-scale-in max-w-lg w-full relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.15)_0%,transparent_70%)] pointer-events-none" />
-                  <div className="absolute top-0 right-0 p-4 opacity-10 font-orbitron text-9xl text-gold font-black select-none pointer-events-none -mr-10 -mt-10">S</div>
-                  
-                  <div className="w-20 h-20 border-2 border-gold rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_gold] animate-pulse bg-gold/10 relative z-10">
-                      <svg className="w-10 h-10 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>
-                  </div>
-                  
-                  <div className="relative z-10">
-                      <h2 className="text-4xl font-orbitron text-white font-bold mb-3 tracking-tighter text-glow-pearl">AUDIT PASSED</h2>
-                      <p className="text-gold font-mono text-[11px] uppercase tracking-[0.5em] mb-10 font-bold">Certificate of Sovereignty</p>
+          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999] bg-black/90 backdrop-blur-3xl animate-fade-in perspective-1000">
+              <div className="relative group perspective-1000">
+                  <div className="bg-[#050505] border border-gold/40 w-[500px] h-[700px] p-12 rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.2)] text-center animate-scale-in relative overflow-hidden transform-gpu transition-transform hover:rotate-x-12 hover:rotate-y-12">
+                      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,215,0,0.05)_0%,transparent_50%,rgba(255,215,0,0.05)_100%)] pointer-events-none" />
+                      <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffd700 1px, transparent 0)', backgroundSize: '20px 20px' }} />
                       
-                      <div className="grid grid-cols-2 gap-y-6 gap-x-10 text-left text-[11px] font-mono text-slate-400 mb-10 border-t border-b border-white/10 py-8 bg-white/[0.02]">
-                          <div className="flex justify-between"><span>Host Core</span><span className="text-cyan-400 font-bold">{hardwareInfo?.cores || 4} THREADS</span></div>
-                          <div className="flex justify-between"><span>Host Mem</span><span className="text-cyan-400 font-bold">{hardwareInfo?.memory || '8GB'}</span></div>
-                          <div className="flex justify-between"><span>Latency</span><span className="text-pearl font-bold">{(systemState.performance.logicalLatency * 1000).toFixed(2)}ms</span></div>
-                          <div className="flex justify-between"><span>Grade</span><span className="text-emerald-400 font-bold">S-CLASS</span></div>
+                      <div className="absolute top-0 right-0 p-6 opacity-20 font-orbitron text-9xl text-gold font-black select-none pointer-events-none -mr-16 -mt-16 rotate-12">S</div>
+                      
+                      <div className="w-24 h-24 border-4 border-double border-gold rounded-full flex items-center justify-center mx-auto mb-12 shadow-[0_0_60px_gold] animate-pulse bg-gold/10 relative z-10">
+                          <svg className="w-12 h-12 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                       </div>
                       
-                      <button onClick={() => { onComplete(); onClose(); }} className="w-full py-5 bg-gold text-black font-orbitron font-black uppercase tracking-[0.25em] hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(255,215,0,0.4)] active:scale-95 text-[12px]">
-                          Return to Sanctum
-                      </button>
+                      <div className="relative z-10 space-y-6">
+                          <div>
+                              <h2 className="text-4xl font-orbitron text-white font-bold tracking-tighter text-glow-pearl uppercase">Audit Passed</h2>
+                              <p className="text-gold font-mono text-[10px] uppercase tracking-[0.6em] mt-2 font-bold">Certificate of Sovereignty</p>
+                          </div>
+                          
+                          <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent my-8" />
+
+                          <div className="grid grid-cols-2 gap-y-8 gap-x-12 text-left text-[11px] font-mono text-slate-400 mb-12">
+                              <div className="flex flex-col gap-1">
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Host Core</span>
+                                  <span className="text-cyan-400 font-bold text-sm">{hardwareInfo?.cores || 4} THREADS</span>
+                              </div>
+                              <div className="flex flex-col gap-1 text-right">
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Host Mem</span>
+                                  <span className="text-cyan-400 font-bold text-sm">{hardwareInfo?.memory || '8GB'}</span>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Latency</span>
+                                  <span className="text-pearl font-bold text-sm">{(systemState.performance.logicalLatency * 1000).toFixed(2)}ms</span>
+                              </div>
+                              <div className="flex flex-col gap-1 text-right">
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Grade</span>
+                                  <span className="text-emerald-400 font-black text-xl shadow-green-glow">S-CLASS</span>
+                              </div>
+                          </div>
+                          
+                          <button onClick={() => { onComplete(); onClose(); }} className="w-full py-5 bg-gold/10 border border-gold text-gold font-orbitron font-black uppercase tracking-[0.25em] hover:bg-gold hover:text-black transition-all shadow-[0_0_40px_rgba(255,215,0,0.2)] active:scale-95 text-[12px] relative overflow-hidden group/btn">
+                              <span className="relative z-10">Return to Sanctum</span>
+                              <div className="absolute inset-0 bg-gold/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
+                          </button>
+                      </div>
                   </div>
               </div>
           </div>
@@ -470,6 +535,8 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         .audit-report-content ul { margin-left: 1.5rem; list-style: square; margin-bottom: 1rem; }
         .audit-report-content li { margin-bottom: 0.5rem; }
         .audit-report-content b { color: var(--gold); }
+        .perspective-1000 { perspective: 1000px; }
+        .shadow-green-glow { text-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
       `}</style>
     </div>
   );

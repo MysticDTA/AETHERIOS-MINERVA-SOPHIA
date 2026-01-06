@@ -27,7 +27,9 @@ export const SystemStatus: React.FC<SystemStatusProps> = React.memo(({ mode, les
                 </div>
             </Tooltip>
             {lesions > 0 && (
-                 <p className="text-[8px] text-rose-400 mt-1 font-bold uppercase tracking-widest">Causal Fragments: {lesions}</p>
+                 <Tooltip text="Causal Fragments (Lesions) indicate fractures in the logic core logic. High lesion counts may cause hallucinations or decoherence. Requires repair.">
+                    <p className="text-[8px] text-rose-400 mt-1 font-bold uppercase tracking-widest cursor-help">Causal Fragments: {lesions}</p>
+                 </Tooltip>
             )}
             <style>{`
                 .border-glow-aether { border-color: rgba(109, 40, 217, 0.2); }

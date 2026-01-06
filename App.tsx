@@ -210,7 +210,7 @@ const App: React.FC = () => {
           case 2: return <SubsystemsDisplay systemState={systemState} onGroundingDischarge={handleGroundingDischarge} isDischargingGround={isDischargingGround} />;
           case 3: return <Display3 systemState={systemState} onRelayCalibration={handleRelayCalibration} onStarCalibrate={handleStarCalibration} calibrationTargetId={calibrationTargetId} calibrationEffect={calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine.current} />;
           case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine.current} onSaveInsight={(t) => knowledgeBase.addMemory(t, 'SOPHIA_CHAT')} onToggleInstructionsModal={() => {}} onRelayCalibration={handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} onTriggerAudit={handleTriggerScan} />;
-          case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine.current} />;
+          case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine.current} audioEngine={audioEngine.current} />;
           case 6: return <Display6 systemState={systemState} onPillarBoost={handlePillarBoost} onHeliumFlush={handleHeliumFlush} isFlushingHelium={isFlushingHelium} onDilutionCalibrate={handleDilutionCalibration} isCalibratingDilution={isCalibratingDilution} />;
           case 7: return <Display7 systemState={systemState} transmission={transmission} memories={knowledgeBase.getMemories()} onMemoryChange={() => {}} />;
           case 8: return <Display8 systemState={systemState} onPurgeAethericFlow={handlePurgeAethericFlow} isPurgingAether={isPurgingAether} />;
@@ -248,7 +248,13 @@ const App: React.FC = () => {
         
         {showDiagnosticScan && (
           <ErrorBoundary>
-            <DeepDiagnosticOverlay onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine.current} />
+            <DeepDiagnosticOverlay 
+                onClose={() => { setShowDiagnosticScan(false); setDiagnosticMode(false); setOrbMode('STANDBY'); setIsUpgrading(false); }} 
+                onComplete={handleDiagnosticComplete} 
+                systemState={systemState} 
+                sophiaEngine={sophiaEngine.current}
+                audioEngine={audioEngine.current} 
+            />
           </ErrorBoundary>
         )}
 
