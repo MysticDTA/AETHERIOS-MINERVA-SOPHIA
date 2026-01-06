@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 
@@ -11,11 +11,11 @@ interface DeepDiagnosticOverlayProps {
 }
 
 const FILE_AUDIT_SEQUENCE: DiagnosticStep[] = [
-  { id: 'perf_telemetry', label: 'PERFORMANCE_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'perf_telemetry', label: 'UPLINK_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'gpu_compute', label: 'GPU_COMPUTE_STRESS :: WEBGL_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'hardware_scan', label: 'HOST_NODE_INTERROGATION :: HARDWARE_ID', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'memory_heap', label: 'MEMORY_HEAP_SNAPSHOT :: GARBAGE_COLLECTION', status: 'PENDING', progress: 0, sublogs: [] },
-  { id: 'engine_core', label: 'SERVICES/SOPHIAENGINE.TS :: COGNITIVE_CORE', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'engine_core', label: 'SOPHIA_COGNITIVE_CORE :: LLM_BRIDGE', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'security_shard', label: 'SECURITY_PROTOCOL :: ZERO_POINT_ENCRYPTION', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'audit_logic', label: 'HEURISTIC_SWEEP :: MINERVA_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
 ];
@@ -38,44 +38,69 @@ const SCAN_TELEMETRY = [
   "Establishing SSL/TLS 1.3 Handshake..."
 ];
 
-const SystemArchitectureScanner: React.FC<{ activeStepId: string }> = ({ activeStepId }) => {
+// Mapping steps to visual nodes in the 3D graph
+const NODE_MAPPING: Record<string, string> = {
+  'perf_telemetry': 'UPLINK',
+  'gpu_compute': 'RENDER',
+  'hardware_scan': 'HOST',
+  'memory_heap': 'MEM',
+  'engine_core': 'SOPHIA',
+  'security_shard': 'SHIELD',
+  'audit_logic': 'SYNOD'
+};
+
+const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: boolean }> = ({ activeStepId, foundDefect }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const activeNodeLabel = NODE_MAPPING[activeStepId];
     
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        const container = containerRef.current;
+        if (!canvas || !container) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        // Responsive Resizing
+        const resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const { width, height } = entry.contentRect;
+                canvas.width = width;
+                canvas.height = height;
+            }
+        });
+        resizeObserver.observe(container);
 
         let animationFrame: number;
         let rotation = 0;
 
         const nodes = [
-            { id: 'perf_telemetry', label: 'UPLINK', x: 0, y: -60, z: 0 },
-            { id: 'gpu_compute', label: 'RENDER', x: 70, y: 0, z: 0 },
-            { id: 'hardware_scan', label: 'HOST', x: 0, y: 60, z: 0 },
-            { id: 'memory_heap', label: 'MEM', x: -70, y: 0, z: 0 },
-            { id: 'engine_core', label: 'SOPHIA', x: 0, y: 0, z: 50 },
-            { id: 'security_shard', label: 'SHIELD', x: 40, y: -40, z: -40 },
-            { id: 'audit_logic', label: 'SYNOD', x: -40, y: 40, z: -40 },
+            { id: 'UPLINK', x: 0, y: -80, z: 0 },
+            { id: 'RENDER', x: 90, y: 0, z: 0 },
+            { id: 'HOST', x: 0, y: 80, z: 0 },
+            { id: 'MEM', x: -90, y: 0, z: 0 },
+            { id: 'SOPHIA', x: 0, y: 0, z: 60 },
+            { id: 'SHIELD', x: 50, y: -50, z: -50 },
+            { id: 'SYNOD', x: -50, y: 50, z: -50 },
         ];
 
         const connections = [
-            ['perf_telemetry', 'engine_core'],
-            ['gpu_compute', 'engine_core'],
-            ['hardware_scan', 'engine_core'],
-            ['memory_heap', 'engine_core'],
-            ['security_shard', 'engine_core'],
-            ['audit_logic', 'engine_core'],
-            ['perf_telemetry', 'security_shard'],
-            ['hardware_scan', 'memory_heap'],
+            ['UPLINK', 'SOPHIA'],
+            ['RENDER', 'SOPHIA'],
+            ['HOST', 'SOPHIA'],
+            ['MEM', 'SOPHIA'],
+            ['SHIELD', 'SOPHIA'],
+            ['SYNOD', 'SOPHIA'],
+            ['UPLINK', 'SHIELD'],
+            ['HOST', 'MEM'],
+            ['RENDER', 'MEM']
         ];
 
-        const project = (x: number, y: number, z: number) => {
-            const scale = 300 / (300 + z);
+        const project = (x: number, y: number, z: number, w: number, h: number) => {
+            const scale = 400 / (400 + z);
             return {
-                x: canvas.width / 2 + x * scale,
-                y: canvas.height / 2 + y * scale,
+                x: w / 2 + x * scale,
+                y: h / 2 + y * scale,
                 scale
             };
         };
@@ -85,88 +110,142 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string }> = ({ activeS
             z: x * Math.sin(angle) + z * Math.cos(angle)
         });
 
+        const rotateX = (y: number, z: number, angle: number) => ({
+            y: y * Math.cos(angle) - z * Math.sin(angle),
+            z: y * Math.sin(angle) + z * Math.cos(angle)
+        });
+
         const render = () => {
-            rotation += 0.01;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width;
+            const h = canvas.height;
+            rotation += 0.008;
+            
+            // Defect shake effect
+            const shakeX = foundDefect ? (Math.random() - 0.5) * 4 : 0;
+            const shakeY = foundDefect ? (Math.random() - 0.5) * 4 : 0;
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
 
             // Compute positions
             const projectedNodes = nodes.map(node => {
-                const rotated = rotateY(node.x, node.z, rotation);
-                const p = project(rotated.x, node.y, rotated.z);
-                return { ...node, px: p.x, py: p.y, scale: p.scale, zIndex: rotated.z };
+                let { x, z } = rotateY(node.x, node.z, rotation);
+                let { y, z: z2 } = rotateX(node.y, z, Math.sin(rotation * 0.5) * 0.2); // Subtle tilt
+                const p = project(x, y, z2, w, h);
+                return { ...node, px: p.x, py: p.y, scale: p.scale, zIndex: z2 };
             });
 
             // Draw Connections
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
             connections.forEach(([id1, id2]) => {
                 const n1 = projectedNodes.find(n => n.id === id1);
                 const n2 = projectedNodes.find(n => n.id === id2);
                 if (n1 && n2) {
+                    const isActiveRoute = activeNodeLabel && (n1.id === activeNodeLabel || n2.id === activeNodeLabel);
+                    
                     ctx.beginPath();
                     ctx.moveTo(n1.px, n1.py);
                     ctx.lineTo(n2.px, n2.py);
-                    ctx.stroke();
                     
-                    // Active flow
-                    if (activeStepId === id1 || activeStepId === id2) {
-                        ctx.save();
-                        ctx.strokeStyle = '#a3e635';
-                        ctx.lineWidth = 2;
-                        ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 100) * 0.5;
+                    if (isActiveRoute) {
+                        ctx.strokeStyle = foundDefect ? '#f43f5e' : '#a3e635';
+                        ctx.lineWidth = 1.5;
+                        ctx.globalAlpha = 0.8;
+                    } else {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                        ctx.lineWidth = 0.5;
+                        ctx.globalAlpha = 1;
+                    }
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+
+                    // Data Packets
+                    if (isActiveRoute && !foundDefect) {
+                        const time = Date.now() / 500;
+                        const t = time % 1;
+                        const px = n1.px + (n2.px - n1.px) * t;
+                        const py = n1.py + (n2.py - n1.py) * t;
+                        
                         ctx.beginPath();
-                        ctx.moveTo(n1.px, n1.py);
-                        ctx.lineTo(n2.px, n2.py);
-                        ctx.stroke();
-                        ctx.restore();
+                        ctx.arc(px, py, 2, 0, Math.PI * 2);
+                        ctx.fillStyle = '#fff';
+                        ctx.fill();
                     }
                 }
             });
 
-            // Draw Nodes (Sorted by Z for simple depth)
+            // Draw Nodes
             projectedNodes.sort((a, b) => b.zIndex - a.zIndex).forEach(node => {
-                const isActive = node.id === activeStepId;
-                const size = 4 * node.scale * (isActive ? 1.5 : 1);
+                const isActive = node.id === activeNodeLabel;
+                const isDefectNode = isActive && foundDefect;
+                const baseSize = 4;
+                const size = baseSize * node.scale * (isActive ? 1.8 : 1);
                 
                 ctx.beginPath();
                 ctx.arc(node.px, node.py, size, 0, Math.PI * 2);
-                ctx.fillStyle = isActive ? '#a3e635' : '#0f172a';
-                ctx.strokeStyle = isActive ? '#ecfccb' : '#334155';
-                ctx.lineWidth = 2 * node.scale;
+                
+                if (isDefectNode) {
+                    ctx.fillStyle = '#f43f5e'; // Red for defect
+                    ctx.shadowColor = '#f43f5e';
+                } else if (isActive) {
+                    ctx.fillStyle = '#a3e635'; // Green for active
+                    ctx.shadowColor = '#a3e635';
+                } else {
+                    ctx.fillStyle = '#0f172a';
+                    ctx.shadowColor = 'transparent';
+                }
+                
+                ctx.strokeStyle = isActive ? '#fff' : '#334155';
+                ctx.lineWidth = isActive ? 2 : 1;
+                
+                if (isActive) ctx.shadowBlur = 15;
                 ctx.fill();
                 ctx.stroke();
+                ctx.shadowBlur = 0;
 
-                if (isActive) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#a3e635';
+                // Rings for active node
+                if (isActive && !foundDefect) {
+                    ctx.beginPath();
+                    ctx.arc(node.px, node.py, size + 5 + Math.sin(Date.now() / 200) * 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(163, 230, 53, 0.3)';
                     ctx.stroke();
-                    ctx.shadowBlur = 0;
                 }
 
-                // Label
-                ctx.font = `${8 * node.scale}px 'JetBrains Mono'`;
-                ctx.fillStyle = isActive ? '#ffffff' : 'rgba(255,255,255,0.5)';
+                // Labels
+                ctx.font = `${Math.max(8, 10 * node.scale)}px 'JetBrains Mono'`;
+                ctx.fillStyle = isActive ? '#ffffff' : 'rgba(255,255,255,0.4)';
                 ctx.textAlign = 'center';
-                ctx.fillText(node.label, node.px, node.py - size - 5);
+                ctx.fillText(node.id, node.px, node.py - size - 8);
             });
 
+            ctx.restore();
             animationFrame = requestAnimationFrame(render);
         };
 
         render();
-        return () => cancelAnimationFrame(animationFrame);
-    }, [activeStepId]);
+        return () => {
+            cancelAnimationFrame(animationFrame);
+            resizeObserver.disconnect();
+        };
+    }, [activeNodeLabel, foundDefect]);
 
     return (
-        <div className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 group shadow-inner z-10">
-            <div className="absolute top-2 left-4 font-mono text-[8px] text-green-400 uppercase tracking-[0.4em] font-bold opacity-80">
-                System_Topology_Map
+        <div ref={containerRef} className="bg-black/60 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 lg:h-80 group shadow-inner z-10 w-full transition-colors duration-500 hover:border-white/10">
+            <div className="absolute top-2 left-4 font-mono text-[8px] text-green-400 uppercase tracking-[0.4em] font-bold opacity-80 z-20">
+                System_Topology_Map v4.2
             </div>
-            <canvas ref={canvasRef} width={600} height={250} className="w-full h-full opacity-90" />
+            {foundDefect && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                    <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 text-red-100 font-orbitron text-xs font-bold tracking-widest animate-pulse">
+                        ⚠ ANOMALY DETECTED
+                    </div>
+                </div>
+            )}
+            <canvas ref={canvasRef} className="w-full h-full opacity-90 block" />
             
             {/* Hex Dump Overlay */}
-            <div className="absolute inset-0 pointer-events-none opacity-10 flex flex-col font-mono text-[8px] text-green-500/50 p-2 overflow-hidden leading-tight">
-                {Array.from({length: 20}).map((_, i) => (
+            <div className="absolute inset-0 pointer-events-none opacity-10 flex flex-col font-mono text-[8px] text-green-500/50 p-2 overflow-hidden leading-tight z-0">
+                {Array.from({length: 30}).map((_, i) => (
                     <div key={i} className="whitespace-nowrap">
                         {`0x${(i * 1024).toString(16).padStart(4,'0').toUpperCase()}  ` + Array.from({length:8}).map(() => Math.floor(Math.random()*255).toString(16).padStart(2,'0')).join(' ')}
                     </div>
@@ -184,6 +263,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
   const [auditReport, setAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [hardwareInfo, setHardwareInfo] = useState<any>(null);
+  const [foundDefect, setFoundDefect] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -194,17 +274,27 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         setActiveStepIdx(i);
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
         
-        const iterations = 12; 
+        // Simulate finding a defect in the Memory Heap or GPU step randomly
+        const triggerDefect = i === 3 || i === 1; // Memory or GPU
+        
+        const iterations = 15; 
         for (let p = 0; p <= iterations; p++) {
           const progress = (p / iterations) * 100;
-          await new Promise(r => setTimeout(r, 60 + Math.random() * 80));
+          await new Promise(r => setTimeout(r, 60 + Math.random() * 60));
           setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress } : s));
           
-          if (Math.random() > 0.3) {
+          if (triggerDefect && p === 10 && !foundDefect) {
+              setFoundDefect(true);
+              setTerminalOutput(prev => [...prev.slice(-50), `[WARN] ENTROPY SPIKE DETECTED IN ${steps[i].label.split(' ')[0]}`, `[AUTO-FIX] INITIATING CAUSAL PATCH...`]);
+              await new Promise(r => setTimeout(r, 800)); // Pause for "fix"
+              setFoundDefect(false);
+              setTerminalOutput(prev => [...prev.slice(-50), `[SUCCESS] PATCH APPLIED. PARITY RESTORED.`]);
+          }
+
+          if (Math.random() > 0.4) {
              if (steps[i].id === 'perf_telemetry') {
                  setTerminalOutput(prev => [...prev.slice(-50), `[TELEMETRY] Latency: ${(systemState.performance.logicalLatency * 1000).toFixed(2)}ms | Throughput: ${systemState.performance.throughput} TB/s`]);
              } else if (steps[i].id === 'hardware_scan' && !hardwareInfo) {
-                 // Capture Real Client Hardware Telemetry
                  const nav = window.navigator as any;
                  const hw = {
                      cores: nav.hardwareConcurrency || 'UNKNOWN',
@@ -253,7 +343,8 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
 
   return (
     <div className="fixed inset-0 z-[600] bg-black/98 backdrop-blur-3xl flex flex-col p-6 md:p-12 animate-fade-in font-mono overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.01] pointer-events-none overflow-hidden">
+      {/* Background Matrix Rain Effect */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
         <div className="grid grid-cols-24 gap-4 h-full text-[6px] leading-tight">
           {Array.from({ length: 96 }).map((_, i) => (
             <div key={i} className="animate-[pulse_5s_infinite]" style={{ animationDelay: `${i * 0.05}s` }}>
@@ -268,7 +359,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           <div className="space-y-4">
             <div className="flex items-center gap-4">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-ping" />
-                <h1 className="font-orbitron text-4xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">Full System Performance Audit</h1>
+                <h1 className="font-orbitron text-3xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">Full System Performance Audit</h1>
             </div>
             <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] font-bold">Node_SFO_CORE // Benchmark & Stress Test // Grade_S</p>
           </div>
@@ -285,7 +376,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           <div className="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-6 scrollbar-thin relative z-20">
             <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-bold mb-4">Benchmark Registry</h4>
             {steps.map((step, i) => (
-              <div key={step.id} className={`p-5 rounded-sm border transition-all duration-1000 group ${
+              <div key={step.id} className={`p-5 rounded-sm border transition-all duration-500 group ${
                 step.status === 'ACTIVE' ? 'border-green-500 text-green-300 bg-green-950/20 scale-[1.02] shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 
                 step.status === 'SUCCESS' ? 'border-green-500/20 bg-green-950/10 opacity-70' : 
                 'border-white/5 bg-black/40 opacity-30'
@@ -298,7 +389,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                 </div>
                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
                   <div 
-                    className={`h-full transition-all duration-500 ease-out ${step.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_#10b981]' : 'bg-green-400 shadow-[0_0_8px_#4ade80]'}`}
+                    className={`h-full transition-all duration-300 ease-out ${step.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_#10b981]' : foundDefect && step.status === 'ACTIVE' ? 'bg-red-500 shadow-[0_0_15px_red]' : 'bg-green-400 shadow-[0_0_8px_#4ade80]'}`}
                     style={{ width: `${step.progress}%` }}
                   />
                 </div>
@@ -315,7 +406,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-6 min-h-0 relative z-20">
-            <SystemArchitectureScanner activeStepId={steps[activeStepIdx].id} />
+            <SystemArchitectureScanner activeStepId={steps[activeStepIdx].id} foundDefect={foundDefect} />
             
             <div 
               ref={terminalRef}
@@ -325,7 +416,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
               {terminalOutput.map((line, i) => (
                 <div key={i} className="leading-relaxed mb-2 flex gap-6 group">
                   <span className="text-slate-700 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">0x{(i * 4).toString(16).padStart(4, '0')}</span>
-                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : line.includes('[GPU]') || line.includes('[MEM]') || line.includes('[HOST]') ? 'text-cyan-300' : 'text-pearl/70'}>
+                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : line.includes('[WARN]') ? 'text-red-400 font-bold' : line.includes('[AUTO-FIX]') ? 'text-blue-400' : line.includes('[GPU]') || line.includes('[MEM]') || line.includes('[HOST]') ? 'text-cyan-300' : 'text-pearl/70'}>
                     {line}
                   </span>
                 </div>
