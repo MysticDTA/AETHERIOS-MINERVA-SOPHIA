@@ -13,11 +13,11 @@ const RuntimeVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#4c1d95 1px, transparent 0)', backgroundSize: '10px 10px' }}></div>
             {active ? (
                 <div className="flex flex-col gap-1 text-green-400/80 animate-fade-in">
-                    <span>> INIT_RUNTIME_ENV... OK</span>
-                    <span>> MOUNTING_SHARD_0x88... OK</span>
-                    <span>> ESTABLISHING_CAUSAL_LINK...</span>
-                    <span className="text-pearl">> HEURISTIC_PARITY_CHECK: PASSED</span>
-                    <span className="animate-pulse">> STREAMING_TELEMETRY...</span>
+                    <span>{'>'} INIT_RUNTIME_ENV... OK</span>
+                    <span>{'>'} MOUNTING_SHARD_0x88... OK</span>
+                    <span>{'>'} ESTABLISHING_CAUSAL_LINK...</span>
+                    <span className="text-pearl">{'>'} HEURISTIC_PARITY_CHECK: PASSED</span>
+                    <span className="animate-pulse">{'>'} STREAMING_TELEMETRY...</span>
                 </div>
             ) : (
                 <div className="flex items-center justify-center h-full text-slate-600">
