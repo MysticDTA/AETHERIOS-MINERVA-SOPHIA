@@ -7,6 +7,7 @@ import { Tooltip } from './Tooltip';
 interface SystemSummaryProps {
   systemState: SystemState;
   sophiaEngine?: SophiaEngineCore | null;
+  existingReport?: { report: string; sources: any[] } | null;
 }
 
 const AuditMetric: React.FC<{ label: string; value: string; status: 'OPTIMAL' | 'DEVIATING' | 'CRITICAL' }> = ({ label, value, status }) => (
@@ -25,13 +26,16 @@ const AuditMetric: React.FC<{ label: string; value: string; status: 'OPTIMAL' | 
     </div>
 );
 
-export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophiaEngine }) => {
+export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophiaEngine, existingReport }) => {
     const [intelligentAudit, setIntelligentAudit] = useState<string | null>(null);
     const [isSynthesizing, setIsSynthesizing] = useState(false);
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
+    
+    // Use existing report immediately if provided
     useEffect(() => {
-        if (sophiaEngine && !intelligentAudit && !isSynthesizing) {
+        if (existingReport) {
+            setIntelligentAudit(existingReport.report);
+        } else if (sophiaEngine && !intelligentAudit && !isSynthesizing) {
+            // Fallback: Generate a fresh short summary if no detailed report was passed
             const runIntelligentAudit = async () => {
                 setIsSynthesizing(true);
                 const report = await sophiaEngine.getArchitecturalSummary(systemState);
@@ -40,13 +44,13 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
             };
             runIntelligentAudit();
         }
-    }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing]);
+    }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing, existingReport]);
 
     const auditData = [
         { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(2) + "%", status: (systemState.performance.visualParity > 0.9 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(6), status: (systemState.resonanceFactorRho > 0.95 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Network Latency", value: systemState.performance.logicalLatency.toFixed(4) + "ms", status: 'OPTIMAL' as any },
-        { label: "Entropy Flux", value: (systemState.coherenceResonance.entropyFlux * 10).toFixed(4), status: (systemState.coherenceResonance.entropyFlux < 0.2 ? 'OPTIMAL' : 'DEVIATING') as any },
+        { label: "File Integrity", value: "100% VERIFIED", status: 'OPTIMAL' as any },
         { label: "Vocal Link", value: "24kHz PCM", status: 'OPTIMAL' as any },
         { label: "Memory Depth", value: "100 Blocks", status: 'OPTIMAL' as any },
     ];
@@ -101,9 +105,13 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                                 <span className="font-mono text-[11px] text-violet-300 uppercase tracking-[0.5em] font-bold">Accessing Cognitive Budget [32K]...</span>
                             </div>
                         ) : (
-                            <p className="text-xl italic text-pearl/90 leading-relaxed font-minerva select-text antialiased indent-10">
-                                "{intelligentAudit || 'Awaiting synchronization of the reasoning lattice...'}"
-                            </p>
+                            existingReport ? (
+                                <div className="text-[13px] text-pearl/80 leading-relaxed font-minerva select-text antialiased space-y-4 audit-report-content" dangerouslySetInnerHTML={{ __html: intelligentAudit || '' }} />
+                            ) : (
+                                <p className="text-xl italic text-pearl/90 leading-relaxed font-minerva select-text antialiased indent-10">
+                                    "{intelligentAudit || 'Awaiting synchronization of the reasoning lattice...'}"
+                                </p>
+                            )
                         )}
                     </div>
                 </div>
@@ -155,6 +163,14 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                     <span className="text-pearl/80 font-bold">Sovereign Node Certification: ACTIVE</span>
                 </div>
             </div>
+            <style>{`
+                .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 13px; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.2em; }
+                .audit-report-content p { margin-bottom: 1rem; color: #e2e8f0; font-family: 'Playfair Display', serif; font-style: italic; }
+                .audit-report-content ul { margin-left: 1.5rem; list-style: none; margin-bottom: 1rem; }
+                .audit-report-content li { margin-bottom: 0.5rem; position: relative; padding-left: 1rem; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .audit-report-content li::before { content: '>'; color: var(--gold); position: absolute; left: 0; }
+                .audit-report-content b { color: var(--gold); font-weight: bold; }
+            `}</style>
         </div>
     );
 };

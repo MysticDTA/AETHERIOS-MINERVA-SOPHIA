@@ -1,15 +1,36 @@
 
 import React, { useEffect, useRef } from 'react';
-import { OrbMode } from '../types';
+import { OrbMode, SystemState } from '../types';
 
 interface NeuralQuantizerProps {
   orbMode: OrbMode;
+  systemState?: SystemState;
 }
 
-export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => {
+export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode, systemState }) => {
     const isActive = orbMode === 'ANALYSIS' || orbMode === 'SYNTHESIS' || orbMode === 'CONCORDANCE';
     const canvasRef = useRef<HTMLCanvasElement>(null);
     
+    // Extract real-time metrics
+    const activeNodesMetric = systemState?.globalResonance.activeArchitects || 100;
+    const signalSpeedMetric = systemState?.globalResonance.aggregateRho || 0.8;
+    const fieldStatus = systemState?.globalResonance.fieldStatus || 'STABLE';
+
+    // Determine color palette based on field status
+    let nodeColor = '#334155';
+    let signalColor = '#facc15';
+    let activeNodeColor = '#a5f3fc';
+    
+    if (fieldStatus === 'RESONATING') {
+        nodeColor = '#475569';
+        signalColor = '#fcd34d'; // Brighter gold
+        activeNodeColor = '#c084fc'; // Violet
+    } else if (fieldStatus === 'DECOHERING') {
+        nodeColor = '#451a1a';
+        signalColor = '#f87171'; // Red
+        activeNodeColor = '#fb923c'; // Orange
+    }
+
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -22,26 +43,27 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
         canvas.width = width;
         canvas.height = height;
 
-        // Initialize Nodes
-        const nodes: { x: number; y: number; connections: number[] }[] = [];
-        const nodeCount = 50;
+        // Initialize Nodes based on active architects (scaled down)
+        const nodeCount = Math.min(80, Math.floor(activeNodesMetric / 2));
+        const nodes: { x: number; y: number; connections: number[]; pulse: number }[] = [];
         const signals: { from: number; to: number; progress: number }[] = [];
 
         for (let i = 0; i < nodeCount; i++) {
             nodes.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
-                connections: []
+                connections: [],
+                pulse: Math.random() * Math.PI * 2
             });
         }
 
-        // Create Connections
+        // Create Connections - optimized for visual density
         nodes.forEach((node, i) => {
             const nearby = nodes
                 .map((n, idx) => ({ idx, dist: Math.hypot(n.x - node.x, n.y - node.y) }))
-                .filter(n => n.idx !== i && n.dist < 100)
+                .filter(n => n.idx !== i && n.dist < 120)
                 .sort((a, b) => a.dist - b.dist)
-                .slice(0, 3);
+                .slice(0, 3); // Max 3 connections per node
             
             nearby.forEach(n => {
                 if (!node.connections.includes(n.idx)) {
@@ -69,24 +91,27 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
 
             // Draw Nodes
             nodes.forEach(node => {
+                node.pulse += 0.05 * signalSpeedMetric; // Pulse speed linked to Rho
+                const pulseSize = Math.sin(node.pulse) * 1.5 + 2;
+
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = isActive ? '#a5f3fc' : '#334155';
+                ctx.arc(node.x, node.y, isActive ? pulseSize : 2, 0, Math.PI * 2);
+                ctx.fillStyle = isActive ? activeNodeColor : nodeColor;
                 ctx.fill();
                 
-                // Glow if active
-                if (isActive && Math.random() > 0.98) {
+                // Glow if active and high resonance
+                if (isActive && Math.random() > 0.99 && signalSpeedMetric > 0.9) {
                     ctx.beginPath();
-                    ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(165, 243, 252, 0.2)';
+                    ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                     ctx.fill();
                 }
             });
 
-            // Logic for Signals
+            // Logic for Signals (Packets)
             if (isActive) {
-                // Spawn new signal
-                if (Math.random() > 0.85) {
+                // Spawn new signal based on global activity
+                if (Math.random() > (1 - (activeNodesMetric / 500))) {
                     const startIdx = Math.floor(Math.random() * nodeCount);
                     const startNode = nodes[startIdx];
                     if (startNode.connections.length > 0) {
@@ -96,10 +121,10 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
                 }
 
                 // Draw and update signals
-                ctx.fillStyle = '#facc15';
+                ctx.fillStyle = signalColor;
                 for (let i = signals.length - 1; i >= 0; i--) {
                     const s = signals[i];
-                    s.progress += 0.02;
+                    s.progress += 0.01 + (signalSpeedMetric * 0.02); // Speed linked to Rho
                     
                     if (s.progress >= 1) {
                         signals.splice(i, 1);
@@ -112,12 +137,12 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
                     const y = start.y + (end.y - start.y) * s.progress;
 
                     ctx.beginPath();
-                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
                     ctx.fill();
                     
                     // Signal Glow
-                    ctx.shadowColor = '#facc15';
-                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = signalColor;
+                    ctx.shadowBlur = 8;
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                 }
@@ -128,7 +153,7 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
 
         render();
         return () => cancelAnimationFrame(animationFrameId);
-    }, [isActive]);
+    }, [isActive, activeNodesMetric, signalSpeedMetric, fieldStatus]);
 
     return (
         <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-cyan backdrop-blur-sm flex flex-col relative overflow-hidden">
@@ -136,8 +161,8 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
                 <h3 className="font-orbitron text-lg text-warm-grey">Neural Quantizer</h3>
                 <div className="flex items-center gap-3">
                     <div className="text-right">
-                        <p className="text-[9px] text-slate-500 uppercase tracking-widest">Cognitive Load</p>
-                        <p className="font-mono text-cyan-300">{isActive ? (60 + Math.random() * 30).toFixed(1) : '0.0'}%</p>
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest">Collective Load</p>
+                        <p className="font-mono text-cyan-300">{isActive ? (activeNodesMetric * 0.8).toFixed(0) : '0'} <span className="text-[8px]">NODES</span></p>
                     </div>
                     <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-cyan-400 animate-ping' : 'bg-slate-700'}`} />
                 </div>
@@ -153,16 +178,16 @@ export const NeuralQuantizer: React.FC<NeuralQuantizerProps> = ({ orbMode }) => 
 
             <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px] text-slate-500 font-mono">
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
-                    SYNAPSES: 142
+                    SYNAPSES: {activeNodesMetric * 3}
                 </div>
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
-                    LATENCY: {isActive ? '12ms' : 'IDLE'}
+                    LATENCY: {isActive ? (20 * (1 - signalSpeedMetric)).toFixed(1) : '--'}ms
                 </div>
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
-                    ENTROPY: 0.04
+                    STATUS: {fieldStatus}
                 </div>
                 <div className="bg-black/30 p-1 rounded border border-slate-700/50">
-                    Q-BITS: STABLE
+                    Q-BITS: {isActive ? 'ENTANGLED' : 'IDLE'}
                 </div>
             </div>
         </div>

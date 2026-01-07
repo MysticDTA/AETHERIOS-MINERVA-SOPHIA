@@ -69,47 +69,31 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
         )}
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col relative z-10 gap-4">
+      <div className="flex-1 min-h-0 flex flex-col relative z-10 gap-6">
         {/* Visualization Area */}
         <div className="relative flex items-center justify-center min-h-[180px] shrink-0">
           <svg viewBox="0 0 300 300" className="w-full h-full max-h-[300px] overflow-visible">
             <defs>
                 <filter id="nodeGlow">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feGaussianBlur stdDeviation="3" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
                 <radialGradient id="centerGrad">
-                    <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.3" />
+                    <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.2" />
                     <stop offset="100%" stopColor="transparent" stopOpacity="0" />
                 </radialGradient>
             </defs>
 
             {/* Central Hub */}
-            <circle cx={CENTER} cy={CENTER} r={40} fill="url(#centerGrad)" className="animate-pulse" />
-            <circle cx={CENTER} cy={CENTER} r={3} fill="var(--pearl)" />
-            <circle cx={CENTER} cy={CENTER} r={ORBIT_RADIUS} stroke="var(--dark-border)" strokeWidth="0.5" fill="none" strokeDasharray="4 4" opacity="0.5" />
+            <circle cx={CENTER} cy={CENTER} r={60} fill="url(#centerGrad)" className="animate-pulse" />
+            <circle cx={CENTER} cy={CENTER} r={2} fill="var(--pearl)" />
+            <circle cx={CENTER} cy={CENTER} r={ORBIT_RADIUS} stroke="var(--dark-border)" strokeWidth="0.5" fill="none" strokeDasharray="4 4" opacity="0.3" />
 
             {memoryNodes.length === 0 && (
-                <text x={CENTER} y={CENTER + 20} textAnchor="middle" fill="var(--warm-grey)" fontSize="8" className="font-mono uppercase tracking-widest opacity-50">
+                <text x={CENTER} y={CENTER + 30} textAnchor="middle" fill="var(--warm-grey)" fontSize="8" className="font-mono uppercase tracking-widest opacity-50">
                     No Causal Data Found
                 </text>
             )}
-
-            {/* Connecting Lines */}
-            {memoryNodes.map((node) => {
-                const isActive = activeMemory?.id === node.id;
-                return (
-                    <line 
-                        key={`line-${node.id}`}
-                        x1={CENTER} y1={CENTER}
-                        x2={node.x} y2={node.y}
-                        stroke={isActive ? 'var(--gold)' : 'var(--warm-grey)'}
-                        strokeWidth={isActive ? 1.5 : 0.3}
-                        opacity={isActive ? 0.8 : 0.15}
-                        className="transition-all duration-300"
-                    />
-                );
-            })}
 
             {/* Nodes (Petals) */}
             {memoryNodes.map(node => {
@@ -120,33 +104,38 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                 return (
                     <g 
                         key={node.id}
-                        className="cursor-pointer transition-all duration-300 group/node"
+                        className="cursor-pointer group/node"
                         onMouseEnter={() => setActiveMemory(node)}
                         transform={`translate(${node.x}, ${node.y}) rotate(${rotation})`}
                     >
+                        {/* Connecting Line (drawn here to be behind active scaling) */}
+                        <line 
+                            x1={0} y1={0}
+                            x2={0} y2={-node.x + CENTER} /* Rough calc towards center for visual link */
+                            stroke={isActive ? 'var(--gold)' : 'var(--warm-grey)'}
+                            strokeWidth={isActive ? 1 : 0.2}
+                            opacity={isActive ? 0.4 : 0.1}
+                            className="transition-all duration-500"
+                            transform={`rotate(${-rotation}) translate(${-node.x + CENTER}, ${-node.y + CENTER})`} 
+                            // Note: Simplifying line logic for visual clutter reduction
+                            style={{ display: 'none' }} 
+                        />
+
                         {/* Interactive Hit Area (Larger) */}
-                        <circle cx={0} cy={0} r={15} fill="transparent" />
+                        <circle cx={0} cy={0} r={20} fill="transparent" />
                         
                         {/* Petal Shape */}
                         <path
-                            d="M 0 -6 Q 4 0 0 6 Q -4 0 0 -6 Z"
+                            d="M 0 -8 Q 6 0 0 8 Q -6 0 0 -8 Z"
                             fill={isActive ? 'var(--pearl)' : 'var(--dark-bg)'}
                             stroke={isActive ? 'var(--gold)' : 'var(--slate-500)'}
-                            strokeWidth={isActive ? 1.5 : 0.5}
+                            strokeWidth={isActive ? 2 : 0.5}
+                            className="transition-all duration-500 ease-out"
                             style={{
-                                filter: isActive ? 'url(#nodeGlow)' : 'none',
-                                transform: isActive ? 'scale(1.5)' : 'scale(1)',
-                                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                filter: isActive ? 'drop-shadow(0 0 8px var(--gold))' : 'none',
+                                transform: isActive ? 'scale(1.8)' : 'scale(1)'
                             }}
                         />
-                        
-                        {/* Hover Ring Animation */}
-                        {isActive && (
-                            <circle cx={0} cy={0} r={12} fill="none" stroke="var(--gold)" strokeWidth="0.5" opacity="0.5">
-                                <animate attributeName="r" values="6;16" dur="1.5s" repeatCount="indefinite" />
-                                <animate attributeName="opacity" values="0.8;0" dur="1.5s" repeatCount="indefinite" />
-                            </circle>
-                        )}
                     </g>
                 );
             })}
@@ -155,60 +144,58 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
 
         {/* Structured Memory Readout Panel - High Readability */}
         <div className={`
-            flex-1 min-h-[120px] bg-black/80 border rounded-lg p-5 transition-all duration-500 flex flex-col gap-3 shadow-inner relative overflow-hidden backdrop-blur-xl
-            ${activeMemory ? 'border-gold/30 shadow-[0_0_30px_rgba(255,215,0,0.05)]' : 'border-white/5 opacity-80'}
+            flex-1 min-h-[140px] bg-black/90 border border-white/10 rounded-lg p-6 transition-all duration-500 flex flex-col gap-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] relative overflow-hidden backdrop-blur-xl
+            ${activeMemory ? 'border-gold/40 shadow-[0_0_30px_rgba(255,215,0,0.1)]' : 'border-white/5 opacity-60'}
         `}>
             {activeMemory ? (
-                <div className="relative z-10 animate-fade-in flex flex-col h-full gap-2">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-2 shrink-0">
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-gold rounded-full shadow-[0_0_5px_gold]" />
-                            <span className="text-[9px] font-mono text-gold uppercase tracking-[0.2em] font-bold">
+                <div className="relative z-10 animate-fade-in flex flex-col h-full gap-3">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-3 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 bg-gold rounded-full shadow-[0_0_8px_gold] animate-pulse" />
+                            <span className="text-[10px] font-mono text-gold uppercase tracking-[0.2em] font-bold">
                                 Block_ID: {activeMemory.id.split('_')[2] || 'UNKNOWN'}
                             </span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                             <span className="text-[9px] font-mono text-slate-400">
-                                {new Date(activeMemory.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                {new Date(activeMemory.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })}
                             </span>
                             <button 
                                 onClick={() => handleCopy(activeMemory.content)}
-                                className={`text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${copied ? 'border-green-500 text-green-400' : 'border-white/10 text-slate-500 hover:text-pearl hover:bg-white/10'}`}
+                                className={`text-[9px] font-mono uppercase tracking-wider px-3 py-1 rounded border transition-all ${copied ? 'border-green-500 text-green-400 bg-green-950/20' : 'border-white/10 text-slate-500 hover:text-pearl hover:bg-white/10'}`}
                             >
                                 {copied ? 'COPIED' : 'COPY'}
                             </button>
                         </div>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 bg-white/[0.02] rounded p-2 border border-white/5 shadow-inner">
-                        <p className="text-[13px] font-minerva text-pearl leading-relaxed antialiased whitespace-pre-wrap selection:bg-gold/30 selection:text-white">
+                    <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 bg-white/[0.03] rounded-md p-4 border border-white/5 shadow-inner">
+                        <p className="text-[14px] font-minerva text-pearl leading-relaxed antialiased whitespace-pre-wrap selection:bg-gold/30 selection:text-white">
                             {activeMemory.content}
                         </p>
                     </div>
 
-                    <div className="mt-1 pt-2 border-t border-white/5 flex justify-between items-center shrink-0">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">
-                                Context:
+                    <div className="pt-2 flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-3">
+                            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+                                Context Vector:
                             </span>
-                            <span className="text-[8px] font-mono text-violet-300 uppercase tracking-widest font-bold bg-violet-900/20 px-2 py-0.5 rounded border border-violet-500/20">
+                            <span className="text-[9px] font-mono text-violet-300 uppercase tracking-widest font-bold bg-violet-900/20 px-3 py-1 rounded border border-violet-500/20 shadow-[0_0_10px_rgba(139,92,246,0.1)]">
                                 {activeMemory.pillarContext || 'GENERAL_LOGIC'}
                             </span>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
-                            <div className="w-1.5 h-1.5 bg-gold rounded-full opacity-50" />
-                            <div className="w-1.5 h-1.5 bg-gold rounded-full opacity-25" />
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center h-full relative z-10 opacity-40 gap-3">
-                    <div className="w-12 h-12 rounded-full border border-dashed border-slate-500 animate-[spin_20s_linear_infinite] flex items-center justify-center">
-                        <div className="w-1 h-1 bg-slate-500 rounded-full" />
+                <div className="flex flex-col items-center justify-center h-full relative z-10 gap-4 opacity-50">
+                    <div className="relative">
+                        <div className="w-16 h-16 rounded-full border border-dashed border-slate-600 animate-[spin_10s_linear_infinite]" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-slate-600 rounded-full" />
+                        </div>
                     </div>
                     <span className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold">
-                        Hover Node to Decrypt
+                        Awaiting Selection...
                     </span>
                 </div>
             )}

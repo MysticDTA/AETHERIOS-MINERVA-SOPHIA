@@ -154,7 +154,10 @@ export const initialSystemState: SystemState = {
   breathCycle: 'INHALE',
   isGrounded: false,
   isPhaseLocked: false,
-  ingestedModules: [],
+  ingestedModules: [
+      { id: 'mod_01', name: 'Menerva_Core_Bridge', originProject: 'MENERVA', status: 'MOUNTED', entryPoint: '/api/menerva/v1/bridge' },
+      { id: 'mod_02', name: 'Stripe_Payment_V4', originProject: 'AETHERIOS', status: 'SYNCING', entryPoint: '/api/payments/checkout' }
+  ],
   globalResonance: {
     aggregateRho: 0.88,
     activeArchitects: 142,

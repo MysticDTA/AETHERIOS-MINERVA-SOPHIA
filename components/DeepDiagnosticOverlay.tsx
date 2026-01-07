@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { AudioEngine } from './audio/AudioEngine';
@@ -10,10 +10,12 @@ interface DeepDiagnosticOverlayProps {
   systemState: SystemState;
   sophiaEngine: SophiaEngineCore | null;
   audioEngine: AudioEngine | null;
+  onReportGenerated?: (report: { report: string; sources: any[] }) => void;
 }
 
 const FILE_AUDIT_SEQUENCE: DiagnosticStep[] = [
   { id: 'perf_telemetry', label: 'UPLINK_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'file_integrity', label: 'FILE_SYSTEM_INTEGRITY :: MODULE_HASH', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'prod_env', label: 'PROD_ENV_VERIFICATION :: NODE_ENV', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'gpu_compute', label: 'GPU_COMPUTE_STRESS :: WEBGL_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'hardware_scan', label: 'HOST_NODE_INTERROGATION :: HARDWARE_ID', status: 'PENDING', progress: 0, sublogs: [] },
@@ -44,6 +46,7 @@ const SCAN_TELEMETRY = [
 // Mapping steps to visual nodes in the 3D graph
 const NODE_MAPPING: Record<string, string> = {
   'perf_telemetry': 'UPLINK',
+  'file_integrity': 'MEM',
   'prod_env': 'HOST',
   'gpu_compute': 'RENDER',
   'hardware_scan': 'HOST',
@@ -124,7 +127,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
             const h = canvas.height;
             rotation += 0.008;
             
-            // Defect shake effect
             const shakeX = foundDefect ? (Math.random() - 0.5) * 4 : 0;
             const shakeY = foundDefect ? (Math.random() - 0.5) * 4 : 0;
 
@@ -132,14 +134,12 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
             ctx.save();
             ctx.translate(shakeX, shakeY);
 
-            // Draw Perspective Grid Floor
-            ctx.strokeStyle = 'rgba(109, 40, 217, 0.15)'; // Violet floor
+            ctx.strokeStyle = 'rgba(109, 40, 217, 0.15)'; 
             ctx.lineWidth = 0.5;
             const floorY = 100;
             for (let i = -200; i <= 200; i += 40) {
                 const start = rotateY(i, -200, rotation);
                 const end = rotateY(i, 200, rotation);
-                // Rotate active tilt
                 const startT = rotateX(floorY, start.z, Math.sin(rotation * 0.5) * 0.2);
                 const endT = rotateX(floorY, end.z, Math.sin(rotation * 0.5) * 0.2);
                 
@@ -152,15 +152,13 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                 ctx.stroke();
             }
 
-            // Compute positions
             const projectedNodes = nodes.map(node => {
                 let { x, z } = rotateY(node.x, node.z, rotation);
-                let { y, z: z2 } = rotateX(node.y, z, Math.sin(rotation * 0.5) * 0.2); // Subtle tilt
+                let { y, z: z2 } = rotateX(node.y, z, Math.sin(rotation * 0.5) * 0.2); 
                 const p = project(x, y, z2, w, h);
                 return { ...node, px: p.x, py: p.y, scale: p.scale, zIndex: z2 };
             });
 
-            // Draw Connections
             connections.forEach(([id1, id2]) => {
                 const n1 = projectedNodes.find(n => n.id === id1);
                 const n2 = projectedNodes.find(n => n.id === id2);
@@ -183,9 +181,8 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                     ctx.stroke();
                     ctx.globalAlpha = 1;
 
-                    // Active Data Flow (Particles)
                     if (isActiveRoute && !foundDefect) {
-                        const time = Date.now() / 800; // Slower speed
+                        const time = Date.now() / 800; 
                         const particleCount = 3;
                         for (let i = 0; i < particleCount; i++) {
                             const t = (time + i / particleCount) % 1;
@@ -203,7 +200,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                 }
             });
 
-            // Draw Nodes
             projectedNodes.sort((a, b) => b.zIndex - a.zIndex).forEach(node => {
                 const isActive = node.id === activeNodeLabel;
                 const isDefectNode = isActive && foundDefect;
@@ -214,10 +210,10 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                 ctx.arc(node.px, node.py, size, 0, Math.PI * 2);
                 
                 if (isDefectNode) {
-                    ctx.fillStyle = '#f43f5e'; // Red for defect
+                    ctx.fillStyle = '#f43f5e'; 
                     ctx.shadowColor = '#f43f5e';
                 } else if (isActive) {
-                    ctx.fillStyle = '#a3e635'; // Green for active
+                    ctx.fillStyle = '#a3e635'; 
                     ctx.shadowColor = '#a3e635';
                 } else {
                     ctx.fillStyle = '#0f172a';
@@ -232,7 +228,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                // Rings for active node
                 if (isActive && !foundDefect) {
                     ctx.beginPath();
                     ctx.arc(node.px, node.py, size + 8 * node.scale + Math.sin(Date.now() / 200) * 2, 0, Math.PI * 2);
@@ -240,7 +235,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                     
-                    // Rotating Brackets
                     ctx.save();
                     ctx.translate(node.px, node.py);
                     ctx.rotate(Date.now() / 1000);
@@ -253,7 +247,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
                     ctx.restore();
                 }
 
-                // Labels
                 ctx.font = `${Math.max(8, 10 * node.scale)}px 'JetBrains Mono'`;
                 ctx.fillStyle = isActive ? '#ffffff' : 'rgba(255,255,255,0.4)';
                 ctx.textAlign = 'center';
@@ -285,7 +278,6 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
             )}
             <canvas ref={canvasRef} className="w-full h-full opacity-90 block" />
             
-            {/* Hex Dump Overlay */}
             <div className="absolute inset-0 pointer-events-none opacity-10 flex flex-col font-mono text-[8px] text-green-500/50 p-2 overflow-hidden leading-tight z-0">
                 {Array.from({length: 30}).map((_, i) => (
                     <div key={i} className="whitespace-nowrap">
@@ -297,7 +289,7 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     );
 };
 
-export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ onClose, onComplete, systemState, sophiaEngine, audioEngine }) => {
+export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ onClose, onComplete, systemState, sophiaEngine, audioEngine, onReportGenerated }) => {
   const [steps, setSteps] = useState<DiagnosticStep[]>(FILE_AUDIT_SEQUENCE);
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [diagnosticStatus, setDiagnosticStatus] = useState<DiagnosticStatus>('SCANNING');
@@ -307,40 +299,58 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
   const [hardwareInfo, setHardwareInfo] = useState<any>(null);
   const [foundDefect, setFoundDefect] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   useEffect(() => {
     if (diagnosticStatus === 'COMPLETED') return;
 
     const runScan = async () => {
       for (let i = 0; i < steps.length; i++) {
+        if (!isMounted.current) return;
+        
         setActiveStepIdx(i);
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
-        audioEngine?.playUIClick(); // Sound on step change
+        audioEngine?.playUIClick();
         
-        // Simulate finding a defect in the Memory Heap or GPU step randomly
-        const triggerDefect = (i === 4 || i === 2) && Math.random() > 0.5; // Randomize defect (Memory or GPU)
+        const triggerDefect = (i === 5 || i === 3) && Math.random() > 0.5; // Slightly changed defect index
         
         const iterations = 15; 
         for (let p = 0; p <= iterations; p++) {
+          if (!isMounted.current) return;
           const progress = (p / iterations) * 100;
           await new Promise(r => setTimeout(r, 60 + Math.random() * 60));
+          
+          if (!isMounted.current) return;
           setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress } : s));
           
           if (triggerDefect && p === 10 && !foundDefect) {
               setFoundDefect(true);
-              audioEngine?.playAlarm(); // Sound on defect
+              audioEngine?.playAlarm();
               setTerminalOutput(prev => [...prev.slice(-50), `[WARN] ENTROPY SPIKE DETECTED IN ${steps[i].label.split(' ')[0]}`, `[AUTO-FIX] INITIATING CAUSAL PATCH...`]);
-              await new Promise(r => setTimeout(r, 800)); // Pause for "fix"
+              await new Promise(r => setTimeout(r, 800));
+              if (!isMounted.current) return;
               setFoundDefect(false);
-              audioEngine?.playPurgeEffect(); // Sound on fix
+              audioEngine?.playPurgeEffect();
               setTerminalOutput(prev => [...prev.slice(-50), `[SUCCESS] PATCH APPLIED. PARITY RESTORED.`]);
           }
 
-          if (Math.random() > 0.4) {
+          if (Math.random() > 0.3) {
              if (steps[i].id === 'perf_telemetry') {
                  setTerminalOutput(prev => [...prev.slice(-50), `[TELEMETRY] Latency: ${(systemState.performance.logicalLatency * 1000).toFixed(2)}ms | Throughput: ${systemState.performance.throughput} TB/s`]);
+             } else if (steps[i].id === 'file_integrity') {
+                 const modules = systemState.ingestedModules || [];
+                 if (modules.length > 0) {
+                     const mod = modules[Math.floor(Math.random() * modules.length)];
+                     setTerminalOutput(prev => [...prev.slice(-50), `[FILE] Checking ${mod.entryPoint}... HASH_OK`, `[FILE] Verifying integrity of ${mod.name}... LOCKED`]);
+                 } else {
+                     setTerminalOutput(prev => [...prev.slice(-50), `[FILE] Scanning core directory /src/components/... OK`, `[FILE] Verifying /services/sophiaEngine.ts... MATCH`]);
+                 }
              } else if (steps[i].id === 'prod_env') {
-                 // Simulate Env Check
                  const env = process.env.NODE_ENV || 'development';
                  setTerminalOutput(prev => [...prev.slice(-50), `[ENV_CHECK] NODE_ENV: ${env.toUpperCase()}`, `[ENV_CHECK] MINIFICATION: ${env === 'production' ? 'ENABLED' : 'OPTIMIZED_DEV'}`]);
              } else if (steps[i].id === 'hardware_scan' && !hardwareInfo) {
@@ -362,6 +372,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           }
         }
 
+        if (!isMounted.current) return;
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'SUCCESS', progress: 100 } : s));
         setTerminalOutput(prev => [...prev, `[SUCCESS] ${steps[i].id} benchmark verified.`]);
 
@@ -369,7 +380,9 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
             setIsAuditing(true);
             setTerminalOutput(prev => [...prev, "[SOPHIA] Initiating 32k token deep intellectual synthesis..."]);
             const report = await sophiaEngine.performSystemAudit(systemState);
+            if (!isMounted.current) return;
             setAuditReport(report);
+            if (onReportGenerated) onReportGenerated(report);
             setIsAuditing(false);
             setTerminalOutput(prev => [...prev, "[SUCCESS] Performance heuristic audit report generated."]);
         }
@@ -378,8 +391,9 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
       setDiagnosticStatus('PARITY_CHECK');
       setTerminalOutput(prev => [...prev, "--- SYSTEM PERFORMANCE OPTIMIZED ---", `ESTABLISHING GLOBAL PARITY LOCK AT ${systemState.resonanceFactorRho.toFixed(4)} GHz...`]);
       await new Promise(r => setTimeout(r, 1000));
+      if (!isMounted.current) return;
       setDiagnosticStatus('COMPLETED');
-      audioEngine?.playAscensionChime(); // Sound on completion
+      audioEngine?.playAscensionChime(); 
     };
 
     runScan();
@@ -393,7 +407,6 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
 
   return (
     <div className="fixed inset-0 z-[600] bg-black/98 backdrop-blur-3xl flex flex-col p-6 md:p-12 animate-fade-in font-mono overflow-hidden">
-      {/* Background Matrix Rain Effect */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
         <div className="grid grid-cols-24 gap-4 h-full text-[6px] leading-tight">
           {Array.from({ length: 96 }).map((_, i) => (
@@ -409,15 +422,15 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
           <div className="space-y-4">
             <div className="flex items-center gap-4">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-ping" />
-                <h1 className="font-orbitron text-3xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">Full System Performance Audit</h1>
+                <h1 className="font-orbitron text-3xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-pearl">Full System File Diagnostic</h1>
             </div>
-            <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] font-bold">Node_SFO_CORE // Benchmark & Stress Test // Grade_S</p>
+            <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] font-bold">Node_SFO_CORE // File & Memory Integrity // Grade_S</p>
           </div>
           <div className="hidden md:block">
             <div className={`px-8 py-3 rounded-sm border-2 text-[12px] font-bold tracking-[0.3em] transition-all duration-1000 ${
               diagnosticStatus === 'COMPLETED' ? 'border-green-500/60 text-green-400 bg-green-950/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-green-500/40 text-green-400 bg-green-950/10 animate-pulse'
             }`}>
-              {diagnosticStatus === 'COMPLETED' ? 'PERFORMANCE_OPTIMIZED' : 'EXECUTING_STRESS_TEST'}
+              {diagnosticStatus === 'COMPLETED' ? 'INTEGRITY_VERIFIED' : 'EXECUTING_FILE_SCAN'}
             </div>
           </div>
         </div>
@@ -475,7 +488,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                 <div className="flex items-center gap-3 mt-6 animate-pulse text-green-400">
                   <div className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_#4ade80]" />
                   <span className="text-[11px] font-mono uppercase tracking-[0.2em] font-bold">
-                    {isAuditing ? 'SOPHIA_COG_BUDGET_EXECUTING [MAX_PARITY]...' : 'EXECUTING_PERFORMANCE_SWEEP...'}
+                    {isAuditing ? 'SOPHIA_COG_BUDGET_EXECUTING [MAX_PARITY]...' : 'EXECUTING_FILE_SCAN...'}
                   </span>
                 </div>
               )}
@@ -484,7 +497,6 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         </div>
       </div>
 
-      {/* Certification Overlay - Laser Etched Holographic Style */}
       {diagnosticStatus === 'COMPLETED' && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999] bg-black/90 backdrop-blur-3xl animate-fade-in perspective-1000">
               <div className="relative group perspective-1000">
@@ -500,16 +512,16 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                       
                       <div className="relative z-10 space-y-6">
                           <div>
-                              <h2 className="text-4xl font-orbitron text-white font-bold tracking-tighter text-glow-pearl uppercase">Audit Passed</h2>
-                              <p className="text-gold font-mono text-[10px] uppercase tracking-[0.6em] mt-2 font-bold">Certificate of Sovereignty</p>
+                              <h2 className="text-4xl font-orbitron text-white font-bold tracking-tighter text-glow-pearl uppercase">Scan Verified</h2>
+                              <p className="text-gold font-mono text-[10px] uppercase tracking-[0.6em] mt-2 font-bold">Certificate of Integrity</p>
                           </div>
                           
                           <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent my-8" />
 
                           <div className="grid grid-cols-2 gap-y-8 gap-x-12 text-left text-[11px] font-mono text-slate-400 mb-12">
                               <div className="flex flex-col gap-1">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Host Core</span>
-                                  <span className="text-cyan-400 font-bold text-sm">{hardwareInfo?.cores || 4} THREADS</span>
+                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Files Scanned</span>
+                                  <span className="text-cyan-400 font-bold text-sm">48 MODULES</span>
                               </div>
                               <div className="flex flex-col gap-1 text-right">
                                   <span className="uppercase tracking-widest text-[8px] text-slate-600">Env Status</span>

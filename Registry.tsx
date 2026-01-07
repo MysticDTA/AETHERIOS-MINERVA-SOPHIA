@@ -101,6 +101,7 @@ export const SYSTEM_NODES: NavNode[] = [
     { id: 13, label: 'NEURON', requiredTier: 'ARCHITECT', description: 'Neural Quantizer Matrix' },
     { id: 14, label: 'SUMMARY', requiredTier: 'ACOLYTE', description: 'Heuristic Audit Report' },
     { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE', description: 'Capital Procurement Gateway' },
+    { id: 20, label: 'MODULES', requiredTier: 'ARCHITECT', description: 'Dynamic Logic Shard Manager' },
     { id: 17, label: 'READY', requiredTier: 'ACOLYTE', description: 'Deployment Manifest' },
     { id: 18, label: 'VEO', requiredTier: 'SOVEREIGN', description: 'Visual Evidence Synthesis' },
     { id: 19, label: 'AUDIT', requiredTier: 'ARCHITECT', isAudit: true, description: 'Heuristic System Sweep' },

@@ -42,6 +42,7 @@ import { SystemFooter } from './components/SystemFooter';
 import { SimulationControls } from './components/SimulationControls';
 import { Modal } from './components/Modal';
 import { SYSTEM_NODES } from './Registry';
+import { ModuleManager } from './components/ModuleManager';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -66,6 +67,7 @@ const App: React.FC = () => {
     const [showConfig, setShowConfig] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
     const [memories, setMemories] = useState(knowledgeBase.getMemories());
+    const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
 
     // Engines
     const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -162,7 +164,7 @@ const App: React.FC = () => {
                 isFlushingHelium={interactive.isFlushingHelium}
                 onDilutionCalibrate={interactive.handleDilutionCalibration}
                 isCalibratingDilution={interactive.isCalibratingDilution}
-            />; // Mapped Display6 to LATTICE
+            />;
             case 3: return <Display3 
                 systemState={systemState} 
                 onRelayCalibration={interactive.handleRelayCalibration} 
@@ -193,7 +195,7 @@ const App: React.FC = () => {
                 systemState={systemState}
                 onGroundingDischarge={interactive.handleGroundingDischarge}
                 isDischargingGround={interactive.isDischargingGround}
-            />; // Mapped SubsystemsDisplay to MATRIX
+            />;
             case 7: return <Display7 
                 systemState={systemState}
                 transmission={transmission}
@@ -209,8 +211,12 @@ const App: React.FC = () => {
             case 10: return <Display10 systemState={systemState} />;
             case 11: return <Display11 systemState={systemState} />;
             case 12: return <Display12 systemState={systemState} />;
-            case 13: return <NeuralQuantizer orbMode={orbMode} />;
-            case 14: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngineRef.current} />;
+            case 13: return <NeuralQuantizer orbMode={orbMode} systemState={systemState} />;
+            case 14: return <SystemSummary 
+                systemState={systemState} 
+                sophiaEngine={sophiaEngineRef.current}
+                existingReport={lastAuditReport}
+            />;
             case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
             case 16: return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngineRef.current} setOrbMode={setOrbMode} />;
             case 17: return <DeploymentManifest systemState={systemState} onDeploySuccess={() => setIsDeploying(true)} />;
@@ -220,8 +226,10 @@ const App: React.FC = () => {
                 onComplete={() => setCurrentPage(14)} 
                 systemState={systemState} 
                 sophiaEngine={sophiaEngineRef.current} 
-                audioEngine={audioEngineRef.current} 
+                audioEngine={audioEngineRef.current}
+                onReportGenerated={setLastAuditReport}
             />;
+            case 20: return <ModuleManager systemState={systemState} />;
             case 21: return <MenervaBridge systemState={systemState} />;
             case 22: return <EventLog log={systemState.log} filter={LogType.INFO} onFilterChange={() => {}} />;
             case 23: return <SecurityShieldAudit systemState={systemState} />;

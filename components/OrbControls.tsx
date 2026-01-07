@@ -129,7 +129,7 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
             <Tooltip key={modeConfig.id} text={modeConfig.description}>
               <button
                 type="button"
-                className={`px-2 py-1 rounded-[1px] text-[6px] font-bold uppercase transition-all duration-300 border whitespace-nowrap tracking-wider active:scale-95 ${
+                className={`px-3 py-1.5 rounded-[1px] text-[9px] font-bold uppercase transition-all duration-300 border whitespace-nowrap tracking-wider active:scale-95 ${
                   currentMode === modeConfig.id
                     ? "bg-pearl text-dark-bg border-pearl shadow-[0_0_8px_rgba(248,245,236,0.3)] scale-105 z-10 font-black"
                     : "bg-transparent text-slate-500 border-transparent hover:bg-white/5 hover:text-white hover:border-white/10"
@@ -149,11 +149,11 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
             <button
               type="button"
               onClick={toggleVoiceControl}
-              className={`relative flex items-center justify-center w-5 h-5 rounded-[1px] transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-950/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800/50 text-slate-500 hover:text-white hover:border-slate-500'}`}
+              className={`relative flex items-center justify-center w-6 h-6 rounded-[1px] transition-all duration-500 border ${isListening ? 'border-violet-500 text-violet-400 bg-violet-950/20 scale-110 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'border-slate-700 bg-slate-800/50 text-slate-500 hover:text-white hover:border-slate-500'}`}
               aria-label={isListening ? "Stop listening for voice commands" : "Start listening for voice commands"}
               aria-pressed={isListening}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-2.5 w-2.5 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
               {isListening && (
