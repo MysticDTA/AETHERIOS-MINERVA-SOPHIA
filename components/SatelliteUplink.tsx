@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
-import { Tooltip } from './Tooltip';
 
 interface SatelliteUplinkProps {
   systemState: SystemState;
@@ -18,42 +17,109 @@ const TelemetryPacket: React.FC<{ label: string; value: string; color: string }>
 );
 
 const OrbitalProjection: React.FC<{ isActive: boolean }> = ({ isActive }) => {
-    const stars = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 1.5 + 0.5,
-        opacity: Math.random() * 0.7 + 0.3
-    })), []);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrame: number;
+        const width = canvas.width = canvas.offsetWidth;
+        const height = canvas.height = canvas.offsetHeight;
+        const cx = width / 2;
+        const cy = height / 2;
+
+        // Orbit Definitions (a: semi-major, b: semi-minor, angle: rotation, speed: velocity factor)
+        const orbits = [
+            { a: width * 0.35, b: height * 0.15, angle: Math.PI / 6, speed: 0.0005, color: 'rgba(255, 255, 255, 0.1)' },
+            { a: width * 0.40, b: height * 0.35, angle: -Math.PI / 8, speed: 0.0008, color: 'rgba(255, 255, 255, 0.1)' },
+            { a: width * 0.25, b: height * 0.25, angle: 0, speed: 0.0012, color: 'rgba(230, 199, 127, 0.15)' } // Gold orbit
+        ];
+
+        const satellites = orbits.map((orbit, i) => ({
+            orbitIndex: i,
+            progress: Math.random() * Math.PI * 2
+        }));
+
+        const stars = Array.from({ length: 50 }).map(() => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 1.5,
+            opacity: Math.random() * 0.8
+        }));
+
+        const render = (time: number) => {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Stars
+            ctx.fillStyle = 'white';
+            stars.forEach(s => {
+                ctx.globalAlpha = s.opacity * (0.5 + 0.5 * Math.sin(time * 0.002 + s.x));
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Draw Earth Projection (Wireframe Sphere)
+            ctx.strokeStyle = 'rgba(109, 40, 217, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, width * 0.15, 0, Math.PI * 2);
+            ctx.stroke();
+            // Longitude/Latitude
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, width * 0.15, width * 0.05, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, width * 0.05, width * 0.15, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw Orbits and Satellites
+            orbits.forEach((orbit, i) => {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(orbit.angle);
+
+                // Path
+                ctx.strokeStyle = orbit.color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.a, orbit.b, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Satellite
+                const sat = satellites[i];
+                if (isActive) sat.progress += orbit.speed * 16; // Speed up when active
+                
+                const sx = orbit.a * Math.cos(sat.progress);
+                const sy = orbit.b * Math.sin(sat.progress);
+
+                // Draw Satellite body
+                ctx.fillStyle = i === 2 ? '#ffd700' : '#ffffff'; // Gold for main orbit
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+            });
+
+            requestAnimationFrame(render);
+        };
+
+        animationFrame = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [isActive]);
 
     return (
         <div className="relative w-full h-full bg-black/60 rounded-lg overflow-hidden border border-white/5 shadow-inner group">
-             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '30px 30px' }} />
-             
-             <svg viewBox="0 0 100 100" className="w-full h-full">
-                {stars.map(s => (
-                    <circle key={s.id} cx={s.x} cy={s.y} r={s.size} fill="white" opacity={s.opacity} />
-                ))}
-                
-                {/* Orbital Paths */}
-                <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(248, 245, 236, 0.05)" strokeWidth="0.5" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(248, 245, 236, 0.05)" strokeWidth="0.5" />
-                
-                {/* Active Satellite Node */}
-                <g className={isActive ? 'animate-[spin_40s_linear_infinite]' : ''} style={{ transformOrigin: '50% 50%' }}>
-                    <circle cx="50" cy="15" r="2" fill="var(--gold)" filter="drop-shadow(0 0 5px var(--gold))" />
-                    <circle cx="50" cy="15" r="8" fill="none" stroke="var(--gold)" strokeWidth="0.2" opacity="0.4">
-                        <animate attributeName="r" values="2;12" dur="3s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.6;0" dur="3s" repeatCount="indefinite" />
-                    </circle>
-                </g>
-
-                {/* Earth projection silhouette */}
-                <circle cx="50" cy="50" r="20" fill="rgba(109, 40, 217, 0.05)" stroke="rgba(109, 40, 217, 0.2)" strokeWidth="0.5" />
-                <path d="M 40 40 Q 50 45 60 40 M 35 55 Q 50 60 65 55" fill="none" stroke="rgba(109, 40, 217, 0.2)" strokeWidth="0.2" />
-             </svg>
-
-             <div className="absolute top-4 left-4 font-mono text-[9px] text-slate-500 uppercase flex flex-col gap-1">
+             <canvas ref={canvasRef} className="w-full h-full block" />
+             <div className="absolute top-4 left-4 font-mono text-[9px] text-slate-500 uppercase flex flex-col gap-1 pointer-events-none">
                 <span>Projection: GRS-80</span>
                 <span>Nadir_Offset: 0.042m</span>
              </div>
@@ -94,7 +160,7 @@ export const SatelliteUplink: React.FC<SatelliteUplinkProps> = ({ systemState, s
             
             await sophiaEngine.runConsoleStream(
                 `[ORBITAL_REQUEST] fetch real-time telemetry for: ${query}`,
-                (chunk) => {}, // We don't need raw chunks for the UI update
+                (chunk) => {}, 
                 async (sources) => {
                     log("HEURISTIC NODES ACQUIRED. SIPHONING DATA...");
                     
@@ -159,8 +225,8 @@ export const SatelliteUplink: React.FC<SatelliteUplinkProps> = ({ systemState, s
                 {/* Left: Projection & Telemetry */}
                 <div className="lg:col-span-8 flex flex-col gap-6 min-h-0">
                     <div className="flex-1 min-h-[300px] relative">
-                         <OrbitalProjection isActive={!!liveData} />
-                         {isEstablishing && (
+                         <OrbitalProjection isActive={!!liveData || isEstablishing} />
+                         {isEstablishing && !liveData && (
                              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-lg z-20">
                                  <div className="flex flex-col items-center gap-4">
                                      <div className="w-16 h-16 border-2 border-gold/20 rounded-full border-t-gold animate-spin" />
