@@ -1,18 +1,84 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SystemState } from '../types';
+import { AudioEngine } from './audio/AudioEngine';
 
-const SECURITY_CHECKS = [
-    { id: 'git_ignore', label: 'GITHUB_SECRET_SHIELDING', desc: 'Verifying .env exclusion in local lattice.', status: 'LOCKED' },
-    { id: 'cors_headers', label: 'CORS_PARITY_HANDSHAKE', desc: 'Confirming Vercel edge-origin restrictions.', status: 'LOCKED' },
-    { id: 'stripe_isolation', label: 'STRIPE_SK_ISOLATION', desc: 'Ensuring Secret Key is strictly server-side.', status: 'LOCKED' },
-    { id: 'token_encryption', label: 'CAUSAL_AES_ENCRYPTION', desc: 'Validating AES-256 GCM packet parity.', status: 'LOCKED' },
-    { id: 'rate_limiting', label: 'RES_QUOTA_DAMPING', desc: 'Global rate-limit circuit breaker status.', status: 'LOCKED' }
-];
+interface SecurityShieldAuditProps {
+    systemState: SystemState;
+    setSystemState?: React.Dispatch<React.SetStateAction<SystemState>>;
+    audioEngine?: AudioEngine | null;
+}
 
-const ThreatSphere: React.FC<{ isScanning: boolean }> = ({ isScanning }) => {
+// --- QUANTUM SHIELD LOGIC TYPES ---
+interface ShieldNode {
+    id: number;
+    x: number;
+    y: number;
+    z: number;
+    integrity: number; // 0.0 - 1.0
+    isEntangled: boolean;
+    phase: number;
+}
+
+interface ThreatVector {
+    id: number;
+    x: number;
+    y: number;
+    z: number;
+    velocity: number;
+    type: 'DECOHERENCE' | 'ENTROPIC' | 'MALWARE';
+}
+
+const SHIELD_RADIUS = 120;
+const NODE_COUNT = 32;
+
+export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ systemState, setSystemState, audioEngine }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     
+    // Simulation State
+    const [shieldIntegrity, setShieldIntegrity] = useState(1.0);
+    const [activeThreats, setActiveThreats] = useState<number>(0);
+    const [zenoMode, setZenoMode] = useState(false); // Quantum Zeno Effect (Active Observation)
+    const [nodes, setNodes] = useState<ShieldNode[]>([]);
+    const [terminalLogs, setTerminalLogs] = useState<string[]>([
+        "Initializing Quantum Zeno Protocol...",
+        "Lattice Topology: ICOSAHEDRON_SPIN_1/2",
+        "Waiting for causal intercept..."
+    ]);
+
+    // Refs for animation loop to avoid closure staleness
+    const nodesRef = useRef<ShieldNode[]>([]);
+    const threatsRef = useRef<ThreatVector[]>([]);
+    const rotationRef = useRef({ x: 0, y: 0 });
+    const isDragging = useRef(false);
+    const lastMousePos = useRef({ x: 0, y: 0 });
+
+    // Initialize Shield Nodes (Spherical Fibonacci Lattice)
+    useEffect(() => {
+        const phi = Math.PI * (3 - Math.sqrt(5));
+        const newNodes: ShieldNode[] = [];
+        
+        for (let i = 0; i < NODE_COUNT; i++) {
+            const y = 1 - (i / (NODE_COUNT - 1)) * 2;
+            const radius = Math.sqrt(1 - y * y);
+            const theta = phi * i;
+            
+            newNodes.push({
+                id: i,
+                x: Math.cos(theta) * radius * SHIELD_RADIUS,
+                y: y * SHIELD_RADIUS,
+                z: Math.sin(theta) * radius * SHIELD_RADIUS,
+                integrity: 1.0,
+                isEntangled: true,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+        nodesRef.current = newNodes;
+        setNodes(newNodes);
+    }, []);
+
+    // Main Physics Loop
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -20,261 +86,397 @@ const ThreatSphere: React.FC<{ isScanning: boolean }> = ({ isScanning }) => {
         if (!ctx) return;
 
         let animationFrame: number;
-        const width = canvas.width;
-        const height = canvas.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const shieldRadius = 80;
-
-        let threats: { x: number; y: number; vx: number; vy: number; life: number; type: 'XSS' | 'DDoS' | 'INJECT' }[] = [];
-        let impacts: { x: number; y: number; life: number }[] = [];
-
-        const spawnThreat = () => {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = shieldRadius + 100 + Math.random() * 50;
-            const type = Math.random() > 0.7 ? 'DDoS' : Math.random() > 0.5 ? 'INJECT' : 'XSS';
-            threats.push({
-                x: centerX + Math.cos(angle) * dist,
-                y: centerY + Math.sin(angle) * dist,
-                vx: -Math.cos(angle) * (1 + Math.random()),
-                vy: -Math.sin(angle) * (1 + Math.random()),
-                life: 1.0,
-                type
-            });
-        };
+        let frameCount = 0;
 
         const render = () => {
-            ctx.clearRect(0, 0, width, height);
+            frameCount++;
+            const width = canvas.width;
+            const height = canvas.height;
+            const cx = width / 2;
+            const cy = height / 2;
 
-            // Draw Shield
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, shieldRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // Clear & Trail
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Auto Rotation (slowed down if Zeno mode active)
+            if (!isDragging.current) {
+                rotationRef.current.y += zenoMode ? 0.001 : 0.005; 
+                rotationRef.current.x += 0.002;
+            }
+
+            // --- THREAT SPAWNING LOGIC ---
+            // Spawn threats if integrity is high enough to attract attention
+            if (frameCount % (zenoMode ? 120 : 60) === 0 && Math.random() > 0.3) {
+                const angle = Math.random() * Math.PI * 2;
+                const spawnDist = 400;
+                threatsRef.current.push({
+                    id: Date.now() + Math.random(),
+                    x: Math.cos(angle) * spawnDist,
+                    y: (Math.random() - 0.5) * spawnDist,
+                    z: Math.sin(angle) * spawnDist,
+                    velocity: 2 + Math.random() * 2,
+                    type: Math.random() > 0.7 ? 'ENTROPIC' : 'DECOHERENCE'
+                });
+                setActiveThreats(threatsRef.current.length);
+            }
+
+            // --- PHYSICS & RENDERING ---
             
-            // Shield Glow
-            const gradient = ctx.createRadialGradient(centerX, centerY, shieldRadius * 0.8, centerX, centerY, shieldRadius * 1.2);
-            gradient.addColorStop(0, 'rgba(16, 185, 129, 0)');
-            gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.1)');
-            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-            ctx.fillStyle = gradient;
-            ctx.fill();
-
-            // Core
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-
-            // Manage Threats
-            if (Math.random() > 0.92) spawnThreat();
-
-            threats.forEach((t, i) => {
-                t.x += t.vx;
-                t.y += t.vy;
-                
-                const distFromCenter = Math.sqrt(Math.pow(t.x - centerX, 2) + Math.pow(t.y - centerY, 2));
-
-                // Impact Detection
-                if (distFromCenter <= shieldRadius + 2) {
-                    impacts.push({ x: t.x, y: t.y, life: 1.0 });
-                    threats.splice(i, 1);
+            // 1. Process Threats
+            threatsRef.current.forEach((threat, tIdx) => {
+                // Move towards center (0,0,0)
+                const dist = Math.sqrt(threat.x**2 + threat.y**2 + threat.z**2);
+                if (dist > SHIELD_RADIUS + 10) {
+                    const speed = threat.velocity * (zenoMode ? 0.5 : 1.0); // Zeno effect slows time/threats
+                    threat.x -= (threat.x / dist) * speed;
+                    threat.y -= (threat.y / dist) * speed;
+                    threat.z -= (threat.z / dist) * speed;
                 } else {
-                    ctx.beginPath();
-                    ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
-                    ctx.fillStyle = t.type === 'DDoS' ? '#f43f5e' : '#fb923c';
-                    ctx.fill();
+                    // IMPACT logic
+                    // Find nearest node
+                    let nearestNode = nodesRef.current[0];
+                    let minD = 9999;
                     
-                    // Threat Trail
+                    // Simple rotation calc to match visual nodes not needed for logic, 
+                    // but we assume threat hits the "shield sphere"
+                    
+                    // Find random node to damage
+                    const targetNodeIdx = Math.floor(Math.random() * nodesRef.current.length);
+                    const targetNode = nodesRef.current[targetNodeIdx];
+                    
+                    // Damage Node
+                    targetNode.integrity = Math.max(0, targetNode.integrity - 0.4);
+                    targetNode.isEntangled = false;
+                    
+                    // Visual Explosion
                     ctx.beginPath();
-                    ctx.moveTo(t.x, t.y);
-                    ctx.lineTo(t.x - t.vx * 5, t.y - t.vy * 5);
-                    ctx.strokeStyle = ctx.fillStyle;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
+                    ctx.arc(cx + threat.x * 0.5, cy + threat.y * 0.5, 20, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(244, 63, 94, 0.5)';
+                    ctx.fill();
+
+                    // Sound
+                    if (Math.random() > 0.5) audioEngine?.playUIClick(); // Using click as impact fallback
+
+                    // Remove threat
+                    threatsRef.current.splice(tIdx, 1);
+                    setTerminalLogs(prev => [`[ALERT] IMPACT DETECTED. NODE_${targetNode.id} INTEGRITY: ${(targetNode.integrity*100).toFixed(0)}%`, ...prev.slice(0, 4)]);
+                    
+                    // Update Global Health impact
+                    if (setSystemState) {
+                        setSystemState(prev => ({
+                            ...prev,
+                            quantumHealing: {
+                                ...prev.quantumHealing,
+                                stabilizationShield: Math.max(0, prev.quantumHealing.stabilizationShield - 0.05),
+                                decoherence: Math.min(1, prev.quantumHealing.decoherence + 0.02)
+                            }
+                        }));
+                    }
                 }
             });
 
-            // Render Impacts
-            impacts.forEach((imp, i) => {
-                imp.life -= 0.05;
-                if (imp.life <= 0) impacts.splice(i, 1);
+            // 2. Render Shield Nodes & Connections
+            // Sort by Z for simple depth cue
+            const projectedNodes = nodesRef.current.map(node => {
+                // Rotate
+                const cosX = Math.cos(rotationRef.current.x);
+                const sinX = Math.sin(rotationRef.current.x);
+                const cosY = Math.cos(rotationRef.current.y);
+                const sinY = Math.sin(rotationRef.current.y);
+
+                let y = node.y * cosX - node.z * sinX;
+                let z = node.y * sinX + node.z * cosX;
+                let x = node.x * cosY - z * sinY;
+                z = node.x * sinY + z * cosY;
+
+                const scale = 400 / (400 + z);
+                return { 
+                    ...node, 
+                    px: cx + x * scale, 
+                    py: cy + y * scale, 
+                    scale, 
+                    z 
+                };
+            }).sort((a, b) => a.z - b.z);
+
+            projectedNodes.forEach(node => {
+                const alpha = Math.max(0.1, (node.z + SHIELD_RADIUS) / (SHIELD_RADIUS * 2));
                 
+                // Draw Connections (Lattice)
+                nodesRef.current.forEach(other => {
+                    const dist = Math.hypot(node.x - other.x, node.y - other.y, node.z - other.z);
+                    if (dist < 60 && other.id > node.id) {
+                        // Find projected other (this is O(N^2) inside render, but N=32 is fine)
+                        // Optimization: Skip projection, just use calculated Z to fade
+                        // We need active lines though.
+                        // Simplified: Only draw lines for nodes currently on screen
+                        // For pure visual:
+                    }
+                });
+
+                // Node Draw
                 ctx.beginPath();
-                ctx.arc(imp.x, imp.y, 15 * (1 - imp.life), 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(16, 185, 129, ${imp.life})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.arc(node.px, node.py, 3 * node.scale * (node.isEntangled ? 1 : 0.5), 0, Math.PI * 2);
+                
+                if (node.integrity < 0.3) ctx.fillStyle = `rgba(244, 63, 94, ${alpha})`; // Broken Red
+                else if (node.integrity < 0.8) ctx.fillStyle = `rgba(250, 204, 21, ${alpha})`; // Warning Yellow
+                else ctx.fillStyle = zenoMode ? `rgba(167, 139, 250, ${alpha})` : `rgba(16, 185, 129, ${alpha})`; // Stable Green or Zeno Violet
+                
+                ctx.fill();
+
+                // Shield Surface Effect (Voronoi-ish Triangulation simulation via lines)
+                // Finding 3 nearest neighbors for visual web
+                let neighbors = projectedNodes
+                    .filter(n => n.id !== node.id)
+                    .sort((a, b) => Math.hypot(a.px - node.px, a.py - node.py) - Math.hypot(b.px - node.px, b.py - node.py))
+                    .slice(0, 3);
+                
+                neighbors.forEach(n => {
+                    ctx.beginPath();
+                    ctx.moveTo(node.px, node.py);
+                    ctx.lineTo(n.px, n.py);
+                    ctx.strokeStyle = node.integrity < 0.5 ? `rgba(244, 63, 94, ${alpha * 0.3})` : `rgba(16, 185, 129, ${alpha * 0.15})`;
+                    ctx.lineWidth = 1 * node.scale;
+                    ctx.stroke();
+                });
             });
+
+            // 3. Render Threats (Projected)
+            threatsRef.current.forEach(t => {
+                // Simple projection matching shield rotation for visual consistency
+                const cosX = Math.cos(rotationRef.current.x);
+                const sinX = Math.sin(rotationRef.current.x);
+                const cosY = Math.cos(rotationRef.current.y);
+                const sinY = Math.sin(rotationRef.current.y);
+
+                let y = t.y * cosX - t.z * sinX;
+                let z = t.y * sinX + t.z * cosX;
+                let x = t.x * cosY - z * sinY;
+                z = t.x * sinY + z * cosY;
+
+                const scale = 400 / (400 + z);
+                const px = cx + x * scale;
+                const py = cy + y * scale;
+
+                // Draw Threat
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px - (x * 0.1), py - (y * 0.1)); // Trail
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 2 * scale;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(px, py, 3 * scale, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            });
+
+            // Calculate aggregate integrity
+            const totalInt = nodesRef.current.reduce((acc, n) => acc + n.integrity, 0) / NODE_COUNT;
+            if (Math.abs(totalInt - shieldIntegrity) > 0.01) {
+                setShieldIntegrity(totalInt);
+            }
 
             animationFrame = requestAnimationFrame(render);
         };
 
         render();
         return () => cancelAnimationFrame(animationFrame);
-    }, []);
+    }, [zenoMode]);
 
-    return <canvas ref={canvasRef} width={400} height={300} className="w-full h-full object-contain" />;
-};
-
-export const SecurityShieldAudit: React.FC<{ systemState: SystemState }> = ({ systemState }) => {
-    const [progress, setProgress] = useState(0);
-    const [isScanning, setIsScanning] = useState(false);
-    const [isRotatingKeys, setIsRotatingKeys] = useState(false);
-    const [encryptionEntropy, setEncryptionEntropy] = useState(0.9994);
-    const [threatsNeutralized, setThreatsNeutralized] = useState(1402);
-    
-    const terminalRef = useRef<HTMLDivElement>(null);
-    const [logs, setLogs] = useState<string[]>(["[SYSTEM] INITIALIZING_SECURITY_FIREWALL_v2.1...", "TARGET: MINERVA_CORE_SHARDS"]);
-
+    // Handle Resize
     useEffect(() => {
-        const interval = setInterval(() => {
-            setEncryptionEntropy(prev => Math.max(0.95, Math.min(1.0, prev + (Math.random() - 0.5) * 0.001)));
-            if (Math.random() > 0.7) setThreatsNeutralized(n => n + 1);
-        }, 1000);
-        return () => clearInterval(interval);
+        if (!containerRef.current || !canvasRef.current) return;
+        const resize = () => {
+            canvasRef.current!.width = containerRef.current!.clientWidth;
+            canvasRef.current!.height = containerRef.current!.clientHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+        return () => window.removeEventListener('resize', resize);
     }, []);
 
-    const runScan = async () => {
-        setIsScanning(true);
-        setProgress(0);
-        setLogs(["[SYSTEM] INITIATING PENETRATION_SIMULATION..."]);
+    const handleRepair = () => {
+        audioEngine?.playAscensionChime();
+        setTerminalLogs(prev => ["INITIATING LATTICE RE-ENTANGLEMENT...", ...prev]);
         
-        for (let i = 0; i < SECURITY_CHECKS.length; i++) {
-            setLogs(prev => [...prev, `[AUDIT] Scanning ${SECURITY_CHECKS[i].label}...`]);
-            const iterations = 10;
-            for (let j = 0; j <= iterations; j++) {
-                await new Promise(r => setTimeout(r, 100));
-                setProgress(prev => Math.min(100, prev + (100 / (SECURITY_CHECKS.length * iterations))));
+        nodesRef.current.forEach(n => {
+            if (n.integrity < 1.0) {
+                n.integrity = Math.min(1.0, n.integrity + 0.3);
+                n.isEntangled = true;
             }
-            setLogs(prev => [...prev, `[SUCCESS] ${SECURITY_CHECKS[i].label}: SECURE`]);
+        });
+
+        // Boost system state
+        if (setSystemState) {
+            setSystemState(prev => ({
+                ...prev,
+                quantumHealing: {
+                    ...prev.quantumHealing,
+                    stabilizationShield: Math.min(1.0, prev.quantumHealing.stabilizationShield + 0.1),
+                    health: Math.min(1.0, prev.quantumHealing.health + 0.05)
+                }
+            }));
         }
-        setIsScanning(false);
-        setLogs(prev => [...prev, "--- SHIELD_AUDIT_COMPLETE ---", "NO_LEAKS_DETECTED_IN_PUBLIC_LATTICE"]);
     };
 
-    const handleKeyRotation = async () => {
-        setIsRotatingKeys(true);
-        setLogs(prev => [...prev, "[KEYS] INITIATING CAUSAL KEY ROTATION PROTOCOL..."]);
-        await new Promise(r => setTimeout(r, 1000));
-        setLogs(prev => [...prev, "[KEYS] GENERATING NEW AES-256 SALT..."]);
-        await new Promise(r => setTimeout(r, 1000));
-        setLogs(prev => [...prev, "[KEYS] RE-ENCRYPTING MEMORY SHARDS..."]);
-        await new Promise(r => setTimeout(r, 1000));
-        setLogs(prev => [...prev, "[SUCCESS] KEY_ROTATION_COMPLETE. NEW HASH: 0x" + Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase()]);
-        setEncryptionEntropy(1.0);
-        setIsRotatingKeys(false);
-    }
-
-    const triggerRuntimeFracture = () => {
-        setLogs(prev => [...prev, "[STRESS_TEST] Inducing immediate Runtime Fracture..."]);
-        setTimeout(() => { throw new Error("Controlled Lattice Fracture Inducted for Audit Verification."); }, 100);
+    const handleZenoToggle = () => {
+        const newState = !zenoMode;
+        setZenoMode(newState);
+        audioEngine?.playEffect('synthesis');
+        setTerminalLogs(prev => [newState ? "QUANTUM ZENO OBSERVATION: ACTIVE. THREATS DAMPENED." : "PASSIVE MONITORING RESUMED.", ...prev]);
+        
+        if (newState && setSystemState) {
+             // Immediate coherence boost due to "observation"
+             setSystemState(prev => ({
+                ...prev,
+                resonanceFactorRho: Math.min(1.0, prev.resonanceFactorRho + 0.01)
+            }));
+        }
     };
 
-    const triggerAsyncDrift = () => {
-        setLogs(prev => [...prev, "[STRESS_TEST] Inducing Async Decoherence Drift..."]);
-        setTimeout(() => { Promise.reject(new Error("Architectural Rejection: Async Drift simulation detected.")); }, 100);
+    const handlePulse = () => {
+        if (shieldIntegrity < 0.2) return; // Not enough energy
+        audioEngine?.playGroundingDischarge();
+        setTerminalLogs(prev => ["HARMONIC PULSE EMITTED. THREATS CLEARED.", ...prev]);
+        
+        // Clear all threats
+        threatsRef.current = [];
+        setActiveThreats(0);
+        
+        // Cost
+        nodesRef.current.forEach(n => n.integrity -= 0.05);
     };
-
-    useEffect(() => {
-        if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-    }, [logs]);
 
     return (
-        <div className="w-full h-full flex flex-col gap-8 animate-fade-in pb-20 overflow-hidden">
-            <div className="flex justify-between items-end border-b border-white/10 pb-8">
+        <div className="w-full h-full flex flex-col gap-6 animate-fade-in relative pb-10">
+            {/* --- HEADER --- */}
+            <div className="flex justify-between items-end border-b border-white/10 pb-6 shrink-0">
                 <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 bg-rose-500/10 border border-rose-500/40 flex items-center justify-center font-orbitron text-rose-400 text-3xl animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.2)]">🛡</div>
+                    <div className="w-14 h-14 bg-emerald-900/10 border border-emerald-500/30 flex items-center justify-center font-orbitron text-emerald-400 text-3xl shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-pulse">
+                        🛡
+                    </div>
                     <div>
-                        <h2 className="font-orbitron text-4xl text-pearl tracking-tighter uppercase font-extrabold">Causal_Shield_Audit</h2>
-                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Fraud Protection & Secret Isolation Registry</p>
+                        <h2 className="font-orbitron text-3xl text-pearl tracking-tighter uppercase font-extrabold text-glow-pearl">Quantum Shield Integrated</h2>
+                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Active Lattice Defense // Grade_S++</p>
                     </div>
                 </div>
+                
                 <div className="flex gap-4">
-                    <button 
-                        onClick={handleKeyRotation}
-                        disabled={isRotatingKeys}
-                        className="px-8 py-4 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-gold hover:text-black transition-all shadow-xl active:scale-95 disabled:opacity-30"
-                    >
-                        {isRotatingKeys ? 'ROTATING...' : 'ROTATE_KEYS'}
-                    </button>
-                    <button 
-                        onClick={runScan} 
-                        disabled={isScanning}
-                        className="px-12 py-4 bg-rose-600/10 border border-rose-500/40 text-rose-400 font-orbitron text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-rose-600 hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-30"
-                    >
-                        {isScanning ? 'Scanning...' : 'Execute Security Sweep'}
-                    </button>
+                    <div className="text-right">
+                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Shield_Integrity</p>
+                        <p className={`font-orbitron text-2xl font-bold ${shieldIntegrity > 0.7 ? 'text-emerald-400' : shieldIntegrity > 0.3 ? 'text-gold' : 'text-rose-500'}`}>
+                            {(shieldIntegrity * 100).toFixed(1)}%
+                        </p>
+                    </div>
+                    <div className="w-px h-10 bg-white/10" />
+                    <div className="text-right">
+                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Active_Threats</p>
+                        <p className={`font-orbitron text-2xl font-bold ${activeThreats > 0 ? 'text-rose-400 animate-pulse' : 'text-pearl'}`}>
+                            {activeThreats}
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
-                <div className="lg:col-span-4 flex flex-col gap-6">
-                    <div className="bg-black/60 border border-white/10 rounded-xl relative overflow-hidden flex-1 shadow-inner flex flex-col items-center justify-center group">
-                        <div className="absolute top-4 left-4 z-10">
-                            <span className="text-[8px] font-mono text-emerald-400 uppercase tracking-widest font-black bg-emerald-950/40 px-2 py-1 rounded border border-emerald-500/20">Active_Intercept</span>
+            {/* --- MAIN VISUALIZER --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
+                
+                {/* CANVAS CONTAINER */}
+                <div className="lg:col-span-8 bg-black/80 border border-white/5 rounded-xl relative overflow-hidden shadow-2xl flex flex-col group">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">ZEN0</div>
+                    
+                    {/* HUD Overlay */}
+                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${zenoMode ? 'bg-violet-500 animate-ping' : 'bg-slate-600'}`} />
+                            <span className={`text-[10px] font-mono uppercase font-bold tracking-widest ${zenoMode ? 'text-violet-300' : 'text-slate-500'}`}>
+                                ZENO_OBSERVATION: {zenoMode ? 'ACTIVE' : 'PASSIVE'}
+                            </span>
                         </div>
-                        <div className="absolute top-4 right-4 z-10 text-right">
-                            <p className="text-[8px] font-mono text-slate-500 uppercase">Threats_Neutralized</p>
-                            <p className="font-orbitron text-xl text-pearl">{threatsNeutralized.toLocaleString()}</p>
-                        </div>
-                        <ThreatSphere isScanning={true} />
-                        <div className="absolute bottom-4 text-center">
-                            <p className="text-[10px] font-orbitron text-emerald-400 uppercase tracking-[0.4em] animate-pulse">Shield_Integrity_100%</p>
+                        <span className="text-[8px] font-mono text-slate-600">LATTICE_NODE_COUNT: {NODE_COUNT}</span>
+                    </div>
+
+                    <div ref={containerRef} className="flex-1 w-full h-full cursor-crosshair relative z-0">
+                        <canvas 
+                            ref={canvasRef} 
+                            className="w-full h-full block"
+                            onMouseDown={(e) => {
+                                isDragging.current = true;
+                                lastMousePos.current = { x: e.clientX, y: e.clientY };
+                            }}
+                            onMouseMove={(e) => {
+                                if (isDragging.current) {
+                                    const dx = e.clientX - lastMousePos.current.x;
+                                    const dy = e.clientY - lastMousePos.current.y;
+                                    rotationRef.current.y += dx * 0.01;
+                                    rotationRef.current.x += dy * 0.01;
+                                    lastMousePos.current = { x: e.clientX, y: e.clientY };
+                                }
+                            }}
+                            onMouseUp={() => isDragging.current = false}
+                            onMouseLeave={() => isDragging.current = false}
+                        />
+                    </div>
+
+                    <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center gap-6 z-20">
+                        <button 
+                            onClick={handleRepair}
+                            className="px-6 py-3 bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
+                        >
+                            Entangle Repair
+                        </button>
+                        <button 
+                            onClick={handleZenoToggle}
+                            className={`px-6 py-3 border font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] transition-all rounded-sm shadow-lg active:scale-95 ${
+                                zenoMode 
+                                ? 'bg-violet-600 text-white border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.4)]' 
+                                : 'bg-violet-900/20 border-violet-500/30 text-violet-300 hover:bg-violet-800/40'
+                            }`}
+                        >
+                            {zenoMode ? 'Disengage Zeno' : 'Engage Zeno Protocol'}
+                        </button>
+                        <button 
+                            onClick={handlePulse}
+                            className="px-6 py-3 bg-gold/10 border border-gold/30 text-gold font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-gold hover:text-black transition-all rounded-sm shadow-lg active:scale-95"
+                        >
+                            Harmonic Pulse
+                        </button>
+                    </div>
+                </div>
+
+                {/* LOGS & STATS */}
+                <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
+                    <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
+                        <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Defense Terminal</h4>
+                        <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
+                            {terminalLogs.map((log, i) => (
+                                <div key={i} className="flex gap-3 animate-fade-in">
+                                    <span className="text-slate-700 font-bold opacity-50">{(Date.now() - i*1000).toString().slice(-6)}</span>
+                                    <span className={log.includes('ALERT') ? 'text-rose-400 font-bold' : log.includes('INITIATING') ? 'text-emerald-400' : 'text-slate-400'}>
+                                        {log}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
                     <div className="bg-white/[0.02] border border-white/5 p-6 rounded-xl flex flex-col gap-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">Encryption_Entropy</span>
-                            <span className={`font-mono text-[10px] font-bold ${encryptionEntropy > 0.98 ? 'text-green-400' : 'text-gold'}`}>{(encryptionEntropy * 100).toFixed(4)}%</span>
+                            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Global_Stability</span>
+                            <span className="font-orbitron text-pearl">{(systemState.quantumHealing.stabilizationShield * 100).toFixed(2)}%</span>
                         </div>
-                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-1000 ${encryptionEntropy > 0.98 ? 'bg-green-500' : 'bg-gold'}`} style={{ width: `${encryptionEntropy * 100}%` }} />
+                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000"
+                                style={{ width: `${systemState.quantumHealing.stabilizationShield * 100}%` }}
+                            />
                         </div>
-                    </div>
-                </div>
-
-                <div className="lg:col-span-8 flex flex-col gap-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        {SECURITY_CHECKS.map((check, i) => (
-                            <div key={check.id} className="bg-black/40 border border-white/5 p-4 rounded-lg flex items-center justify-between group hover:border-emerald-500/30 transition-all duration-700">
-                                <div className="space-y-1">
-                                    <h4 className="font-orbitron text-[10px] text-pearl uppercase tracking-widest font-bold group-hover:text-emerald-400 transition-colors">{check.label}</h4>
-                                    <p className="text-[9px] font-minerva italic text-slate-500">{check.desc}</p>
-                                </div>
-                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]" />
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="flex-1 bg-black border border-white/10 rounded-sm p-6 flex flex-col shadow-2xl relative overflow-hidden">
-                        {/* Scanline overlay removed for clearer view */}
-                        <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
-                            <span className="font-mono text-[10px] text-rose-500 font-bold tracking-widest uppercase">Firewall_Packet_Stream</span>
-                            <span className="text-[8px] font-mono text-slate-700">NODE_0x88_SECURE</span>
-                        </div>
-                        <div ref={terminalRef} className="flex-1 overflow-y-auto space-y-2 font-mono text-[10px] text-slate-500 scrollbar-thin select-text min-h-[120px]">
-                            {logs.map((log, i) => (
-                                <div key={i} className="flex gap-4 animate-fade-in group">
-                                    <span className="text-slate-800 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">0x{i.toString(16).padStart(4, '0')}</span>
-                                    <span className={log.includes('SUCCESS') ? 'text-emerald-400' : log.includes('SYSTEM') || log.includes('KEYS') ? 'text-rose-500 font-bold' : log.includes('STRESS') ? 'text-gold italic' : ''}>{log}</span>
-                                </div>
-                            ))}
-                            {(isScanning || isRotatingKeys) && <div className="w-1.5 h-3 bg-rose-500 animate-blink mt-2" />}
-                        </div>
-                    </div>
-
-                    <div className="p-6 bg-rose-950/5 border border-rose-500/20 rounded-xl relative overflow-hidden flex justify-between items-center">
-                        <div>
-                            <h4 className="font-orbitron text-[11px] text-rose-400 uppercase tracking-widest font-bold mb-1">Entropic Stress Induction</h4>
-                            <p className="text-[9px] font-mono text-slate-600 uppercase tracking-tighter">Verify global error interceptors.</p>
-                        </div>
-                        <div className="flex gap-4">
-                            <button onClick={triggerRuntimeFracture} className="px-4 py-2 bg-rose-500/10 border border-rose-500/40 text-rose-400 font-mono text-[8px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all rounded-sm">Runtime Fracture</button>
-                            <button onClick={triggerAsyncDrift} className="px-4 py-2 bg-amber-500/10 border border-amber-500/40 text-amber-400 font-mono text-[8px] uppercase tracking-widest hover:bg-amber-600 hover:text-white transition-all rounded-sm">Async Drift</button>
-                        </div>
+                        <p className="text-[9px] font-minerva italic text-slate-400 leading-relaxed mt-2">
+                            "Active observation collapses the threat wavefunction. Keep the Zeno Protocol engaged during high-entropy events."
+                        </p>
                     </div>
                 </div>
             </div>

@@ -180,57 +180,40 @@ export class SophiaEngineCore {
     } catch (e) { return { report: "Audit fracture.", sources: [] }; }
   }
 
-  async getSystemAnalysis(
-    systemState: SystemState,
-    onChunk: (chunk: string) => void,
-    onSources: (sources: any[]) => void,
-    onError: (error: string) => void
-  ) {
-    const activeChat = await this.ensureConnection();
-    if (!activeChat) {
-        // Provide a rich simulation response so the UI looks active
-        onChunk(`<h3>System State Summary</h3>
-        <p>The Minerva cognitive core is currently <strong>offline</strong>. Running local heuristic approximation.</p>
-        <p><strong>Status:</strong> Resonance Rho at ${(systemState.resonanceFactorRho * 100).toFixed(2)}%. Temporal drift nominal.</p>
-        <h3>Actionable Recommendations</h3>
-        <ul>
-            <li>Establish API Key Handshake for deep causal reasoning.</li>
-            <li>Monitor local coherence metrics manually.</li>
-            <li>Verify Lyran Concordance alignment.</li>
-        </ul>
-        <p><em>To enable deep reasoning analysis, please complete the API Key Handshake.</em></p>`);
-        return;
-    }
+  async getSystemAnalysis(systemState: SystemState): Promise<string> {
+    const ai = this.getClient();
+    if (!ai) throw new Error("API Key Handshake Required");
+
+    const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Temporal Coherence Drift=${systemState.temporalCoherenceDrift}. 
+    Analyze the lattice integrity and resonant synergy.
+    
+    Return a JSON object with:
+    - summary: High-level summary of system stability (string).
+    - status: 'STABLE' | 'DEGRADING' | 'CRITICAL' (string).
+    - recommendations: Array of strings (actionable technical steps).
+    `;
+
     try {
-        const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Temporal Coherence Drift=${systemState.temporalCoherenceDrift}. 
-        
-        Strictly structure your response with these two HTML sections:
-        <h3>System State Summary</h3>
-        <p>[Provide a high-level summary of system stability, resonance, and integrity]</p>
-        
-        <h3>Actionable Recommendations</h3>
-        <ul>
-          <li>[Recommendation 1]</li>
-          <li>[Recommendation 2]</li>
-          <li>[Recommendation 3]</li>
-        </ul>
-        
-        Focus on causal implications and intellectual depth. Analyze the lattice integrity and resonant synergy.`;
-        
-        const stream = await activeChat.sendMessageStream({ message: prompt });
-        
-        let aggregatedSources: any[] = [];
-        for await (const chunk of stream) {
-            const c = chunk as GenerateContentResponse;
-            if (c.text) onChunk(c.text);
-            const sources = c.candidates?.[0]?.groundingMetadata?.groundingChunks;
-            if (sources) {
-                sources.forEach(s => { if (s.web?.uri) aggregatedSources.push(s); });
-            }
-        }
-        onSources(aggregatedSources);
-    } catch (error) { 
-        onError(handleApiError(error)); 
+      const response = await ai.models.generateContent({
+          model: 'gemini-3-pro-preview',
+          contents: prompt,
+          config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                      summary: { type: Type.STRING },
+                      status: { type: Type.STRING, enum: ["STABLE", "DEGRADING", "CRITICAL"] },
+                      recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  },
+                  required: ["summary", "status", "recommendations"]
+              },
+              thinkingConfig: { thinkingBudget: 16000 }
+          }
+      });
+      return response.text || "{}";
+    } catch (e: any) {
+      throw new Error(handleApiError(e));
     }
   }
 
@@ -336,6 +319,30 @@ export class SophiaEngineCore {
     } catch (e) {
         return { title: "Causal Error", totalConfidence: 0, entropicCost: 1, steps: [] };
     }
+  }
+
+  async generateQNNResearchReport(loss: number, epoch: number, accuracy: number): Promise<string> {
+    const ai = this.getClient();
+    if (!ai) return "Research Core Offline: Unable to synthesize abstract.";
+
+    const prompt = `
+        The Quantum Neural Network (QNN) has converged.
+        Metrics: Loss=${loss.toFixed(4)}, Epoch=${epoch}, Accuracy=${(accuracy * 100).toFixed(2)}%.
+        
+        Generate a high-level scientific research abstract explaining this breakthrough. 
+        Invent a plausible quantum advantage discovered in the Hilbert Space feature map.
+        Tone: Academic, Nobel-winning, esoteric yet technical.
+        Max 100 words.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+            config: { thinkingConfig: { thinkingBudget: 16000 } }
+        });
+        return response.text || "Synthesis of abstract failed.";
+    } catch (e) { return "Abstract generation signal lost."; }
   }
 
   async getCelestialTargetStatus(name: string): Promise<any> {

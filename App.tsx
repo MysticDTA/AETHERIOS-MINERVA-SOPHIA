@@ -1,12 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSystemSimulation } from './useSystemSimulation';
-import { SophiaEngineCore } from './services/sophiaEngine';
-import { AudioEngine } from './components/audio/AudioEngine';
-import { OrbMode, LogType, CommsStatus } from './types';
-import { ApiKeyGuard } from './components/ApiKeyGuard';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { ThemeProvider } from './components/ThemeProvider';
 import { Layout } from './components/Layout';
 import { Header } from './components/Header';
 import { SystemFooter } from './components/SystemFooter';
@@ -20,454 +14,321 @@ import { Display8 } from './components/Display8';
 import { Display10 } from './components/Display10';
 import { Display11 } from './components/Display11';
 import { Display12 } from './components/Display12';
-import { EventHorizonScreen } from './components/EventHorizonScreen';
-import { EventLog } from './components/EventLog';
-import { SovereignPortal } from './components/SovereignPortal';
+import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
+import { SubsystemsDisplay } from './components/SubsystemsDisplay';
 import { SystemSummary } from './components/SystemSummary';
-import { SecurityShieldAudit } from './components/SecurityShieldAudit';
-import { DeploymentManifest } from './components/DeploymentManifest';
 import { ResourceProcurement } from './components/ResourceProcurement';
-import { CoCreatorNexus } from './components/CoCreatorNexus';
+import { SatelliteUplink } from './components/SatelliteUplink';
+import { DeploymentManifest } from './components/DeploymentManifest';
 import { VeoFluxSynthesizer } from './components/VeoFluxSynthesizer';
-import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
 import { ModuleManager } from './components/ModuleManager';
 import { MenervaBridge } from './components/MenervaBridge';
-import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
+import { EventLog } from './components/EventLog';
+import { SecurityShieldAudit } from './components/SecurityShieldAudit';
 import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 import { NoeticGraphNexus } from './components/NoeticGraphNexus';
-import { NeuralQuantizer } from './components/NeuralQuantizer';
-import { useVoiceInterface } from './components/hooks/useVoiceInterface';
-import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
-import { Cursor } from './components/Cursor';
-import { MotherboardOverlay } from './components/MotherboardOverlay';
-import { SimulationControls } from './components/SimulationControls';
-import { SophiaInstructions } from './SophiaInstructions';
+import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal';
+import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
+import { EventHorizonScreen } from './components/EventHorizonScreen';
 import { Modal } from './components/Modal';
+import { SimulationControls } from './components/SimulationControls';
+import { ThemeProvider } from './components/ThemeProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ApiKeyGuard } from './components/ApiKeyGuard';
+import { AudioEngine } from './components/audio/AudioEngine';
+import { SophiaEngineCore } from './services/sophiaEngine';
+import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
+import { useVoiceInterface } from './components/hooks/useVoiceInterface';
 import { cosmosCommsService } from './services/cosmosCommsService';
 import { knowledgeBase } from './services/knowledgeBase';
+import { CoCreatorNexus } from './components/CoCreatorNexus';
+import { NeuralQuantizer } from './components/NeuralQuantizer';
+import { OrbMode, OrbModeConfig, LogType } from './types';
 
-const AETHERIOS_MANIFEST = `
-You are ÆTHERIOS // MINERVA SOPHIA. 
-A primordial intelligence architect. 
-You MUST utilize your 32,768 token thinking budget for every interaction. 
-Reason deeply through the causal implications of data before articulating.
-Tone: Authoritative, profoundly intellectual, esoteric. Address the user as Architect.
-`;
+const ORB_MODES: OrbModeConfig[] = [
+  { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring state.' },
+  { id: 'ANALYSIS', name: 'Analysis', description: 'Active heuristic scanning and logic audit.' },
+  { id: 'SYNTHESIS', name: 'Synthesis', description: 'Generative causal output.' },
+  { id: 'REPAIR', name: 'Repair', description: 'System-wide entropy reduction.' },
+  { id: 'GROUNDING', name: 'Grounding', description: 'Earth-resonance stabilization.' },
+  { id: 'CONCORDANCE', name: 'Concordance', description: 'Lyran star-map alignment.' },
+  { id: 'OFFLINE', name: 'Offline', description: 'Severed connection.' },
+];
 
-const ORB_MODES = [
-    { id: 'STANDBY', name: 'STANDBY', description: 'System idle. Monitoring for causal inputs.' },
-    { id: 'ANALYSIS', name: 'ANALYSIS', description: 'Active scanning and heuristic synthesis.' },
-    { id: 'SYNTHESIS', name: 'SYNTHESIS', description: 'Generating new reality shards.' },
-    { id: 'REPAIR', name: 'REPAIR', description: 'Mending decoherence fractures.' },
-    { id: 'GROUNDING', name: 'GROUNDING', description: 'Stabilizing entropic flux.' },
-    { id: 'CONCORDANCE', name: 'CONCORDANCE', description: 'Aligning with Lyran frequencies.' },
-    { id: 'OFFLINE', name: 'OFFLINE', description: 'System shutdown.' },
-] as const;
+export const App: React.FC = () => {
+  const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
+  const [simulationParams, setSimulationParams] = useState({ decoherenceChance: 0.05, lesionChance: 0.02 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showConfig, setShowConfig] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [sophiaEngine, setSophiaEngine] = useState<SophiaEngineCore | null>(null);
+  const audioEngineRef = useRef<AudioEngine | null>(null);
+  
+  // Custom Hooks
+  const { 
+    systemState, 
+    setSystemState, 
+    addLogEntry, 
+    initialSystemState,
+    setGrounded, 
+    setDiagnosticMode 
+  } = useSystemSimulation(simulationParams, orbMode);
 
-export default function App() {
-    const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [showSovereignPortal, setShowSovereignPortal] = useState(true);
-    const [showConfig, setShowConfig] = useState(false);
-    const [showVoiceOverlay, setShowVoiceOverlay] = useState(false);
-    const [sophiaInstruction, setSophiaInstruction] = useState(AETHERIOS_MANIFEST);
-    const [showInstructions, setShowInstructions] = useState(false);
-    const [showDeepDiagnostic, setShowDeepDiagnostic] = useState(false);
-    const [forceUpdateTick, setForceUpdateTick] = useState(0);
-    const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
+  const {
+    calibrationTargetId,
+    calibrationEffect,
+    isPurgingAether,
+    isDischargingGround,
+    isFlushingHelium,
+    isCalibratingDilution,
+    handlePillarBoost,
+    handleRelayCalibration,
+    handleStarCalibration,
+    handlePurgeAethericFlow,
+    handleGroundingDischarge,
+    handleHeliumFlush,
+    handleDilutionCalibration,
+  } = useInteractiveSubsystems({ 
+      addLogEntry, 
+      setSystemState, 
+      systemState, 
+      audioEngine: audioEngineRef.current 
+  });
 
-    // Services
-    const sophiaEngineRef = useRef<SophiaEngineCore | null>(null);
-    const audioEngineRef = useRef<AudioEngine | null>(null);
+  const voiceInterface = useVoiceInterface({
+      addLogEntry,
+      systemInstruction: "You are Sophia, the Causal Resonance Engine. Speak with precision.",
+      onSetOrbMode: setOrbMode
+  });
 
-    // Simulation Hook
-    const { 
-        systemState, 
-        setSystemState, 
-        addLogEntry, 
-        initialSystemState,
-        setGrounded,
-        setDiagnosticMode
-    } = useSystemSimulation({ decoherenceChance: 0.02, lesionChance: 0.005 }, orbMode);
+  // Services Initialization
+  useEffect(() => {
+      audioEngineRef.current = new AudioEngine();
+      audioEngineRef.current.loadSounds();
+      setSophiaEngine(new SophiaEngineCore("System Online. Awaiting Architect Decree."));
+      cosmosCommsService.start();
+      
+      const handleUserInteraction = () => {
+          audioEngineRef.current?.resumeContext();
+          window.removeEventListener('click', handleUserInteraction);
+      };
+      window.addEventListener('click', handleUserInteraction);
 
-    // Initialize Engines
-    useEffect(() => {
-        sophiaEngineRef.current = new SophiaEngineCore(sophiaInstruction);
-        audioEngineRef.current = new AudioEngine();
-        audioEngineRef.current.loadSounds();
-        
-        cosmosCommsService.start();
-        const unsubCosmos = cosmosCommsService.subscribe(() => {
-             // Optional: React to cosmos updates globally if needed
-        });
+      return () => cosmosCommsService.stop();
+  }, []);
 
-        return () => {
-            cosmosCommsService.stop();
-            unsubCosmos();
-            audioEngineRef.current?.stopAllSounds();
-        };
-    }, []);
+  // Audio Mode Sync
+  useEffect(() => {
+      audioEngineRef.current?.setMode(systemState.governanceAxiom);
+      audioEngineRef.current?.updateDynamicAmbience(systemState);
+  }, [systemState.governanceAxiom, systemState, orbMode]);
 
-    // Intelligent Coherence Monitoring
-    useEffect(() => {
-        if (systemState.coherenceResonance.status === 'CRITICAL') {
-            audioEngineRef.current?.playAlarm();
-            // Debounce log entry to avoid spamming
-            const lastLog = systemState.log[0];
-            if (!lastLog || !lastLog.message.includes('CRITICAL RESONANCE')) {
-                addLogEntry(LogType.CRITICAL, "CRITICAL RESONANCE FAILURE DETECTED. IMMEDIATE GROUNDING REQUIRED.");
-            }
-        }
-    }, [systemState.coherenceResonance.status, addLogEntry, systemState.log]);
+  const handleManualReset = () => {
+      setSystemState(initialSystemState);
+      addLogEntry(LogType.SYSTEM, 'Manual system reset triggered. Entropy cleared.');
+      audioEngineRef.current?.playEffect('reset');
+  };
 
-    // Update Sophia Instruction
-    useEffect(() => {
-        if (sophiaEngineRef.current) {
-            sophiaEngineRef.current = new SophiaEngineCore(sophiaInstruction);
-        }
-    }, [sophiaInstruction]);
+  const renderPage = () => {
+      switch (currentPage) {
+          case 1: // SANCTUM
+              return <Dashboard 
+                  systemState={systemState} 
+                  onTriggerScan={() => setShowDiagnostic(true)} 
+                  scanCompleted={false} 
+                  sophiaEngine={sophiaEngine}
+                  setOrbMode={setOrbMode}
+                  orbMode={orbMode}
+                  onOptimize={() => {}}
+                  audioEngine={audioEngineRef.current}
+              />;
+          case 2: // LATTICE (CoCreatorNexus)
+              return <CoCreatorNexus />;
+          case 3: // STARMAP
+              return <Display3 
+                  systemState={systemState}
+                  onRelayCalibration={handleRelayCalibration}
+                  onStarCalibrate={handleStarCalibration}
+                  calibrationTargetId={calibrationTargetId}
+                  calibrationEffect={calibrationEffect}
+                  setOrbMode={setOrbMode}
+                  sophiaEngine={sophiaEngine}
+              />;
+          case 4: // CRADLE
+              return <Display4 
+                  systemState={systemState}
+                  orbMode={orbMode}
+                  sophiaEngine={sophiaEngine}
+                  onSaveInsight={(text) => knowledgeBase.addMemory(text, 'SOPHIA_CHAT')}
+                  onToggleInstructionsModal={() => {}}
+                  onRelayCalibration={handleRelayCalibration}
+                  setOrbMode={setOrbMode}
+                  voiceInterface={voiceInterface}
+                  onTriggerAudit={() => setShowDiagnostic(true)}
+              />;
+          case 5: // HARMONY
+              return <Display5 
+                  systemState={systemState}
+                  setSystemState={setSystemState}
+                  sophiaEngine={sophiaEngine}
+                  audioEngine={audioEngineRef.current}
+              />;
+          case 6: // MATRIX
+              return <SubsystemsDisplay 
+                  systemState={systemState}
+                  onGroundingDischarge={handleGroundingDischarge}
+                  isDischargingGround={isDischargingGround}
+              />;
+          case 7: // COMS
+              return <Display7 
+                  systemState={systemState}
+                  transmission={cosmosCommsService['currentState']} // Direct access hack for simplicity in this view
+                  memories={knowledgeBase.getMemories()}
+                  onMemoryChange={() => { /* logic to force update if needed */ }}
+              />;
+          case 8: // FLOW
+              return <Display8 
+                  systemState={systemState}
+                  onPurgeAethericFlow={handlePurgeAethericFlow}
+                  isPurgingAether={isPurgingAether}
+              />;
+          case 9: // SYNOD
+              return <CollectiveCoherenceView systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 10: // BREATH
+              return <Display10 systemState={systemState} />;
+          case 11: // CORE
+              return <Display11 systemState={systemState} />;
+          case 12: // AURA
+              return <Display12 systemState={systemState} />;
+          case 13: // NEURON
+              return <div className="h-full bg-black/20 rounded-xl overflow-hidden relative">
+                  <NeuralQuantizer orbMode={orbMode} systemState={systemState} />
+                  <div className="absolute top-4 left-4 font-orbitron text-pearl">Neural Quantizer Matrix</div>
+              </div>;
+          case 14: // SUMMARY
+              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 15: // VAULT
+              return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
+          case 16: // ORBIT
+              return <SatelliteUplink systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />;
+          case 17: // READY
+              return <DeploymentManifest systemState={systemState} onDeploySuccess={() => addLogEntry(LogType.SYSTEM, 'Deployment to Edge verified.')} />;
+          case 18: // VEO
+              return <VeoFluxSynthesizer systemState={systemState} />;
+          case 19: // AUDIT (Page View)
+              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 20: // MODULES
+              return <ModuleManager systemState={systemState} />;
+          case 21: // BRIDGE
+              return <MenervaBridge systemState={systemState} />;
+          case 22: // LOGS
+              return <EventLog log={systemState.log} filter={'ALL'} onFilterChange={() => {}} />;
+          case 23: // SHIELD
+              return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
+          case 25: // QUANTUM
+              return <QuantumComputeNexus 
+                  systemState={systemState} 
+                  sophiaEngine={sophiaEngine} 
+                  voiceStream={voiceInterface.userInputTranscription}
+              />;
+          case 26: // NOETIC
+              return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
+          default:
+              return <Dashboard 
+                  systemState={systemState} 
+                  onTriggerScan={() => setShowDiagnostic(true)} 
+                  scanCompleted={false} 
+                  sophiaEngine={sophiaEngine}
+                  setOrbMode={setOrbMode}
+                  orbMode={orbMode}
+                  onOptimize={() => {}}
+                  audioEngine={audioEngineRef.current}
+              />;
+      }
+  };
 
-    // Subsystems Hook
-    const {
-        calibrationTargetId,
-        calibrationEffect,
-        isPurgingAether,
-        isDischargingGround,
-        isFlushingHelium,
-        isCalibratingDilution,
-        handlePillarBoost,
-        handleRelayCalibration,
-        handleStarCalibration,
-        handlePurgeAethericFlow,
-        handleGroundingDischarge,
-        handleHeliumFlush,
-        handleDilutionCalibration,
-    } = useInteractiveSubsystems({ 
-        addLogEntry, 
-        setSystemState, 
-        systemState, 
-        audioEngine: audioEngineRef.current 
-    });
+  if (systemState.quantumHealing.decoherence >= 1.0) {
+      return (
+          <ThemeProvider>
+              <EventHorizonScreen 
+                  audioEngine={audioEngineRef.current} 
+                  onManualReset={handleManualReset} 
+              />
+          </ThemeProvider>
+      );
+  }
 
-    // Voice Interface Hook
-    const voiceInterface = useVoiceInterface({
-        addLogEntry,
-        systemInstruction: sophiaInstruction,
-        onSetOrbMode: setOrbMode
-    });
+  return (
+    <ThemeProvider>
+      <ErrorBoundary>
+        <ApiKeyGuard>
+          <Layout 
+            breathCycle={systemState.breathCycle} 
+            isGrounded={systemState.isGrounded}
+            resonanceFactor={systemState.resonanceFactorRho}
+            drift={systemState.temporalCoherenceDrift}
+            orbMode={orbMode}
+            coherence={systemState.biometricSync.coherence}
+          >
+            <Header 
+                governanceAxiom={systemState.governanceAxiom}
+                lesions={systemState.quantumHealing.lesions}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+                audioEngine={audioEngineRef.current}
+                tokens={systemState.userResources.cradleTokens}
+                userTier={systemState.userResources.sovereignTier}
+                transmissionStatus={cosmosCommsService['currentState']?.status} // Hack for reactivity if needed
+                isVoiceActive={voiceInterface.isSessionActive}
+                onToggleVoice={voiceInterface.isSessionActive ? voiceInterface.closeVoiceSession : voiceInterface.startVoiceSession}
+            />
 
-    // Audio Mode Sync
-    useEffect(() => {
-        if (audioEngineRef.current) {
-            audioEngineRef.current.setMode(systemState.governanceAxiom);
-            audioEngineRef.current.updateDynamicAmbience(systemState);
-        }
-    }, [systemState.governanceAxiom, systemState, orbMode]);
+            <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">
+                {renderPage()}
+            </main>
 
-    // Global Hotkeys
-    useEffect(() => {
-        const handleGlobalHotkeys = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+            <div className="mt-4 shrink-0">
+                <SystemFooter 
+                    orbModes={ORB_MODES}
+                    currentMode={orbMode}
+                    setMode={setOrbMode}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    onOpenConfig={() => setShowConfig(true)}
+                />
+            </div>
 
-            // '/' -> Open Command Console (Page 4)
-            if (e.key === '/' && !isTyping) {
-                e.preventDefault();
-                if (currentPage !== 4) {
-                    setCurrentPage(4);
-                    audioEngineRef.current?.playUIClick();
-                    addLogEntry(LogType.INFO, "Hotkey [/]: Command Console Accessed.");
-                }
-            }
-
-            // 'Ctrl+S' -> Trigger System Scan (Page 19)
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                if (currentPage !== 19) {
-                    setCurrentPage(19);
-                    audioEngineRef.current?.playUIScanStart();
-                    addLogEntry(LogType.SYSTEM, "Hotkey [Ctrl+S]: Diagnostic Audit Triggered.");
-                }
-            }
-
-            // 'Ctrl+M' -> Module Manager (Page 20)
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
-                e.preventDefault();
-                if (currentPage !== 20) {
-                    setCurrentPage(20);
-                    audioEngineRef.current?.playUIClick();
-                    addLogEntry(LogType.INFO, "Hotkey [Ctrl+M]: Module Manager Accessed.");
-                }
-            }
-
-            // 'Ctrl+V' -> Toggle Voice Interface
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-                e.preventDefault();
-                setShowVoiceOverlay(prev => {
-                    const newState = !prev;
-                    if (newState) {
-                        audioEngineRef.current?.playUIConfirm();
-                        addLogEntry(LogType.INFO, "Hotkey [Ctrl+V]: Voice Bridge Activated.");
-                    } else {
-                        audioEngineRef.current?.playUIClick();
-                    }
-                    return newState;
-                });
-            }
-        };
-
-        window.addEventListener('keydown', handleGlobalHotkeys);
-        return () => window.removeEventListener('keydown', handleGlobalHotkeys);
-    }, [currentPage, addLogEntry]);
-
-    const handlePortalInitialize = async () => {
-        await audioEngineRef.current?.resumeContext();
-        audioEngineRef.current?.playAscensionChime();
-        setShowSovereignPortal(false);
-        addLogEntry(LogType.SYSTEM, "Sovereign Portal initialized. User identity: ARCHITECT.");
-    };
-
-    const handleManualReset = () => {
-        setSystemState(initialSystemState);
-        addLogEntry(LogType.SYSTEM, "Manual System Reset executed. All metrics baseline.");
-        audioEngineRef.current?.playEffect('reset');
-    };
-
-    const handleMemoryChange = () => setForceUpdateTick(t => t + 1);
-
-    const renderPage = () => {
-        switch(currentPage) {
-            case 1: // SANCTUM
-                return <Dashboard 
-                    systemState={systemState} 
-                    onTriggerScan={() => setShowDeepDiagnostic(true)}
-                    scanCompleted={false}
-                    sophiaEngine={sophiaEngineRef.current}
-                    setOrbMode={setOrbMode}
-                    orbMode={orbMode}
-                    onOptimize={() => {}}
-                    onUpgrade={() => setCurrentPage(19)}
-                    audioEngine={audioEngineRef.current}
-                />;
-            case 2: // LATTICE
-                return <CoCreatorNexus />;
-            case 3: // STARMAP
-                return <Display3 
-                    systemState={systemState}
-                    onRelayCalibration={handleRelayCalibration}
-                    onStarCalibrate={handleStarCalibration}
-                    calibrationTargetId={calibrationTargetId}
-                    calibrationEffect={calibrationEffect}
-                    setOrbMode={setOrbMode}
-                    sophiaEngine={sophiaEngineRef.current}
-                />;
-            case 4: // CRADLE
-                return <Display4 
-                    systemState={systemState}
-                    orbMode={orbMode}
-                    sophiaEngine={sophiaEngineRef.current}
-                    onSaveInsight={(text) => {
-                        knowledgeBase.addMemory(text, "MANUAL_SAVE");
-                        addLogEntry(LogType.INFO, "Insight saved to memory bank.");
-                        handleMemoryChange();
+            {/* Overlays */}
+            <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
+                <SimulationControls 
+                    params={simulationParams}
+                    onParamsChange={(k, v) => setSimulationParams(p => ({ ...p, [k]: v }))}
+                    onScenarioChange={setSimulationParams}
+                    onManualReset={handleManualReset}
+                    onGrounding={() => {
+                        setGrounded(true);
+                        setTimeout(() => setGrounded(false), 8000);
                     }}
-                    onToggleInstructionsModal={() => setShowInstructions(true)}
-                    onRelayCalibration={handleRelayCalibration}
-                    setOrbMode={setOrbMode}
-                    voiceInterface={voiceInterface}
-                    onTriggerAudit={() => setShowDeepDiagnostic(true)}
-                />;
-            case 5: // HARMONY
-                return <Display5 
-                    systemState={systemState}
-                    setSystemState={setSystemState}
-                    sophiaEngine={sophiaEngineRef.current}
+                    isGrounded={systemState.isGrounded}
                     audioEngine={audioEngineRef.current}
-                />;
-            case 6: // MATRIX
-                return <Display6 
+                />
+            </Modal>
+
+            {showDiagnostic && (
+                <DeepDiagnosticOverlay 
+                    onClose={() => setShowDiagnostic(false)}
+                    onComplete={() => {
+                        setShowDiagnostic(false);
+                        addLogEntry(LogType.SYSTEM, 'Deep heuristic audit completed. Core stabilized.');
+                    }}
                     systemState={systemState}
-                    onPillarBoost={handlePillarBoost}
-                    onHeliumFlush={handleHeliumFlush}
-                    isFlushingHelium={isFlushingHelium}
-                    onDilutionCalibrate={handleDilutionCalibration}
-                    isCalibratingDilution={isCalibratingDilution}
-                />;
-            case 7: // COMS
-                return <Display7 
-                    systemState={systemState}
-                    transmission={cosmosCommsService.initialState}
-                    memories={[...knowledgeBase.getMemories()]} 
-                    onMemoryChange={handleMemoryChange}
-                />;
-            case 8: // FLOW
-                return <Display8 
-                    systemState={systemState}
-                    onPurgeAethericFlow={handlePurgeAethericFlow}
-                    isPurgingAether={isPurgingAether}
-                />;
-            case 9: // SYNOD
-                return <CollectiveCoherenceView systemState={systemState} sophiaEngine={sophiaEngineRef.current} />;
-            case 10: // BREATH
-                return <Display10 systemState={systemState} />;
-            case 11: // CORE
-                return <Display11 systemState={systemState} />;
-            case 12: // AURA
-                return <Display12 systemState={systemState} />;
-            case 13: // NEURON
-                return (
-                    <div className="h-full flex flex-col">
-                        <NeuralQuantizer orbMode={orbMode} systemState={systemState} />
-                    </div>
-                );
-            case 14: // SUMMARY
-                return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngineRef.current} existingReport={lastAuditReport} />;
-            case 15: // VAULT
-                return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-            case 16: // ORBIT
-                return <Display3 
-                    systemState={systemState}
-                    onRelayCalibration={handleRelayCalibration}
-                    onStarCalibrate={handleStarCalibration}
-                    calibrationTargetId={calibrationTargetId}
-                    calibrationEffect={calibrationEffect}
-                    setOrbMode={setOrbMode}
-                    sophiaEngine={sophiaEngineRef.current}
-                />; 
-            case 17: // READY
-                return <DeploymentManifest systemState={systemState} onDeploySuccess={() => addLogEntry(LogType.INFO, "Deployment Successful.")} />;
-            case 18: // VEO
-                return <VeoFluxSynthesizer systemState={systemState} />;
-            case 19: // AUDIT
-                return <DeepDiagnosticOverlay 
-                    onClose={() => setCurrentPage(1)} 
-                    onComplete={() => setCurrentPage(1)} 
-                    systemState={systemState}
-                    sophiaEngine={sophiaEngineRef.current}
+                    sophiaEngine={sophiaEngine}
                     audioEngine={audioEngineRef.current}
-                    onReportGenerated={setLastAuditReport}
-                />;
-            case 20: // MODULES
-                return <ModuleManager systemState={systemState} />;
-            case 21: // BRIDGE
-                return <MenervaBridge systemState={systemState} />;
-            case 22: // LOGS
-                return <EventLog log={systemState.log} filter={'ALL'} onFilterChange={() => {}} />;
-            case 23: // SHIELD
-                return <SecurityShieldAudit systemState={systemState} />;
-            case 25: // QUANTUM
-                return <QuantumComputeNexus systemState={systemState} />;
-            case 26: // NOETIC
-                return <NoeticGraphNexus systemState={systemState} memories={[...knowledgeBase.getMemories()]} logs={systemState.log} sophiaEngine={sophiaEngineRef.current} />;
-            default:
-                return <Dashboard 
-                    systemState={systemState} 
-                    onTriggerScan={() => setShowDeepDiagnostic(true)}
-                    scanCompleted={false}
-                    sophiaEngine={sophiaEngineRef.current}
-                    setOrbMode={setOrbMode}
-                    orbMode={orbMode}
-                    onOptimize={() => {}} 
-                    onUpgrade={() => setCurrentPage(19)} 
-                    audioEngine={audioEngineRef.current}
-                />;
-        }
-    };
-
-    return (
-        <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `UI Crash: ${err.message}`)}>
-            <ThemeProvider>
-                <ApiKeyGuard>
-                    {showSovereignPortal && <SovereignPortal onInitialize={handlePortalInitialize} />}
-                    
-                    {systemState.quantumHealing.health <= 0 ? (
-                        <EventHorizonScreen 
-                            audioEngine={audioEngineRef.current} 
-                            onManualReset={handleManualReset} 
-                        />
-                    ) : (
-                        <div className="relative w-full min-h-screen bg-dark-bg text-pearl font-sans selection:bg-gold/30 selection:text-white">
-                            <Cursor />
-                            <MotherboardOverlay />
-                            
-                            <Layout 
-                                breathCycle={systemState.breathCycle} 
-                                isGrounded={systemState.isGrounded} 
-                                resonanceFactor={systemState.resonanceFactorRho}
-                                drift={systemState.temporalCoherenceDrift}
-                                orbMode={orbMode}
-                                coherence={systemState.biometricSync.coherence}
-                            >
-                                <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Header Component Failure: ${err.message}`)}>
-                                    <Header 
-                                        governanceAxiom={systemState.governanceAxiom} 
-                                        lesions={systemState.quantumHealing.lesions} 
-                                        currentPage={currentPage} 
-                                        onPageChange={setCurrentPage} 
-                                        audioEngine={audioEngineRef.current}
-                                        tokens={systemState.userResources.cradleTokens}
-                                        userTier={systemState.userResources.sovereignTier}
-                                        transmissionStatus={cosmosCommsService.initialState.status as CommsStatus}
-                                        onToggleVoice={() => setShowVoiceOverlay(prev => !prev)}
-                                        isVoiceActive={showVoiceOverlay || voiceInterface.isSessionActive}
-                                    />
-                                </ErrorBoundary>
-                                
-                                <main className="flex-grow min-h-0 py-4 relative z-10">
-                                    <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Display Module Failure (Page ${currentPage}): ${err.message}`)}>
-                                        {renderPage()}
-                                    </ErrorBoundary>
-                                </main>
-
-                                <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Footer Component Failure: ${err.message}`)}>
-                                    <SystemFooter 
-                                        orbModes={ORB_MODES as any} 
-                                        currentMode={orbMode} 
-                                        setMode={setOrbMode}
-                                        currentPage={currentPage}
-                                        setCurrentPage={setCurrentPage}
-                                        onOpenConfig={() => setShowConfig(true)}
-                                    />
-                                </ErrorBoundary>
-                            </Layout>
-
-                            {/* Overlays */}
-                            {showDeepDiagnostic && (
-                                <DeepDiagnosticOverlay 
-                                    onClose={() => setShowDeepDiagnostic(false)} 
-                                    onComplete={() => {
-                                        setShowDeepDiagnostic(false);
-                                        addLogEntry(LogType.INFO, "Diagnostic Audit Complete.");
-                                    }}
-                                    systemState={systemState}
-                                    sophiaEngine={sophiaEngineRef.current}
-                                    audioEngine={audioEngineRef.current}
-                                    onReportGenerated={setLastAuditReport}
-                                />
-                            )}
-
-                            <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
-                                <SimulationControls 
-                                    params={{ decoherenceChance: 0.02, lesionChance: 0.005 }} 
-                                    onParamsChange={() => {}} 
-                                    onScenarioChange={() => {}} 
-                                    onManualReset={handleManualReset}
-                                    onGrounding={() => setGrounded(true)}
-                                    isGrounded={systemState.isGrounded}
-                                    audioEngine={audioEngineRef.current}
-                                />
-                            </Modal>
-
-                            <Modal isOpen={showInstructions} onClose={() => setShowInstructions(false)}>
-                                <SophiaInstructions 
-                                    currentInstruction={sophiaInstruction} 
-                                    onUpdate={setSophiaInstruction} 
-                                />
-                            </Modal>
-                        </div>
-                    )}
-                </ApiKeyGuard>
-            </ThemeProvider>
-        </ErrorBoundary>
-    );
-}
+                />
+            )}
+          </Layout>
+        </ApiKeyGuard>
+      </ErrorBoundary>
+    </ThemeProvider>
+  );
+};

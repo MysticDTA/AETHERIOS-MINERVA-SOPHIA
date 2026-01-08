@@ -129,6 +129,7 @@ const CelestialNavigator: React.FC<{
 }> = ({ relays, lockStatus, onCalibrate, calibratingId, liveTelemetry, coherence }) => {
     
     const ripples = useMemo(() => [0, 1, 2], []);
+    const [hoveredRelayId, setHoveredRelayId] = useState<string | null>(null);
 
     return (
         <div className="relative w-full aspect-square bg-[#050505] rounded-full border border-white/[0.08] overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,1)] ring-1 ring-white/5">
@@ -198,6 +199,8 @@ const CelestialNavigator: React.FC<{
                     const { cx, cy } = projectCelestial(body.ra, body.dec);
                     const isOnline = relay.status === 'ONLINE';
                     const isCalibrating = calibratingId === relay.id;
+                    const isHovered = hoveredRelayId === relay.id;
+                    const isHighlighted = isCalibrating || isHovered;
                     const magFactor = Math.max(0.5, 2 - (body.mag + 1.5) / 5);
                     
                     return (
@@ -214,24 +217,28 @@ const CelestialNavigator: React.FC<{
                             {/* Carrier Beam */}
                             <line 
                                 x1="50" y1="50" x2={cx} y2={cy} 
-                                stroke={isCalibrating ? 'white' : isOnline ? body.color : 'rgba(244, 63, 94, 0.1)'} 
-                                strokeWidth={isCalibrating ? 0.4 : 0.1}
-                                strokeDasharray={isOnline ? 'none' : '0.5 1.5'}
-                                opacity={isCalibrating ? 0.8 : 0.2}
-                                className="transition-all duration-1000"
+                                stroke={isHighlighted ? 'white' : isOnline ? body.color : 'rgba(244, 63, 94, 0.1)'} 
+                                strokeWidth={isHighlighted ? 0.6 : 0.1}
+                                strokeDasharray={isOnline || isHighlighted ? 'none' : '0.5 1.5'}
+                                opacity={isHighlighted ? 0.9 : 0.2}
+                                className="transition-all duration-300"
                             />
                             
                             {/* Target Body (Star/Galaxy) */}
                             <g 
                                 onClick={() => onCalibrate(relay.id)} 
+                                onMouseEnter={() => setHoveredRelayId(relay.id)}
+                                onMouseLeave={() => setHoveredRelayId(null)}
                                 className="cursor-pointer group/node"
                                 style={{ transformOrigin: `${cx}% ${cy}%` }}
                             >
                                 <circle 
-                                    cx={cx} cy={cy} r={magFactor * (isCalibrating ? 1.5 : 1)} 
+                                    cx={cx} cy={cy} r={magFactor * (isCalibrating ? 1.8 : isHovered ? 1.6 : 1)} 
                                     fill={isOnline ? body.color : '#1e293b'} 
                                     filter="url(#stellarGlow)"
-                                    className="transition-all duration-500 group-hover/node:scale-125 shadow-[0_0_10px_currentColor]"
+                                    stroke={isHighlighted ? 'white' : 'none'}
+                                    strokeWidth={isHighlighted ? 0.3 : 0}
+                                    className="transition-all duration-300 shadow-[0_0_15px_currentColor]"
                                 />
                                 
                                 {isCalibrating && (
@@ -257,7 +264,6 @@ const CelestialNavigator: React.FC<{
                 })}
             </svg>
             
-            {/* Telemetry Display Overlay */}
             {liveTelemetry && (
                 <div className="absolute top-6 left-6 right-6 p-4 bg-black/70 border border-white/10 rounded-sm backdrop-blur-xl animate-fade-in z-30 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-l-4 border-l-gold pointer-events-none">
                     <div className="flex justify-between items-start mb-3 border-b border-white/10 pb-2">

@@ -52,79 +52,51 @@ const LogicTraceStream: React.FC<{ active: boolean }> = ({ active }) => {
     );
 };
 
-const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) => {
-    const parsedContent = useMemo(() => {
-        if (!htmlContent) return [];
-        if (!htmlContent.includes('<h3>')) {
-             // Fallback for non-structured output
-             return [{ 
-                 id: 'raw-output', 
-                 title: 'System Analysis', 
-                 type: 'p', 
-                 paragraph: htmlContent.replace(/<[^>]*>/g, ''), 
-                 listItems: [] 
-             }];
+interface AnalysisData {
+    summary: string;
+    status: 'STABLE' | 'DEGRADING' | 'CRITICAL';
+    recommendations: string[];
+}
+
+const StructuredAnalysis: React.FC<{ data: string }> = ({ data }) => {
+    const parsed: AnalysisData | null = useMemo(() => {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
         }
+    }, [data]);
 
-        const sections = htmlContent.split('<h3>').slice(1);
-        return sections.map((section, index) => {
-            const [title, ...rest] = section.split('</h3>');
-            const content = rest.join('</h3>');
-            let listItems: string[] = [];
-            let paragraph = '';
-            let listType: 'ul' | 'ol' | null = null;
+    if (!parsed) return <div className="text-rose-400 font-mono text-xs">ERR_PARSE_FAILURE</div>;
 
-            if (content.includes('<ul>')) {
-                listType = 'ul';
-                const itemsMatch = content.match(/<li>(.*?)<\/li>/g);
-                if (itemsMatch) listItems = itemsMatch.map(item => item.replace(/<\/?li>/g, '').trim());
-            } else if (content.includes('<ol>')) {
-                listType = 'ol';
-                const itemsMatch = content.match(/<li>(.*?)<\/li>/g);
-                if (itemsMatch) listItems = itemsMatch.map(item => item.replace(/<\/?li>/g, '').trim());
-            } else {
-                paragraph = content.replace(/<\/?p>/g, '').replace(/<[^>]*>/g, '').trim();
-            }
-
-            return { id: `${title}-${index}`, title: title.trim(), type: listType || 'p', paragraph, listItems };
-        });
-    }, [htmlContent]);
-
-    if (parsedContent.length === 0) return null;
+    const statusColor = parsed.status === 'STABLE' ? 'text-emerald-400 border-emerald-500/50' : 
+                        parsed.status === 'DEGRADING' ? 'text-gold border-gold/50' : 
+                        'text-rose-500 border-rose-500/50';
 
     return (
-        <div className="space-y-10 animate-fade-in py-4">
-            {parsedContent.map(section => (
-                <div key={section.id} className="bg-white/[0.01] border border-white/[0.05] rounded-xl overflow-hidden hover:border-white/[0.1] transition-all duration-1000 group shadow-lg">
-                    <div className="bg-white/[0.02] px-6 py-3 border-b border-white/[0.04] flex justify-between items-center">
-                        <h3 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.4em] font-black flex items-center gap-4">
-                            <span className="w-1 h-3 bg-gold rounded-full shadow-[0_0_8px_#ffd700]" />
-                            {section.title}
-                        </h3>
-                    </div>
-                    <div className="p-6">
-                        {section.type === 'p' && (
-                            <p className="text-[14px] text-pearl/80 leading-relaxed font-minerva italic select-text antialiased">
-                                {section.paragraph}
-                            </p>
-                        )}
-                        {(section.type === 'ul' || section.type === 'ol') && (
-                            <ul className="space-y-5">
-                                {section.listItems.map((item, i) => (
-                                    <li key={i} className="text-[12px] text-slate-300 flex items-start gap-5 font-mono leading-relaxed group/item select-text">
-                                        <span className="mt-1 text-[7px] text-slate-600 font-bold tracking-tighter opacity-40">
-                                            ({(i + 1).toString().padStart(2, '0')})
-                                        </span>
-                                        <span className="opacity-80 group-hover:opacity-100 transition-opacity pl-4 border-l border-white/5">
-                                            {item}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
+        <div className="space-y-8 animate-fade-in py-4">
+            <div className={`p-6 bg-black/40 border rounded-xl shadow-lg relative overflow-hidden group ${statusColor}`}>
+                <div className="absolute top-0 right-0 p-3 opacity-10 font-orbitron text-4xl font-black">{parsed.status}</div>
+                <h3 className="font-orbitron text-xs uppercase tracking-[0.3em] font-black mb-3 text-pearl">System State Summary</h3>
+                <p className="text-[13px] font-minerva italic leading-relaxed text-pearl/90">
+                    "{parsed.summary}"
+                </p>
+            </div>
+
+            <div>
+                <h3 className="font-orbitron text-xs text-gold uppercase tracking-[0.3em] font-black mb-4 flex items-center gap-3">
+                    <span className="w-1.5 h-4 bg-gold rounded-sm" />
+                    Actionable Recommendations
+                </h3>
+                <div className="space-y-3">
+                    {parsed.recommendations.map((rec, i) => (
+                        <div key={i} className="flex gap-4 p-4 bg-white/[0.02] border border-white/5 rounded hover:border-gold/30 hover:bg-white/[0.04] transition-all group/item">
+                            <span className="text-slate-500 font-mono text-[10px] font-bold mt-0.5 group-hover/item:text-gold transition-colors">0{i+1}</span>
+                            <p className="text-[11px] font-mono text-slate-300 leading-relaxed">{rec}</p>
+                        </div>
+                    ))}
                 </div>
-            ))}
+            </div>
         </div>
     );
 };
@@ -151,11 +123,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
   useEffect(() => {
     if (isLoading && scrollContainerRef.current) {
         const container = scrollContainerRef.current;
-        // Auto-scroll to bottom as analysis streams in, unless user scrolled up
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-        if (isNearBottom) {
-            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-        }
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     }
   }, [analysis, isLoading]);
 
@@ -206,7 +174,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
                 </div>
               </div>
             ) : analysis ? (
-              <RenderedAnalysis htmlContent={analysis} />
+              <StructuredAnalysis data={analysis} />
             ) : (
                 <div className="h-40 flex flex-col items-center justify-center text-center opacity-30 gap-4 mt-8">
                     <div className="w-12 h-12 rounded-full border border-dashed border-white/20 animate-[spin_20s_linear_infinite] flex items-center justify-center">

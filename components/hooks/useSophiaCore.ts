@@ -44,21 +44,11 @@ export const useSophiaCore = (
     setSources([]);
 
     try {
-      await sophiaEngine.getSystemAnalysis(
-        systemStateRef.current,
-        (chunk) => {
-          setAnalysis(prev => prev + chunk);
-        },
-        (newSources) => {
-          setSources(newSources);
-        },
-        (err) => {
-          setError(err);
-        }
-      );
-    } catch (e) {
+      const result = await sophiaEngine.getSystemAnalysis(systemStateRef.current);
+      setAnalysis(result);
+    } catch (e: any) {
         console.error("Critical error during analysis execution:", e);
-        setError("A critical error occurred while attempting to run the analysis.");
+        setError(e.message || "A critical error occurred while attempting to run the analysis.");
     } finally {
         setIsLoading(false);
     }
