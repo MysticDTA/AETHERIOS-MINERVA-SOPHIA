@@ -7,16 +7,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Augment JSX.IntrinsicElements to include R3F primitives to satisfy TS
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      ambientLight: any;
-    }
-  }
-}
-
 interface MemoryWeaverProps {
   memories: Memory[];
   onMemoryChange: () => void;
@@ -47,7 +37,7 @@ const VectorCloud: React.FC<{ vectors: VectorNode[] }> = ({ vectors }) => {
         return [pos, cols];
     }, [vectors]);
 
-    useFrame((state) => {
+    useFrame((state: any) => {
         if (pointsRef.current) {
             pointsRef.current.rotation.y += 0.002;
             pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;

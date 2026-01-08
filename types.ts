@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // Global shared types for SOPHIA DV99 / Alliance System
@@ -14,6 +13,19 @@ declare global {
     SpeechRecognition: any;
     webkitRecognition: any;
     webkitSpeechRecognition: any;
+  }
+
+  // Extend JSX.IntrinsicElements to recognize React Three Fiber elements
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      ambientLight: any;
+      pointLight: any;
+      mesh: any;
+      sphereGeometry: any;
+      meshStandardMaterial: any;
+      primitive: any;
+    }
   }
 }
 
