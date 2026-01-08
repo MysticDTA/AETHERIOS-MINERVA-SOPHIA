@@ -47,12 +47,13 @@ export class SophiaEngineCore {
   }
 
   private hasValidKey(): boolean {
-      return !!process.env.API_KEY && process.env.API_KEY.length > 0 && process.env.API_KEY !== 'undefined';
+      const key = process.env.API_KEY;
+      return !!key && typeof key === 'string' && key.length > 0 && key !== 'undefined' && key !== 'null';
   }
 
   private getClient(): GoogleGenAI | null {
       if (!this.hasValidKey()) {
-          console.warn("SophiaCore: API Key missing or invalid. Engine entering simulation mode.");
+          console.info("SophiaCore: No API Key detected. Engine active in Simulation Mode.");
           return null;
       }
       try {
@@ -72,7 +73,7 @@ export class SophiaEngineCore {
     this.isConnecting = true;
     try {
         const ai = this.getClient();
-        if (!ai) throw new Error("Client initialization failed (No Key)");
+        if (!ai) throw new Error("Client initialization skipped (Simulation Mode)");
 
         this.chat = ai.chats.create({
           model: 'gemini-3-pro-preview',
@@ -100,7 +101,7 @@ export class SophiaEngineCore {
   ) {
     const activeChat = await this.ensureConnection();
     if (!activeChat) {
-        onChunk(">> CONNECTION_OFFLINE: Please authenticate via the AI Studio Handshake to enable the reasoning core.\n\n[SIMULATION_MODE]: The system is currently running on local heuristic estimates.");
+        onChunk(">> CONNECTION_OFFLINE: Please authenticate via the AI Studio Handshake to enable the reasoning core.\n\n[SIMULATION_MODE]: The system is currently operating on local heuristic estimates. Please provision a valid API Key to unlock Gemini 3 Pro intelligence.");
         return;
     }
     
