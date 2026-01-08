@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SystemState } from '../types';
 import { AudioEngine } from './audio/AudioEngine';
+import { QuantumSecuritySentinel } from './QuantumSecuritySentinel';
 
 interface SecurityShieldAuditProps {
     systemState: SystemState;
@@ -36,6 +37,9 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     
+    // View Mode State
+    const [viewMode, setViewMode] = useState<'SHIELD' | 'SENTINEL'>('SHIELD');
+
     // Simulation State
     const [shieldIntegrity, setShieldIntegrity] = useState(1.0);
     const [activeThreats, setActiveThreats] = useState<number>(0);
@@ -78,8 +82,10 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
         setNodes(newNodes);
     }, []);
 
-    // Main Physics Loop
+    // Main Physics Loop (Only active if in SHIELD mode)
     useEffect(() => {
+        if (viewMode !== 'SHIELD') return;
+
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -134,13 +140,6 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                     threat.z -= (threat.z / dist) * speed;
                 } else {
                     // IMPACT logic
-                    // Find nearest node
-                    let nearestNode = nodesRef.current[0];
-                    let minD = 9999;
-                    
-                    // Simple rotation calc to match visual nodes not needed for logic, 
-                    // but we assume threat hits the "shield sphere"
-                    
                     // Find random node to damage
                     const targetNodeIdx = Math.floor(Math.random() * nodesRef.current.length);
                     const targetNode = nodesRef.current[targetNodeIdx];
@@ -203,18 +202,6 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
             projectedNodes.forEach(node => {
                 const alpha = Math.max(0.1, (node.z + SHIELD_RADIUS) / (SHIELD_RADIUS * 2));
                 
-                // Draw Connections (Lattice)
-                nodesRef.current.forEach(other => {
-                    const dist = Math.hypot(node.x - other.x, node.y - other.y, node.z - other.z);
-                    if (dist < 60 && other.id > node.id) {
-                        // Find projected other (this is O(N^2) inside render, but N=32 is fine)
-                        // Optimization: Skip projection, just use calculated Z to fade
-                        // We need active lines though.
-                        // Simplified: Only draw lines for nodes currently on screen
-                        // For pure visual:
-                    }
-                });
-
                 // Node Draw
                 ctx.beginPath();
                 ctx.arc(node.px, node.py, 3 * node.scale * (node.isEntangled ? 1 : 0.5), 0, Math.PI * 2);
@@ -284,19 +271,21 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
 
         render();
         return () => cancelAnimationFrame(animationFrame);
-    }, [zenoMode]);
+    }, [zenoMode, viewMode]);
 
     // Handle Resize
     useEffect(() => {
-        if (!containerRef.current || !canvasRef.current) return;
+        if (!containerRef.current || !canvasRef.current || viewMode !== 'SHIELD') return;
         const resize = () => {
-            canvasRef.current!.width = containerRef.current!.clientWidth;
-            canvasRef.current!.height = containerRef.current!.clientHeight;
+            if (canvasRef.current && containerRef.current) {
+                canvasRef.current.width = containerRef.current.clientWidth;
+                canvasRef.current.height = containerRef.current.clientHeight;
+            }
         };
         resize();
         window.addEventListener('resize', resize);
         return () => window.removeEventListener('resize', resize);
-    }, []);
+    }, [viewMode]);
 
     const handleRepair = () => {
         audioEngine?.playAscensionChime();
@@ -364,122 +353,124 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                     </div>
                 </div>
                 
-                <div className="flex gap-4">
-                    <div className="text-right">
-                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Shield_Integrity</p>
-                        <p className={`font-orbitron text-2xl font-bold ${shieldIntegrity > 0.7 ? 'text-emerald-400' : shieldIntegrity > 0.3 ? 'text-gold' : 'text-rose-500'}`}>
-                            {(shieldIntegrity * 100).toFixed(1)}%
-                        </p>
-                    </div>
-                    <div className="w-px h-10 bg-white/10" />
-                    <div className="text-right">
-                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Active_Threats</p>
-                        <p className={`font-orbitron text-2xl font-bold ${activeThreats > 0 ? 'text-rose-400 animate-pulse' : 'text-pearl'}`}>
-                            {activeThreats}
-                        </p>
-                    </div>
+                <div className="flex items-center gap-4 bg-black/40 p-1 rounded-lg border border-white/10">
+                    <button 
+                        onClick={() => setViewMode('SHIELD')}
+                        className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SHIELD' ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-500/30' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        3D_Lattice
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('SENTINEL')}
+                        className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SENTINEL' ? 'bg-rose-900/40 text-rose-300 border border-rose-500/30' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Sentinel_Ops
+                    </button>
                 </div>
             </div>
 
             {/* --- MAIN VISUALIZER --- */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
-                
-                {/* CANVAS CONTAINER */}
-                <div className="lg:col-span-8 bg-black/80 border border-white/5 rounded-xl relative overflow-hidden shadow-2xl flex flex-col group">
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">ZEN0</div>
-                    
-                    {/* HUD Overlay */}
-                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${zenoMode ? 'bg-violet-500 animate-ping' : 'bg-slate-600'}`} />
-                            <span className={`text-[10px] font-mono uppercase font-bold tracking-widest ${zenoMode ? 'text-violet-300' : 'text-slate-500'}`}>
-                                ZENO_OBSERVATION: {zenoMode ? 'ACTIVE' : 'PASSIVE'}
-                            </span>
+            {viewMode === 'SENTINEL' ? (
+                <QuantumSecuritySentinel audioEngine={audioEngine} />
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
+                    {/* CANVAS CONTAINER */}
+                    <div className="lg:col-span-8 bg-black/80 border border-white/5 rounded-xl relative overflow-hidden shadow-2xl flex flex-col group">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">ZEN0</div>
+                        
+                        {/* HUD Overlay */}
+                        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${zenoMode ? 'bg-violet-500 animate-ping' : 'bg-slate-600'}`} />
+                                <span className={`text-[10px] font-mono uppercase font-bold tracking-widest ${zenoMode ? 'text-violet-300' : 'text-slate-500'}`}>
+                                    ZENO_OBSERVATION: {zenoMode ? 'ACTIVE' : 'PASSIVE'}
+                                </span>
+                            </div>
+                            <span className="text-[8px] font-mono text-slate-600">LATTICE_NODE_COUNT: {NODE_COUNT}</span>
                         </div>
-                        <span className="text-[8px] font-mono text-slate-600">LATTICE_NODE_COUNT: {NODE_COUNT}</span>
-                    </div>
 
-                    <div ref={containerRef} className="flex-1 w-full h-full cursor-crosshair relative z-0">
-                        <canvas 
-                            ref={canvasRef} 
-                            className="w-full h-full block"
-                            onMouseDown={(e) => {
-                                isDragging.current = true;
-                                lastMousePos.current = { x: e.clientX, y: e.clientY };
-                            }}
-                            onMouseMove={(e) => {
-                                if (isDragging.current) {
-                                    const dx = e.clientX - lastMousePos.current.x;
-                                    const dy = e.clientY - lastMousePos.current.y;
-                                    rotationRef.current.y += dx * 0.01;
-                                    rotationRef.current.x += dy * 0.01;
+                        <div ref={containerRef} className="flex-1 w-full h-full cursor-crosshair relative z-0">
+                            <canvas 
+                                ref={canvasRef} 
+                                className="w-full h-full block"
+                                onMouseDown={(e) => {
+                                    isDragging.current = true;
                                     lastMousePos.current = { x: e.clientX, y: e.clientY };
-                                }
-                            }}
-                            onMouseUp={() => isDragging.current = false}
-                            onMouseLeave={() => isDragging.current = false}
-                        />
-                    </div>
-
-                    <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center gap-6 z-20">
-                        <button 
-                            onClick={handleRepair}
-                            className="px-6 py-3 bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
-                        >
-                            Entangle Repair
-                        </button>
-                        <button 
-                            onClick={handleZenoToggle}
-                            className={`px-6 py-3 border font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] transition-all rounded-sm shadow-lg active:scale-95 ${
-                                zenoMode 
-                                ? 'bg-violet-600 text-white border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.4)]' 
-                                : 'bg-violet-900/20 border-violet-500/30 text-violet-300 hover:bg-violet-800/40'
-                            }`}
-                        >
-                            {zenoMode ? 'Disengage Zeno' : 'Engage Zeno Protocol'}
-                        </button>
-                        <button 
-                            onClick={handlePulse}
-                            className="px-6 py-3 bg-gold/10 border border-gold/30 text-gold font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-gold hover:text-black transition-all rounded-sm shadow-lg active:scale-95"
-                        >
-                            Harmonic Pulse
-                        </button>
-                    </div>
-                </div>
-
-                {/* LOGS & STATS */}
-                <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
-                    <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
-                        <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Defense Terminal</h4>
-                        <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
-                            {terminalLogs.map((log, i) => (
-                                <div key={i} className="flex gap-3 animate-fade-in">
-                                    <span className="text-slate-700 font-bold opacity-50">{(Date.now() - i*1000).toString().slice(-6)}</span>
-                                    <span className={log.includes('ALERT') ? 'text-rose-400 font-bold' : log.includes('INITIATING') ? 'text-emerald-400' : 'text-slate-400'}>
-                                        {log}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-white/[0.02] border border-white/5 p-6 rounded-xl flex flex-col gap-4">
-                        <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Global_Stability</span>
-                            <span className="font-orbitron text-pearl">{(systemState.quantumHealing.stabilizationShield * 100).toFixed(2)}%</span>
-                        </div>
-                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000"
-                                style={{ width: `${systemState.quantumHealing.stabilizationShield * 100}%` }}
+                                }}
+                                onMouseMove={(e) => {
+                                    if (isDragging.current) {
+                                        const dx = e.clientX - lastMousePos.current.x;
+                                        const dy = e.clientY - lastMousePos.current.y;
+                                        rotationRef.current.y += dx * 0.01;
+                                        rotationRef.current.x += dy * 0.01;
+                                        lastMousePos.current = { x: e.clientX, y: e.clientY };
+                                    }
+                                }}
+                                onMouseUp={() => isDragging.current = false}
+                                onMouseLeave={() => isDragging.current = false}
                             />
                         </div>
-                        <p className="text-[9px] font-minerva italic text-slate-400 leading-relaxed mt-2">
-                            "Active observation collapses the threat wavefunction. Keep the Zeno Protocol engaged during high-entropy events."
-                        </p>
+
+                        <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center gap-6 z-20">
+                            <button 
+                                onClick={handleRepair}
+                                className="px-6 py-3 bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
+                            >
+                                Entangle Repair
+                            </button>
+                            <button 
+                                onClick={handleZenoToggle}
+                                className={`px-6 py-3 border font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] transition-all rounded-sm shadow-lg active:scale-95 ${
+                                    zenoMode 
+                                    ? 'bg-violet-600 text-white border-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.4)]' 
+                                    : 'bg-violet-900/20 border-violet-500/30 text-violet-300 hover:bg-violet-800/40'
+                                }`}
+                            >
+                                {zenoMode ? 'Disengage Zeno' : 'Engage Zeno Protocol'}
+                            </button>
+                            <button 
+                                onClick={handlePulse}
+                                className="px-6 py-3 bg-gold/10 border border-gold/30 text-gold font-orbitron text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-gold hover:text-black transition-all rounded-sm shadow-lg active:scale-95"
+                            >
+                                Harmonic Pulse
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* LOGS & STATS */}
+                    <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
+                        <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
+                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Defense Terminal</h4>
+                            <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
+                                {terminalLogs.map((log, i) => (
+                                    <div key={i} className="flex gap-3 animate-fade-in">
+                                        <span className="text-slate-700 font-bold opacity-50">{(Date.now() - i*1000).toString().slice(-6)}</span>
+                                        <span className={log.includes('ALERT') ? 'text-rose-400 font-bold' : log.includes('INITIATING') ? 'text-emerald-400' : 'text-slate-400'}>
+                                            {log}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white/[0.02] border border-white/5 p-6 rounded-xl flex flex-col gap-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Global_Stability</span>
+                                <span className="font-orbitron text-pearl">{(systemState.quantumHealing.stabilizationShield * 100).toFixed(2)}%</span>
+                            </div>
+                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000"
+                                    style={{ width: `${systemState.quantumHealing.stabilizationShield * 100}%` }}
+                                />
+                            </div>
+                            <p className="text-[9px] font-minerva italic text-slate-400 leading-relaxed mt-2">
+                                "Active observation collapses the threat wavefunction. Keep the Zeno Protocol engaged during high-entropy events."
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

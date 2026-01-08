@@ -4,6 +4,8 @@ import { SystemState } from '../types';
 import { Tooltip } from './Tooltip';
 import { QuantumNeuralNetwork } from './QuantumNeuralNetwork';
 import { QuantumErrorCorrection } from './QuantumErrorCorrection';
+import { QuantumCryptography } from './QuantumCryptography';
+import { QuantumAnomalyDetector } from './QuantumAnomalyDetector';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 
 interface QuantumComputeNexusProps {
@@ -176,7 +178,7 @@ const BlochSphere: React.FC<{ label: string; vector: [number, number, number]; c
 };
 
 export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ systemState, sophiaEngine, voiceStream }) => {
-    const [mode, setMode] = useState<'GATE' | 'QNN' | 'QEC'>('GATE');
+    const [mode, setMode] = useState<'GATE' | 'QNN' | 'QEC' | 'CRYPTO' | 'ANOMALY'>('GATE');
     const [circuit, setCircuit] = useState<GateOp[]>([]);
     const [stateVector, setStateVector] = useState<StateVector>(ZERO_STATE);
     const [measurements, setMeasurements] = useState<number[]>([0,0,0,0]); 
@@ -287,6 +289,18 @@ export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ system
                     >
                         Error Correction
                     </button>
+                    <button 
+                        onClick={() => setMode('CRYPTO')}
+                        className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${mode === 'CRYPTO' ? 'bg-blue-900/40 text-blue-300 border border-blue-500/30' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Cryptography
+                    </button>
+                    <button 
+                        onClick={() => setMode('ANOMALY')}
+                        className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${mode === 'ANOMALY' ? 'bg-amber-900/40 text-amber-300 border border-amber-500/30' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Anomaly (Grover)
+                    </button>
                 </div>
             </div>
 
@@ -294,6 +308,10 @@ export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ system
                 <QuantumNeuralNetwork systemState={systemState} sophiaEngine={sophiaEngine} />
             ) : mode === 'QEC' ? (
                 <QuantumErrorCorrection />
+            ) : mode === 'CRYPTO' ? (
+                <QuantumCryptography />
+            ) : mode === 'ANOMALY' ? (
+                <QuantumAnomalyDetector />
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
                     {/* LEFT: CONTROLS & CIRCUIT */}
