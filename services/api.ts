@@ -39,14 +39,18 @@ export class ApiService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Gateway desynchronized.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Gateway Desynchronized: Handshake Failed.');
       }
       
       return await response.json();
-    } catch (err) {
+    } catch (err: any) {
       console.error("MINERVA_API_ERROR [Procurement]:", err);
-      return null;
+      // Ensure the UI gets a clean error message, even if fetch completely fails (e.g. offline)
+      if (err.message.includes('fetch')) {
+          throw new Error("Gateway Offline: Unable to contact institutional payment rail.");
+      }
+      throw err;
     }
   }
 

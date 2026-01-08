@@ -73,14 +73,18 @@ export const WombCoreStability: React.FC<WombCoreStabilityProps> = React.memo(({
       </div>
 
        <div className="mt-6 pt-4 border-t border-dark-border/50 flex justify-between text-[10px] font-mono tracking-tighter">
-            <div className='flex flex-col'>
-                <p className='text-slate-500 uppercase tracking-widest'>Current Output</p>
-                <p className='font-orbitron text-base text-pearl'>{data.output.toFixed(0)} <span className="text-[10px]">TW/s</span></p>
-            </div>
-            <div className='flex flex-col text-right'>
-                <p className='text-slate-500 uppercase tracking-widest'>Resonance Link</p>
-                <p className='font-orbitron text-base text-pearl'>{(data.stability * 100).toFixed(1)}%</p>
-            </div>
+            <Tooltip text="Total creative energy generation rate measured in Terawatts per second.">
+                <div className='flex flex-col cursor-help'>
+                    <p className='text-slate-500 uppercase tracking-widest'>Current Output</p>
+                    <p className='font-orbitron text-base text-pearl'>{data.output.toFixed(0)} <span className="text-[10px]">TW/s</span></p>
+                </div>
+            </Tooltip>
+            <Tooltip text="Strength of the connection between the Womb Core and the primary lattice.">
+                <div className='flex flex-col text-right cursor-help'>
+                    <p className='text-slate-500 uppercase tracking-widest'>Resonance Link</p>
+                    <p className='font-orbitron text-base text-pearl'>{(data.stability * 100).toFixed(1)}%</p>
+                </div>
+            </Tooltip>
        </div>
        
        <div className="absolute top-2 right-4 pointer-events-none opacity-[0.03] font-mono text-[80px] select-none uppercase">CORE</div>

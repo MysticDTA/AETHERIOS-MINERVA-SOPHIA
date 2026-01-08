@@ -5,6 +5,7 @@ import {
   Tooltip, ResponsiveContainer, ComposedChart, Bar 
 } from 'recharts';
 import { PerformanceTelemetry } from '../types';
+import { Tooltip as UITooltip } from './Tooltip';
 
 interface PerformanceMetricsChartProps {
   performance: PerformanceTelemetry;
@@ -112,29 +113,37 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = R
       </div>
 
       <div className="grid grid-cols-3 gap-4 mt-2">
-          <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-cyan-500/30 transition-all shadow-inner">
-              <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">CPU Utilization</p>
-              <div className="flex items-baseline gap-2">
-                <p className="font-orbitron text-xl text-pearl">{(history[history.length-1]?.cpu || 0).toFixed(1)}<span className="text-[10px] opacity-40 ml-1">%</span></p>
-                <span className="text-[8px] font-mono text-cyan-400">NOMINAL</span>
-              </div>
-          </div>
-          <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-gold/30 transition-all shadow-inner">
-              <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">Frame Interval</p>
-              <div className="flex items-baseline gap-2">
-                <p className="font-orbitron text-xl text-gold">{(history[history.length-1]?.fps || 0)}<span className="text-[10px] opacity-40 ml-1">FPS</span></p>
-                <span className={`text-[8px] font-mono ${(history[history.length-1]?.fps || 0) > 55 ? 'text-green-400' : 'text-rose-400'}`}>
-                    {(history[history.length-1]?.fps || 0) > 55 ? 'STABLE' : 'DROPPING'}
-                </span>
-              </div>
-          </div>
-          <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-rose-500/30 transition-all shadow-inner">
-              <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">Memory Pool</p>
-              <div className="flex items-baseline gap-2">
-                <p className="font-orbitron text-xl text-rose-400">{performance.memoryUsage.toFixed(1)}<span className="text-[10px] opacity-40 ml-1">GB</span></p>
-                <span className="text-[8px] font-mono text-slate-600">USED</span>
-              </div>
-          </div>
+          <UITooltip text="Current computational load on the local node's reasoning engine. High values may indicate complex heuristic synthesis.">
+            <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-cyan-500/30 transition-all shadow-inner cursor-help">
+                <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">CPU Utilization</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-orbitron text-xl text-pearl">{(history[history.length-1]?.cpu || 0).toFixed(1)}<span className="text-[10px] opacity-40 ml-1">%</span></p>
+                  <span className="text-[8px] font-mono text-cyan-400">NOMINAL</span>
+                </div>
+            </div>
+          </UITooltip>
+          
+          <UITooltip text="Visual fluidity of the interface. Drops below 55 FPS indicate heavy causal rendering load or resonance interference.">
+            <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-gold/30 transition-all shadow-inner cursor-help">
+                <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">Frame Interval</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-orbitron text-xl text-gold">{(history[history.length-1]?.fps || 0)}<span className="text-[10px] opacity-40 ml-1">FPS</span></p>
+                  <span className={`text-[8px] font-mono ${(history[history.length-1]?.fps || 0) > 55 ? 'text-green-400' : 'text-rose-400'}`}>
+                      {(history[history.length-1]?.fps || 0) > 55 ? 'STABLE' : 'DROPPING'}
+                  </span>
+                </div>
+            </div>
+          </UITooltip>
+
+          <UITooltip text="Active memory allocation for the neural state machine. High usage suggests deep context retention.">
+            <div className="bg-black/40 p-4 rounded border border-white/5 group-hover:border-rose-500/30 transition-all shadow-inner cursor-help">
+                <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1.5 font-bold">Memory Pool</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-orbitron text-xl text-rose-400">{performance.memoryUsage.toFixed(1)}<span className="text-[10px] opacity-40 ml-1">GB</span></p>
+                  <span className="text-[8px] font-mono text-slate-600">USED</span>
+                </div>
+            </div>
+          </UITooltip>
       </div>
     </div>
   );

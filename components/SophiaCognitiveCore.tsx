@@ -22,24 +22,37 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     const [insight, setInsight] = useState<Insight | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [thinkingProgress, setThinkingProgress] = useState(0);
+    
+    // Refs for trend analysis
     const lastFetchTime = useRef<number>(0);
     const prevHealthRef = useRef<number>(systemState.quantumHealing.health);
-    const cooldown = 20000; // Increased cooldown to prevent spamming audio
+    const prevRhoRef = useRef<number>(systemState.resonanceFactorRho);
+    
+    const cooldown = 30000; // 30s cooldown to prevent API saturation
 
     const health = systemState.quantumHealing.health;
     const decoherence = systemState.quantumHealing.decoherence;
     const lesions = systemState.quantumHealing.lesions;
+    const rho = systemState.resonanceFactorRho;
     
+    // Calculate trends (deltas since last tick)
     const healthDelta = health - prevHealthRef.current;
-    // Enhanced proactive triggers
-    const isCritical = health < 0.6 || lesions > 1 || decoherence > 0.55;
-    const isDegrading = healthDelta < -0.005 || (decoherence > 0.3 && systemState.resonanceFactorRho < 0.8);
+    const rhoDelta = rho - prevRhoRef.current;
 
+    // Enhanced proactive triggers
+    // Critical: System is currently in a bad state
+    const isCritical = health < 0.6 || lesions > 1 || decoherence > 0.55;
+    
+    // Degrading: System is actively getting worse (negative health trend or dropping resonance with high decoherence)
+    const isDegrading = healthDelta < -0.002 || (decoherence > 0.3 && rhoDelta < -0.001);
+
+    // Update refs for next render cycle
     useEffect(() => {
         prevHealthRef.current = health;
-    }, [health]);
+        prevRhoRef.current = rho;
+    }, [health, rho]);
 
-    // Thinking simulation for the reasoning budget
+    // Thinking simulation for the reasoning budget visualizer
     useEffect(() => {
         if (isLoading) {
             const interval = setInterval(() => {
@@ -53,15 +66,23 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     
     useEffect(() => {
         const now = Date.now();
+        // Trigger if critical or degrading, allowing for cooldown period
         const shouldFetch = (isCritical || isDegrading) && !isLoading && (now - lastFetchTime.current > cooldown);
         
         if (sophiaEngine && shouldFetch) {
             const fetchInsight = async () => {
                 setIsLoading(true);
+                // Switch Orb to ANALYSIS to indicate cognitive load
                 setOrbMode('ANALYSIS');
                 lastFetchTime.current = now;
                 
-                let trendContext = isDegrading ? "Decoherence trend accelerating. Predictive analysis required." : "Critical system state. Heuristic intervention recommended.";
+                // Construct a context-aware prompt based on the specific trend
+                let trendContext = "";
+                if (isCritical) {
+                    trendContext = `CRITICAL SYSTEM STATE DETECTED. Health: ${health.toFixed(2)}, Decoherence: ${decoherence.toFixed(2)}. Immediate heuristic intervention required.`;
+                } else if (isDegrading) {
+                    trendContext = `NEGATIVE TREND DETECTED. Health Delta: ${healthDelta.toFixed(5)}, Rho Delta: ${rhoDelta.toFixed(5)}. Predictive decoherence analysis required.`;
+                }
                 
                 try {
                     const resultJson = await sophiaEngine.getProactiveInsight(systemState, trendContext);
@@ -80,7 +101,7 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
             };
             fetchInsight();
         }
-    }, [systemState, sophiaEngine, isCritical, isDegrading, isLoading, setOrbMode, audioEngine]);
+    }, [systemState, sophiaEngine, isCritical, isDegrading, isLoading, setOrbMode, audioEngine, health, decoherence, healthDelta, rhoDelta]);
     
     return (
         <div className={`w-full h-full glass-panel p-6 rounded-2xl flex flex-col items-center justify-between relative overflow-hidden group transition-all duration-700 ${insight?.alert ? 'shadow-[inset_0_0_40px_rgba(109,40,217,0.1)]' : ''}`}>

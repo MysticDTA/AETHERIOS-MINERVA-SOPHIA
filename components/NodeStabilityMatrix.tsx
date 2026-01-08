@@ -1,5 +1,6 @@
 
 import React, { useMemo } from 'react';
+import { Tooltip } from './Tooltip';
 
 interface NodeStabilityMatrixProps {
     resonance: number;
@@ -53,7 +54,9 @@ export const NodeStabilityMatrix: React.FC<NodeStabilityMatrixProps> = ({ resona
                     <span className="flex items-center gap-1"><div className="w-1 h-1 bg-gold rounded-full" /> ACTIVE</span>
                     <span className="flex items-center gap-1"><div className="w-1 h-1 bg-rose-500 rounded-full" /> FRACTURE</span>
                 </div>
-                <span>PARITY: {(resonance * 100).toFixed(2)}%</span>
+                <Tooltip text="The synchronization percentage of sub-shards with the global state.">
+                    <span className="cursor-help font-bold">PARITY: {(resonance * 100).toFixed(2)}%</span>
+                </Tooltip>
             </div>
         </div>
     );

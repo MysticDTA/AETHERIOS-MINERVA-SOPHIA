@@ -40,13 +40,17 @@ export const HeuristicFailurePredictor: React.FC<HeuristicFailurePredictorProps>
                     </h3>
                     <div className="flex items-center gap-2">
                         <span className={`w-1.5 h-1.5 rounded-full ${isHighRisk ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-green-500 shadow-[0_0_8px_#10b981]'}`} />
-                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">System_Stability: {prediction.severity}</span>
+                        <Tooltip text="Overall system stability classification based on aggregated entropy metrics.">
+                            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest cursor-help">System_Stability: {prediction.severity}</span>
+                        </Tooltip>
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className={`font-orbitron text-xl font-bold ${isHighRisk ? 'text-rose-400' : 'text-pearl'}`}>
-                        {(prediction.probability * 100).toFixed(0)}%
-                    </span>
+                    <Tooltip text="The calculated probability of a critical decoherence event occurring within the next cycle.">
+                        <span className={`font-orbitron text-xl font-bold cursor-help ${isHighRisk ? 'text-rose-400' : 'text-pearl'}`}>
+                            {(prediction.probability * 100).toFixed(0)}%
+                        </span>
+                    </Tooltip>
                     <p className="text-[8px] font-mono text-slate-600 uppercase">Prob_Collapse</p>
                 </div>
             </div>
@@ -59,7 +63,9 @@ export const HeuristicFailurePredictor: React.FC<HeuristicFailurePredictorProps>
                     
                     <div className={`p-3 rounded flex items-center justify-between ${isImminent ? 'bg-rose-500/20 border border-rose-500/40' : 'bg-white/5 border border-white/10'}`}>
                          <div className="flex flex-col gap-0.5">
-                            <span className={`text-[8px] uppercase font-bold ${isImminent ? 'text-rose-300' : 'text-slate-500'}`}>Est_Time_To_Decoherence</span>
+                            <Tooltip text="Estimated time until the system reaches an irreversible state of causal fragmentation.">
+                                <span className={`text-[8px] uppercase font-bold cursor-help ${isImminent ? 'text-rose-300' : 'text-slate-500'}`}>Est_Time_To_Decoherence</span>
+                            </Tooltip>
                             <span className={`font-orbitron text-sm tracking-widest ${isImminent ? 'text-white' : 'text-pearl'}`}>{prediction.estTimeToDecoherence}</span>
                          </div>
                          <div className={`w-10 h-10 border rounded flex items-center justify-center ${isImminent ? 'border-rose-500/50 bg-rose-900/40' : 'border-white/10'}`}>

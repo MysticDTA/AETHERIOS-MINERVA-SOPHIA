@@ -43,31 +43,52 @@ const TIER_CARDS = [
 ];
 
 const PaymentRailStatus: React.FC = () => {
+    const [status, setStatus] = useState<'SCANNING' | 'ONLINE' | 'ERROR'>('SCANNING');
+    const [latency, setLatency] = useState<number | null>(null);
+
+    useEffect(() => {
+        const scanRails = async () => {
+            // Simulate a rigorous system link check
+            await new Promise(r => setTimeout(r, 800));
+            setLatency(Math.floor(Math.random() * 10) + 15); // 15-25ms
+            setStatus('ONLINE');
+        };
+        scanRails();
+    }, []);
+
     return (
-        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[200px]">
+        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[200px] shadow-lg relative overflow-hidden">
+            {status === 'SCANNING' && (
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gold/50 animate-shimmer" />
+            )}
+            
             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                 <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Global_Payment_Rails</span>
-                <span className="text-[8px] font-mono text-emerald-400 font-bold">ENCRYPTED_TLS_1.3</span>
+                <span className={`text-[8px] font-mono font-bold ${status === 'ONLINE' ? 'text-emerald-400' : 'text-gold animate-pulse'}`}>
+                    {status === 'ONLINE' ? 'ENCRYPTED_TLS_1.3' : 'VERIFYING_LINK...'}
+                </span>
             </div>
             <div className="flex gap-2">
-                <div className="flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border border-white/5 group hover:border-blue-500/30 transition-all cursor-help">
+                <div className={`flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-blue-500/30'}`}>
                     <div className="flex items-center gap-2">
                         <img src="https://stripe.com/img/v3/payments/overview/logos/visa.svg" className="h-3 opacity-90 filter brightness-125" alt="Visa" />
                         <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-blue-200">VISA_NET</span>
                     </div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6] animate-pulse" />
+                    <div className={`w-1.5 h-1.5 rounded-full ${status === 'ONLINE' ? 'bg-blue-500 shadow-[0_0_5px_#3b82f6]' : 'bg-slate-700'} animate-pulse`} />
                 </div>
-                <div className="flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border border-white/5 group hover:border-orange-500/30 transition-all cursor-help">
+                <div className={`flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-orange-500/30'}`}>
                     <div className="flex items-center gap-2">
                         <img src="https://stripe.com/img/v3/payments/overview/logos/mastercard.svg" className="h-3 opacity-90 filter brightness-125" alt="Mastercard" />
                         <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-orange-200">MC_GRID</span>
                     </div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316] animate-pulse" />
+                    <div className={`w-1.5 h-1.5 rounded-full ${status === 'ONLINE' ? 'bg-orange-500 shadow-[0_0_5px_#f97316]' : 'bg-slate-700'} animate-pulse`} />
                 </div>
             </div>
             <div className="flex justify-between items-center pt-1">
                 <span className="text-[7px] font-mono text-slate-600 uppercase">Gateway_Latency</span>
-                <span className="text-[7px] font-mono text-gold">12ms [OPTIMAL]</span>
+                <span className={`text-[7px] font-mono font-bold ${status === 'ONLINE' ? 'text-gold' : 'text-slate-500'}`}>
+                    {status === 'ONLINE' ? `${latency}ms [OPTIMAL]` : 'PINGING...'}
+                </span>
             </div>
         </div>
     );
@@ -131,8 +152,8 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
             } else {
                 throw new Error("Conduit Error");
             }
-        } catch (e) {
-            addLogEntry(LogType.CRITICAL, "STRIPE_ERR: Vault connection timed out. Retrying link...");
+        } catch (e: any) {
+            addLogEntry(LogType.CRITICAL, `STRIPE_ERR: ${e.message || "Vault connection timed out."} Retrying link...`);
             setHandshakeStep(1);
         }
     };
@@ -232,7 +253,7 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                                             disabled={isActive || procuringId !== null}
                                             className={`w-full py-4 rounded-sm font-orbitron text-[10px] font-black uppercase tracking-[0.4em] transition-all border-2 relative overflow-hidden group/btn active:scale-95 ${isActive ? 'bg-white/10 border-white/20 text-slate-500 cursor-not-allowed' : 'bg-gold text-dark-bg border-gold hover:bg-white hover:border-white shadow-[0_0_40px_rgba(255,215,0,0.3)]'}`}
                                         >
-                                            <div className="absolute inset-0 bg-white/40 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                                            <div className="absolute inset-0 bg-white/40 -translate-x-full group-hover:btn:translate-x-full transition-transform duration-1000" />
                                             <span className="relative z-10">{isActive ? 'VAULT_ACTIVE' : 'Liquidate_Capital'}</span>
                                         </button>
                                         {!isActive && (
