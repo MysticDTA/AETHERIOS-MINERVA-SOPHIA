@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { SystemState, IngestedModule, LogType } from '../types';
-import { Tooltip } from './Tooltip';
+import { SystemState, LogType } from '../types';
 
 interface ModuleManagerProps {
   systemState: SystemState;

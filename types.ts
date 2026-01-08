@@ -397,6 +397,30 @@ export interface VoiceInteraction {
     timestamp: number;
 }
 
+// --- DYNASTY LEDGER TYPES ---
+export interface LedgerTransaction {
+    id: string;
+    hash: string;
+    type: 'CAPITAL_INJECTION' | 'ASSET_TRANSFER' | 'RESONANCE_MINT' | 'SYSTEM_UPGRADE';
+    amount: number;
+    currency: 'Ω' | 'USD' | 'RHO';
+    timestamp: number;
+    status: 'VERIFIED' | 'PENDING' | 'FAILED';
+    counterparty: string;
+}
+
+export interface DynastyEpoch {
+    id: number;
+    label: string; // e.g., "Epoch of Awakening"
+    startBlock: number;
+    endBlock: number;
+    sovereignId: string;
+    totalVolume: number;
+    resonanceAvg: number;
+    transactions: LedgerTransaction[];
+    status: 'SEALED' | 'ACTIVE' | 'ARCHIVED';
+}
+
 export interface SystemState {
   userResources: UserResources;
   auth: AuthState;
@@ -430,4 +454,5 @@ export interface SystemState {
   isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
+  dynastyLedger?: DynastyEpoch[]; // Optional until fully integrated
 }

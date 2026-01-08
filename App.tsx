@@ -47,6 +47,7 @@ import { knowledgeBase } from './services/knowledgeBase';
 import { CoCreatorNexus } from './components/CoCreatorNexus';
 import { NeuralQuantizer } from './components/NeuralQuantizer';
 import { VoiceInterface } from './components/VoiceInterface';
+import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
@@ -314,6 +315,8 @@ export const App: React.FC = () => {
               />;
           case 26: // NOETIC
               return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
+          case 27: // DYNASTY
+              return <QuantumDynastyLedger systemState={systemState} />;
           default:
               return <Dashboard 
                   systemState={systemState} 

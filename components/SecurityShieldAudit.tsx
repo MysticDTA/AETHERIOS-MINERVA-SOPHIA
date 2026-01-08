@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SystemState } from '../types';
 import { AudioEngine } from './audio/AudioEngine';
 import { QuantumSecuritySentinel } from './QuantumSecuritySentinel';
+import { QuantumSentinelPulse } from './QuantumSentinelPulse';
 
 interface SecurityShieldAuditProps {
     systemState: SystemState;
@@ -44,6 +45,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
     const [shieldIntegrity, setShieldIntegrity] = useState(1.0);
     const [activeThreats, setActiveThreats] = useState<number>(0);
     const [zenoMode, setZenoMode] = useState(false); // Quantum Zeno Effect (Active Observation)
+    const [isPulsing, setIsPulsing] = useState(false);
     const [nodes, setNodes] = useState<ShieldNode[]>([]);
     const [terminalLogs, setTerminalLogs] = useState<string[]>([
         "Initializing Quantum Zeno Protocol...",
@@ -328,6 +330,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
 
     const handlePulse = () => {
         if (shieldIntegrity < 0.2) return; // Not enough energy
+        setIsPulsing(true);
         audioEngine?.playGroundingDischarge();
         setTerminalLogs(prev => ["HARMONIC PULSE EMITTED. THREATS CLEARED.", ...prev]);
         
@@ -337,6 +340,8 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
         
         // Cost
         nodesRef.current.forEach(n => n.integrity -= 0.05);
+        
+        setTimeout(() => setIsPulsing(false), 2000);
     };
 
     return (
@@ -409,6 +414,8 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                                 onMouseUp={() => isDragging.current = false}
                                 onMouseLeave={() => isDragging.current = false}
                             />
+                            {/* Pulse Visualizer Overlay */}
+                            <QuantumSentinelPulse active={isPulsing} color="#ffd700" />
                         </div>
 
                         <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center gap-6 z-20">
