@@ -18,8 +18,13 @@ const TIER_CARDS = [
         price: '$2,900/mo', 
         priceId: 'price_architect_monthly_gold',
         color: '#e6c77f', 
-        benefits: ["Full Heuristic Console Access", "32,768 Reasoning Token Budget", "Deep Astrophysical Interpretation", "Recursive Persistent Memory"],
-        desc: 'Establish a personal cognitive throne in the matrix.'
+        benefits: ["Full Heuristic Console Access", "Basic Reasoning Budget", "Recursive Persistent Memory"],
+        desc: 'Establish a personal cognitive throne in the matrix.',
+        capabilities: [
+            { label: 'Reasoning', val: 0.4 },
+            { label: 'Synthesis', val: 0.2 },
+            { label: 'Memory', val: 0.8 }
+        ]
     },
     { 
         id: 'SOVEREIGN', 
@@ -27,9 +32,14 @@ const TIER_CARDS = [
         price: '$25,000/mo', 
         priceId: 'price_sovereign_gold_tier',
         color: '#ffd700', 
-        benefits: ["Tier-0 Dedicated Reasoning Shards", "Multi-Sig Board Approval Gate", "Custom VPC Causal Peering", "24/7 Elite Architect Support", "Global Synod Priority Intercept"],
+        benefits: ["Tier-0 Dedicated Reasoning Shards", "Multi-Sig Board Approval Gate", "Custom VPC Causal Peering", "Global Synod Priority Intercept"],
         desc: 'The definitive standard for Tier-1 Financial and Defense Institutions.',
-        featured: true
+        featured: true,
+        capabilities: [
+            { label: 'Reasoning [32k]', val: 1.0 },
+            { label: 'Veo Synthesis', val: 1.0 },
+            { label: 'Zero Latency', val: 1.0 }
+        ]
     },
     { 
         id: 'LEGACY_MENERVA', 
@@ -37,8 +47,13 @@ const TIER_CARDS = [
         price: 'POU (Price on Use)', 
         priceId: 'price_syndicate_gold',
         color: '#f8f5ec', 
-        benefits: ["Revenue Share Logic", "White-Label Interface Deployment", "Syndicate Shard Ownership", "Unlimited Reasoning Blocks"],
-        desc: 'Direct equity-based integration for Syndicate partners.'
+        benefits: ["Revenue Share Logic", "White-Label Interface Deployment", "Syndicate Shard Ownership"],
+        desc: 'Direct equity-based integration for Syndicate partners.',
+        capabilities: [
+            { label: 'Reasoning', val: 0.9 },
+            { label: 'Equity', val: 1.0 },
+            { label: 'Brand', val: 1.0 }
+        ]
     }
 ];
 
@@ -273,7 +288,23 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                                     </div>
                                     <div className="h-px bg-white/10 w-full" />
                                     <p className="text-[11px] text-warm-grey leading-relaxed font-minerva italic opacity-90 min-h-[50px]">"{tier.desc}"</p>
-                                    <div className="space-y-3 flex-1">
+                                    
+                                    {/* Capability Matrix Hologram */}
+                                    <div className="space-y-2 bg-white/[0.02] p-3 rounded border border-white/5">
+                                        {tier.capabilities?.map(cap => (
+                                            <div key={cap.label}>
+                                                <div className="flex justify-between text-[8px] font-mono uppercase text-slate-500 mb-1">
+                                                    <span>{cap.label}</span>
+                                                    <span>{(cap.val * 100).toFixed(0)}%</span>
+                                                </div>
+                                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                    <div className="h-full transition-all duration-1000" style={{ width: `${cap.val * 100}%`, backgroundColor: tier.color, opacity: 0.8 }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="space-y-3 flex-1 pt-2">
                                         {tier.benefits.map((b, i) => (
                                             <div key={i} className="flex items-start gap-3 text-[10px] text-slate-300 font-mono group-hover:text-pearl transition-colors">
                                                 <span className="text-gold font-bold mt-0.5">»</span>
