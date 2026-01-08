@@ -35,57 +35,50 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
     feedbackTimeoutRef.current = window.setTimeout(() => setCommandFeedback(null), 3000);
   };
 
+  // Dedicated function to parse voice commands into modes
+  const processVoiceCommand = (transcript: string): OrbMode | null => {
+    const lower = transcript.toLowerCase();
+
+    // 1. Direct Mode Names (Highest Priority)
+    // Checks for presence of the mode name itself (e.g. "Activate Analysis", "Set to Analysis")
+    if (lower.includes('analysis')) return 'ANALYSIS';
+    if (lower.includes('standby')) return 'STANDBY';
+    if (lower.includes('synthesis')) return 'SYNTHESIS';
+    if (lower.includes('repair')) return 'REPAIR';
+    if (lower.includes('grounding')) return 'GROUNDING';
+    if (lower.includes('concordance')) return 'CONCORDANCE';
+    if (lower.includes('offline')) return 'OFFLINE';
+
+    // 2. Intellectual mapping for aliases (Secondary Priority)
+    const modeMap: Record<string, OrbMode> = {
+      'scan': 'ANALYSIS', 'examine': 'ANALYSIS', 'investigate': 'ANALYSIS',
+      'idling': 'STANDBY', 'reset': 'STANDBY', 'wait': 'STANDBY',
+      'build': 'SYNTHESIS', 'create': 'SYNTHESIS', 'generate': 'SYNTHESIS',
+      'fix': 'REPAIR', 'heal': 'REPAIR', 'mend': 'REPAIR', 'restore': 'REPAIR',
+      'anchor': 'GROUNDING', 'discharge': 'GROUNDING', 'earth': 'GROUNDING',
+      'align': 'CONCORDANCE', 'connect': 'CONCORDANCE', 'link': 'CONCORDANCE', 'harmonize': 'CONCORDANCE',
+      'shut down': 'OFFLINE', 'terminate': 'OFFLINE', 'kill': 'OFFLINE', 'sleep': 'OFFLINE'
+    };
+
+    const foundKey = Object.keys(modeMap).find(key => lower.includes(key));
+    return foundKey ? modeMap[foundKey] : null;
+  };
+
   const handleVoiceResult = useCallback((event: any) => {
     const last = event.results.length - 1;
-    const transcript = event.results[last][0].transcript.toLowerCase();
+    const transcript = event.results[last][0].transcript;
     
     setLastCommand(transcript);
     console.log("SOPHIA: Voice Intercepted:", transcript);
 
-    // Intellectual mapping for mode control - Enhanced Vocabulary
-    const modeMap: Record<string, OrbMode> = {
-      'standby': 'STANDBY',
-      'idling': 'STANDBY',
-      'reset': 'STANDBY',
-      'wait': 'STANDBY',
-      'analysis': 'ANALYSIS',
-      'analyze': 'ANALYSIS',
-      'scan': 'ANALYSIS',
-      'examine': 'ANALYSIS',
-      'synthesis': 'SYNTHESIS',
-      'synthesize': 'SYNTHESIS',
-      'build': 'SYNTHESIS',
-      'create': 'SYNTHESIS',
-      'repair': 'REPAIR',
-      'healing': 'REPAIR',
-      'mend': 'REPAIR',
-      'fix': 'REPAIR',
-      'restore': 'REPAIR',
-      'grounding': 'GROUNDING',
-      'ground': 'GROUNDING',
-      'anchor': 'GROUNDING',
-      'discharge': 'GROUNDING',
-      'concordance': 'CONCORDANCE',
-      'align': 'CONCORDANCE',
-      'connect': 'CONCORDANCE',
-      'link': 'CONCORDANCE',
-      'offline': 'OFFLINE',
-      'shut down': 'OFFLINE',
-      'terminate': 'OFFLINE',
-      'kill': 'OFFLINE',
-      'sleep': 'OFFLINE'
-    };
-
-    // Robust matching logic for "Activate...", "Set to...", "Switch to..."
-    const foundKey = Object.keys(modeMap).find(key => transcript.includes(key));
+    const targetMode = processVoiceCommand(transcript);
     
-    if (foundKey) {
-      const targetMode = modeMap[foundKey];
+    if (targetMode) {
       setMode(targetMode);
       const modeName = modes.find(m => m.id === targetMode)?.name || targetMode;
       triggerFeedback(`Protocol: ${modeName} Active`);
     } else {
-      triggerFeedback("Pattern Not Recognized");
+      triggerFeedback("Unrecognized Decree");
     }
     
     setIsListening(false);

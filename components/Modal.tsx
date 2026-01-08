@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 interface ModalProps {
@@ -42,6 +43,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     if (isOpen) {
         window.addEventListener('keydown', handleEsc);
         window.addEventListener('keydown', handleFocusTrap);
+        // Attempt to focus the close button for accessibility when opened
         closeButtonRef.current?.focus();
     }
 
