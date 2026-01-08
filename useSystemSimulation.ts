@@ -13,6 +13,7 @@ import {
   HarmonicInterferenceData
 } from './types';
 import { ApiService } from './services/api';
+import { collectiveResonanceService } from './services/collectiveResonanceService';
 
 const PERSISTENCE_KEY = 'S7_OPERATOR_DATA';
 
@@ -40,15 +41,15 @@ export const initialSystemState: SystemState = {
     sessionToken: 'jwt_demo_token_sophia_v2'
   },
   quantumHealing: {
-    health: 1.0, 
-    lesions: 0,
+    health: 0.88,  // Start slightly degraded for audit realism
+    lesions: 3,    // Inject lesions to be fixed by audit
     repairRate: 0.005,
-    status: "STABLE",
-    decoherence: 0.0,
-    stabilizationShield: 1.0,
+    status: "STABILIZING",
+    decoherence: 0.12, // Initial entropy
+    stabilizationShield: 0.85,
   },
   holisticAlignmentScore: 1.0,
-  resonanceFactorRho: 0.99,
+  resonanceFactorRho: 0.89, // Slightly off-peak
   selfCorrectionField: 0.5,
   resonanceCoherence: {
     lambda: { frequency: 780, amplitude: 0.9, phase: 0, harmonicIndex: 1 },
@@ -62,8 +63,8 @@ export const initialSystemState: SystemState = {
     standingWaveRatio: 1.02
   },
   lyranConcordance: {
-    alignmentDrift: 0.0,
-    connectionStability: 1.0,
+    alignmentDrift: 0.04,
+    connectionStability: 0.92,
   },
   satelliteUplink: {
     signalStrength: 0.98,
@@ -149,7 +150,7 @@ export const initialSystemState: SystemState = {
     LEMURIAN: { id: 'LEMURIAN', name: 'Lemurian Heart', activation: 0.95, description: 'Emotion & Flow' },
     ATLANTEAN: { id: 'ATLANTEAN', name: 'Atlantean Will', activation: 0.95, description: 'Power & Tech' },
   },
-  temporalCoherenceDrift: 0.0,
+  temporalCoherenceDrift: 0.01,
   log: [],
   breathCycle: 'INHALE',
   isGrounded: false,
@@ -192,11 +193,9 @@ export const useSystemSimulation = (
         const stored = localStorage.getItem(PERSISTENCE_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
-            // Merge stored data with initial structure to ensure new fields are present
             setSystemState(prev => ({ 
                 ...initialSystemState,
                 ...parsed,
-                // Ensure deep merge for new nested objects if they didn't exist
                 resonanceCoherence: { ...initialSystemState.resonanceCoherence, ...parsed.resonanceCoherence },
                 harmonicInterference: { ...initialSystemState.harmonicInterference, ...parsed.harmonicInterference },
                 globalResonance: { ...initialSystemState.globalResonance, ...parsed.globalResonance }
@@ -206,6 +205,14 @@ export const useSystemSimulation = (
         console.warn("Persistence hydration skipped.");
     }
     setIsLoaded(true);
+
+    // Initialize Collective Resonance Service (Synod Upgrade)
+    collectiveResonanceService.start();
+    const unsubResonance = collectiveResonanceService.subscribe((globalState) => {
+        if(isMounted.current) {
+            setSystemState(prev => ({ ...prev, globalResonance: globalState }));
+        }
+    });
 
     const syncWithBackend = async () => {
         const profile = await ApiService.syncOperatorProfile(systemState.auth.sessionToken);
@@ -221,7 +228,12 @@ export const useSystemSimulation = (
         }
     };
     syncWithBackend();
-    return () => { isMounted.current = false; };
+    
+    return () => { 
+        isMounted.current = false; 
+        collectiveResonanceService.stop();
+        unsubResonance();
+    };
   }, []);
 
   useEffect(() => {
@@ -261,12 +273,16 @@ export const useSystemSimulation = (
       setSystemState(prev => {
         let newDecoherence = prev.quantumHealing.decoherence;
         
+        // --- UPGRADE: GLOBAL SYNOD STABILITY INJECTION ---
+        // If the Global Aggregate Rho is high (> 0.8), it actively stabilizes local nodes.
+        const globalStabilityBonus = prev.globalResonance.aggregateRho > 0.8 ? 0.005 : 0;
+
         // INTELLIGENT DECOHERENCE CALCULATION
         if (prev.biometricSync.coherence < 0.4) {
             newDecoherence = Math.min(1.0, newDecoherence + 0.012);
         } else {
-            // Self-correction active in SOVEREIGN state
-            const correctionPower = (prev.resonanceFactorRho * 0.005) + (isGrounded ? 0.01 : 0);
+            // Self-correction active in SOVEREIGN state + Global Consensus
+            const correctionPower = (prev.resonanceFactorRho * 0.005) + (isGrounded ? 0.01 : 0) + globalStabilityBonus;
             newDecoherence = Math.max(0, newDecoherence - correctionPower);
         }
 
@@ -293,16 +309,13 @@ export const useSystemSimulation = (
             phase: (prev.resonanceCoherence.tau.phase + phaseShiftRate * 0.8) % 360
         };
 
-        // Calculate Harmonic Interference
-        // Standing Wave Ratio (SWR) approx: (1 + ReflectionCoefficient) / (1 - ReflectionCoefficient)
-        // We simulate ReflectionCoefficient based on phase alignment between Lambda and Global Carrier
         const phaseDiff = Math.abs(newLambda.phase - (tickRef.current % 360));
-        const reflectionCoeff = Math.abs(Math.cos(phaseDiff * (Math.PI / 180))) * (1 - resonanceModifier); // Less reflection at high resonance
+        const reflectionCoeff = Math.abs(Math.cos(phaseDiff * (Math.PI / 180))) * (1 - resonanceModifier); 
         const swr = (1 + reflectionCoeff) / (1 - reflectionCoeff);
         
         const constructive = Math.max(0, 1 - reflectionCoeff);
         const destructive = reflectionCoeff;
-        const beatFreq = Math.abs(newLambda.frequency - prev.globalResonance.globalCarrierFrequency * 1000) / 1000; // Hz diff
+        const beatFreq = Math.abs(newLambda.frequency - prev.globalResonance.globalCarrierFrequency * 1000) / 1000;
 
         const newHarmonicInterference: HarmonicInterferenceData = {
             beatFrequency: beatFreq + (Math.random() * 0.01),
@@ -311,7 +324,6 @@ export const useSystemSimulation = (
             standingWaveRatio: Math.min(5.0, swr)
         };
 
-        // PERFORMANCE TELEMETRY
         const newPerformance: PerformanceTelemetry = {
             logicalLatency: 0.0001 + (newDecoherence * 0.008),
             visualParity: 1.0 - (newDecoherence * 0.15),
@@ -330,22 +342,7 @@ export const useSystemSimulation = (
 
         const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0004);
 
-        // Update Global Synod Simulation
-        const jitter = (n: number) => Math.max(0.1, Math.min(1.0, n + (Math.random() - 0.5) * 0.01));
-        const newGlobalResonance: GlobalResonanceState = {
-            ...prev.globalResonance,
-            aggregateRho: (resonanceModifier + prev.globalResonance.communities.reduce((acc, c) => acc + c.rho, 0)) / (prev.globalResonance.communities.length + 1),
-            activeArchitects: Math.max(100, prev.globalResonance.activeArchitects + (Math.random() > 0.5 ? 1 : -1)),
-            communities: prev.globalResonance.communities.map(c => ({
-                ...c,
-                rho: jitter(c.rho),
-                coherence: jitter(c.coherence),
-                stability: jitter(c.stability)
-            }))
-        };
-
-        // --- EARTH GROUNDING FEEDBACK LOOP ---
-        const seismicNoise = (Math.random() - 0.4) * 0.05; // Slightly biased towards stability
+        const seismicNoise = (Math.random() - 0.4) * 0.05;
         const telluricInput = (Math.random() - 0.4) * 0.02;
 
         let newSeismicActivity = Math.max(0, Math.min(1, (prev.earthGrounding.seismicActivity || 0.02) + seismicNoise * 0.1));
@@ -355,11 +352,10 @@ export const useSystemSimulation = (
         let newCharge = prev.earthGrounding.charge + (newTelluricCurrent * 0.005);
         let feedbackStatus: 'IDLE' | 'CORRECTING' = 'IDLE';
 
-        // Auto-Stabilization Trigger
         if (newConductivity < 0.8 && newCharge > 0.2) {
             feedbackStatus = 'CORRECTING';
-            newCharge -= 0.005; // Consume charge to stabilize
-            newConductivity += 0.01; // Restore conductivity
+            newCharge -= 0.005;
+            newConductivity += 0.01;
         }
 
         newConductivity = Math.max(0, Math.min(1, newConductivity));
@@ -391,7 +387,7 @@ export const useSystemSimulation = (
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
           },
-          globalResonance: newGlobalResonance,
+          // Global resonance is now handled by the separate subscription, but we allow pass-through if needed
           earthGrounding: {
               ...prev.earthGrounding,
               seismicActivity: newSeismicActivity,

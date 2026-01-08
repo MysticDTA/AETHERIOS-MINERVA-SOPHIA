@@ -21,7 +21,7 @@ export const SovereignPortal: React.FC<SovereignPortalProps> = ({ onInitialize }
     }, []);
 
     return (
-        <div className="fixed inset-0 z-[2500] bg-[#020202] flex flex-col items-center justify-center overflow-hidden">
+        <div className="fixed inset-0 z-[2500] bg-dark-bg flex flex-col items-center justify-center overflow-hidden">
             {/* Cinematic Background */}
             <div className="absolute inset-0 portal-gradient pointer-events-none" />
             <div className="absolute inset-0 opacity-10" style={{ 

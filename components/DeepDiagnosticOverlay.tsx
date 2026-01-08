@@ -20,6 +20,9 @@ const QUANTUM_AUDIT_SEQUENCE: DiagnosticStep[] = [
   { id: 'temporal_alignment', label: 'TEMPORAL_ALIGNMENT :: CHRONON_SYNC', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'gpu_compute', label: 'GPU_COMPUTE_STRESS :: WEBGL_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'hardware_scan', label: 'HOST_NODE_INTERROGATION :: HARDWARE_ID', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'veo_flux', label: 'VEO_FLUX_SYNTHESIS :: 1080P_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'vocal_bridge', label: 'PROTOCOL_CHARON :: 24KHZ_PCM_LINK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'synod_sync', label: 'GLOBAL_SYNOD :: RHO_CONSENSUS', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'engine_core', label: 'SOPHIA_COGNITIVE_CORE :: LLM_BRIDGE', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'entanglement', label: 'ENTANGLEMENT_VERIFICATION :: BELL_TEST', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'audit_logic', label: 'HEURISTIC_SWEEP :: MINERVA_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
@@ -38,6 +41,8 @@ const SCAN_TELEMETRY = [
   "Optimizing React 19 concurrent fiber roots...",
   "Checking Qubit stability matrix...",
   "Compiling Aetheric assets to WEBP/AVIF...",
+  "Verifying Google Veo generation credits...",
+  "Ping-testing deep space relay network...",
 ];
 
 const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: boolean }> = ({ activeStepId, foundDefect }) => {
@@ -193,13 +198,14 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
         audioEngine?.playUIClick();
         
+        // Random defect simulation
         const triggerDefect = (i === 5 || i === 3) && Math.random() > 0.6; 
         
-        const iterations = 12; 
+        const iterations = 10; 
         for (let p = 0; p <= iterations; p++) {
           if (!isMounted.current) return;
           const progress = (p / iterations) * 100;
-          await new Promise(r => setTimeout(r, 60 + Math.random() * 60));
+          await new Promise(r => setTimeout(r, 60 + Math.random() * 40));
           
           if (!isMounted.current) return;
           setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress } : s));
@@ -370,7 +376,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                           <div className="grid grid-cols-2 gap-y-8 gap-x-12 text-left text-[11px] font-mono text-slate-400 mb-12">
                               <div className="flex flex-col gap-1">
                                   <span className="uppercase tracking-widest text-[8px] text-slate-600">Files Scanned</span>
-                                  <span className="text-cyan-400 font-bold text-sm">48 MODULES</span>
+                                  <span className="text-cyan-400 font-bold text-sm">52 MODULES</span>
                               </div>
                               <div className="flex flex-col gap-1 text-right">
                                   <span className="uppercase tracking-widest text-[8px] text-slate-600">Quantum Grade</span>
@@ -387,7 +393,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ on
                           </div>
                           
                           <button onClick={() => { onComplete(); onClose(); }} className="w-full py-5 bg-gold/10 border border-gold text-gold font-orbitron font-black uppercase tracking-[0.25em] hover:bg-gold hover:text-black transition-all shadow-[0_0_40px_rgba(255,215,0,0.2)] active:scale-95 text-[12px] relative overflow-hidden group/btn">
-                              <span className="relative z-10">Return to Sanctum</span>
+                              <span className="relative z-10">Review Full Report</span>
                               <div className="absolute inset-0 bg-gold/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
                           </button>
                       </div>

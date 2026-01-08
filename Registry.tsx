@@ -105,6 +105,7 @@ export const SYSTEM_NODES: NavNode[] = [
     { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE', description: 'Capital Procurement Gateway' },
     { id: 20, label: 'MODULES', requiredTier: 'ARCHITECT', description: 'Dynamic Logic Shard Manager' },
     { id: 17, label: 'READY', requiredTier: 'ACOLYTE', description: 'Deployment Manifest' },
+    // VEO is Tier-0 Sovereign only
     { id: 18, label: 'VEO', requiredTier: 'SOVEREIGN', description: 'Visual Evidence Synthesis' },
     { id: 19, label: 'AUDIT', requiredTier: 'ARCHITECT', isAudit: true, description: 'Heuristic System Sweep' },
     { id: 21, label: 'BRIDGE', requiredTier: 'ARCHITECT', isBridge: true, description: 'Menerva Project Ingestion' },

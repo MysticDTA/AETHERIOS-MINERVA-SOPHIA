@@ -54,14 +54,11 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 }) => {
     const activeTier = TIER_REGISTRY[userTier] || TIER_REGISTRY['ACOLYTE'];
 
-    const handlePageChange = (pageId: number, requiredTier: UserTier) => {
-        if (checkNodeAccess(userTier, requiredTier)) {
-            if (pageId !== currentPage) {
-                audioEngine?.playUIClick();
-                onPageChange(pageId);
-            }
-        } else {
-            audioEngine?.playEffect('renewal'); 
+    const handlePageChange = (pageId: number) => {
+        // Navigation is allowed; App.tsx enforces access control via AccessDeniedScreen
+        if (pageId !== currentPage) {
+            audioEngine?.playUIClick();
+            onPageChange(pageId);
         }
     }
 
@@ -87,7 +84,6 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 <nav id="main-nav-bar" className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1 pr-4">
                     {SYSTEM_NODES.filter(n => !n.isLogs && !n.isShield && !n.isBridge && !n.isAudit).map(node => {
                         const hasAccess = checkNodeAccess(userTier, node.requiredTier);
-                        const disabled = !hasAccess;
                         const isCommsPage = node.id === 7;
                         const commsAlert = isCommsPage && isTransmissionActive;
 
@@ -95,19 +91,19 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                             <button
                                 key={node.id}
                                 id={`nav-btn-${node.label.toLowerCase()}`}
-                                onClick={() => handlePageChange(node.id, node.requiredTier)}
-                                title={node.description}
+                                onClick={() => handlePageChange(node.id)}
+                                title={hasAccess ? node.description : `Restricted: Requires ${node.requiredTier} Clearance`}
                                 className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === node.id
                                     ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)] scale-105'
-                                    : disabled 
-                                        ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
+                                    : !hasAccess 
+                                        ? 'bg-black/40 text-slate-600 border-white/5 hover:border-red-500/30 hover:text-red-400'
                                         : commsAlert
                                             ? 'bg-gold/20 border-gold/50 text-gold animate-pulse shadow-[0_0_8px_gold]'
                                             : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
                                 }`}
                             >
-                                {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px] filter grayscale">🔒</span>}
+                                {!hasAccess && <span className="absolute -top-1.5 -right-1.5 text-[8px]">🔒</span>}
                                 {commsAlert && <span className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full shadow-[0_0_5px_gold]" />}
                                 {node.label}
                             </button>

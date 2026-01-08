@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { SentientLatticeOverlay } from './SentientLatticeOverlay';
+import { UnifiedLatticeBackground } from './visuals/UnifiedLatticeBackground';
 import { BreathBar } from './BreathBar';
 import { Tooltip } from './Tooltip';
 import { OrbMode } from '../types';
@@ -30,28 +30,14 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
   const isHighResonance = resonanceFactor > 0.95;
   const isDecoherent = resonanceFactor < 0.6;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   
   const blurAmount = useMemo(() => 20 - (resonanceFactor * 10), [resonanceFactor]);
   const grainOpacity = useMemo(() => 0.03 + (1 - resonanceFactor) * 0.05, [resonanceFactor]);
 
-  useEffect(() => {
-      const handleMouseMove = (e: MouseEvent) => {
-          if (!containerRef.current) return;
-          const { clientX, clientY } = e;
-          const { innerWidth, innerHeight } = window;
-          const x = (clientX / innerWidth - 0.5) * 2; // -1 to 1
-          const y = (clientY / innerHeight - 0.5) * 2;
-          setMousePos({ x, y });
-      };
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
     <div 
         ref={containerRef}
-        className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-x-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}
+        className={`relative min-h-screen w-full bg-dark-bg text-pearl font-sans antialiased flex flex-col overflow-x-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}
     >
       
       {/* Background Noise Layer */}
@@ -62,19 +48,8 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
           <style>{`@keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); } 30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); } 60% { transform: translate(15%, 0); } 70% { transform: translate(0, 10%); } 80% { transform: translate(-15%, 0); } 90% { transform: translate(10%, 5%); } }`}</style>
       </div>
 
-      {/* Atmospheric Glow Layer with Parallax */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-0 transition-all duration-[1000ms]"
-        style={{
-          background: `radial-gradient(circle at ${50 + mousePos.x * 5}% ${40 + mousePos.y * 5}%, rgba(109, 40, 217, ${0.05 * resonanceFactor}), transparent 80%),
-                       radial-gradient(circle at ${80 - mousePos.x * 5}% ${20 - mousePos.y * 5}%, rgba(255, 215, 0, ${0.03 * resonanceFactor}), transparent 60%)`,
-          filter: `blur(${blurAmount}px)`,
-          transform: `scale(1.05)` 
-        }}
-      />
-
-      {/* Sentient Lattice Overlay */}
-      <SentientLatticeOverlay orbMode={orbMode} rho={resonanceFactor} coherence={coherence} />
+      {/* 3D Unified Graphics Pipeline */}
+      <UnifiedLatticeBackground rho={resonanceFactor} coherence={coherence} orbMode={orbMode} />
 
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
       <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-1 md:m-2 overflow-hidden rounded-lg">
@@ -95,7 +70,7 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
               <Tooltip text="Measures the temporal misalignment of local causal events.">
                   <div className="flex flex-col gap-0.5 items-end">
                       <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black">Causal_Drift</span>
-                      <span className={`text-[8px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}</span>
+                      <span className={`text-[8px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
                   </div>
               </Tooltip>
           </div>

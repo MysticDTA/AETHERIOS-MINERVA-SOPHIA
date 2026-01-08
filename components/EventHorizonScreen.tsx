@@ -42,7 +42,7 @@ export const EventHorizonScreen: React.FC<EventHorizonScreenProps> = ({ audioEng
   return (
     <div 
       id="event-horizon-screen"
-      className="min-h-screen w-full flex flex-col items-center justify-center text-center p-4 bg-black overflow-hidden relative z-[9999]"
+      className="min-h-screen w-full flex flex-col items-center justify-center text-center p-4 bg-dark-bg overflow-hidden relative z-[9999]"
       style={{ animation: 'blackhole-pulse 8s infinite ease-in-out' }}
     >
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.15)_0%,transparent_80%)] pointer-events-none" />

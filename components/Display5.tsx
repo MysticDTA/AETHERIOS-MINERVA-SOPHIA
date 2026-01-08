@@ -5,7 +5,7 @@ import { CoherenceMonitor } from './CoherenceMonitor';
 import { CoherenceResonanceMonitor } from './CoherenceResonanceMonitor';
 import { BohrEinsteinCorrelator } from './BohrEinsteinCorrelator';
 import { SophiaEngineCore } from '../services/sophiaEngine';
-import { HarmonicCorrelator } from './HarmonicCorrelator';
+import { PhaseSpaceAttractor } from './PhaseSpaceAttractor';
 import { AudioEngine } from './audio/AudioEngine';
 import { Tooltip } from './Tooltip';
 
@@ -144,7 +144,11 @@ export const Display5: React.FC<Display5Props> = ({
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[240px]">
                 <div className="h-full">
-                    <HarmonicCorrelator data={systemState.resonanceCoherence} />
+                    {/* Replaced HarmonicCorrelator with PhaseSpaceAttractor for deeper intellectual analysis */}
+                    <PhaseSpaceAttractor 
+                        rho={systemState.resonanceFactorRho}
+                        coherence={systemState.biometricSync.coherence}
+                    />
                 </div>
                 <div className="h-full">
                     <BohrEinsteinCorrelator data={systemState.bohrEinsteinCorrelator} />
@@ -164,7 +168,7 @@ export const Display5: React.FC<Display5Props> = ({
                     {isInterpreting ? 'SOPHIA_ENGINE_ACTIVE' : 'HEURISTIC_IDLE'}
                 </p>
                 <p className="text-[13px] font-minerva italic text-pearl/80 leading-relaxed antialiased">
-                    "The Harmonic Correlator has stabilized local reality fluctuations. Peak resonance detected at node 0x88. Causal siphoning is {isInterpreting ? 'active' : 'stable'}."
+                    "The Phase-Space Attractor visualizes the stability topology of your resonance. A closed orbit indicates a stable Limit Cycle, while divergence suggests the onset of chaos."
                 </p>
             </div>
         </div>

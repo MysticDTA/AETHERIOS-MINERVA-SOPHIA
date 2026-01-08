@@ -56,7 +56,7 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
     ];
 
     return (
-        <div className="w-full h-full bg-[#050505] border border-white/10 p-10 md:p-16 rounded-xl border-glow-pearl backdrop-blur-3xl flex flex-col overflow-hidden relative animate-fade-in shadow-[0_40px_100px_rgba(0,0,0,1)]">
+        <div className="w-full h-full bg-dark-surface border border-white/10 p-10 md:p-16 rounded-xl border-glow-pearl backdrop-blur-3xl flex flex-col overflow-hidden relative animate-fade-in shadow-[0_40px_100px_rgba(0,0,0,1)]">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-orbitron text-[220px] text-white/[0.005] pointer-events-none select-none uppercase tracking-[0.4em]">
                 AUDIT
             </div>

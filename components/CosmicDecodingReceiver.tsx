@@ -162,20 +162,20 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
 
                 <div className="lg:col-span-9 flex flex-col gap-4 min-h-0 h-full">
-                    <div id="cosmic-log-terminal" ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[200px]">
+                    <div id="cosmic-log-terminal" ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[300px]">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">RX</div>
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3 shrink-0">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>
                              <span className="text-[9px] text-slate-600 font-bold">TIMESTAMP: {new Date().toLocaleTimeString()}</span>
                         </div>
                         <div className="relative z-10 flex-1">
-                            <p className="text-pearl font-medium text-[16px] md:text-[18px] leading-relaxed tracking-wide whitespace-pre-wrap">
+                            <p className="text-pearl font-medium text-[20px] md:text-[24px] leading-relaxed tracking-wide whitespace-pre-wrap">
                                 {displayedMessage || <span className="opacity-30 italic text-slate-500">Awaiting carrier signal lock from deep space network...</span>}
-                                {status === 'DECODING...' && <span className="inline-block w-2.5 h-5 bg-gold ml-2 animate-pulse align-middle shadow-[0_0_10px_gold]" />}
+                                {status === 'DECODING...' && <span className="inline-block w-3 h-6 bg-gold ml-2 animate-pulse align-middle shadow-[0_0_10px_gold]" />}
                             </p>
                             
                             {analysisResult && (
-                                <div id="astrophysical-analysis-box" className="mt-8 p-4 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[13px] text-blue-200 italic animate-fade-in shadow-lg border-l-4 border-l-blue-500">
+                                <div id="astrophysical-analysis-box" className="mt-8 p-4 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[14px] text-blue-200 italic animate-fade-in shadow-lg border-l-4 border-l-blue-500">
                                     <div className="flex items-center gap-2 mb-2 not-italic">
                                         <span className="text-blue-400 font-black uppercase tracking-widest text-[10px]">Astrophysical_Implication</span>
                                         <div className="h-px bg-blue-500/30 flex-1" />

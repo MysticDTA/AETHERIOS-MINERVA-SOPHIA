@@ -298,6 +298,59 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
     const [calibratingId, setCalibratingId] = useState<string | null>(null);
     const [calibrationProgress, setCalibrationProgress] = useState<number>(0);
     const [liveTelemetry, setLiveTelemetry] = useState<any>(null);
+    
+    // Real-time Data Feed State
+    const [feedLogs, setFeedLogs] = useState<{id: number, text: string, type: 'TX' | 'RX' | 'SYS'}[]>([]);
+    const [wsStatus, setWsStatus] = useState<'CONNECTING' | 'LOCKED'>('CONNECTING');
+    const [jitteredStrength, setJitteredStrength] = useState(signalStrength);
+
+    // Dynamic Signal Jitter Effect
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setJitteredStrength(prev => {
+                const target = signalStrength;
+                // Add micro-fluctuations for realism
+                const noise = (Math.random() - 0.5) * 0.015;
+                const newValue = target + noise;
+                return Math.max(0, Math.min(1, newValue));
+            });
+        }, 150); // 6.6 Hz update rate
+        return () => clearInterval(interval);
+    }, [signalStrength]);
+
+    // Simulated WebSocket Feed Connection
+    useEffect(() => {
+        const timer = setTimeout(() => setWsStatus('LOCKED'), 1500);
+        
+        const feedInterval = setInterval(() => {
+            if (Math.random() > 0.4) {
+                const activeRelays = Object.values(relayData).filter(r => r.status === 'ONLINE');
+                let type: 'TX' | 'RX' | 'SYS' = 'SYS';
+                let msg = '';
+
+                if (activeRelays.length > 0 && Math.random() > 0.3) {
+                    const relay = activeRelays[Math.floor(Math.random() * activeRelays.length)];
+                    type = Math.random() > 0.5 ? 'TX' : 'RX';
+                    const bytes = Math.floor(Math.random() * 8000 + 1000);
+                    msg = `${type === 'TX' ? 'UPLINK' : 'DOWNLINK'} [${relay.name.split(' ')[0].toUpperCase()}] :: ${bytes}B :: ${Math.floor(Math.random()*20+10)}ms`;
+                } else if (Math.random() > 0.5) {
+                    type = 'SYS';
+                    const hex = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+                    msg = `SYNC_HEARTBEAT_0x${hex} :: PARITY_OK`;
+                } else {
+                    type = 'SYS';
+                    msg = 'SCANNING_DEEP_FIELD_SPECTRA...';
+                }
+
+                setFeedLogs(prev => [{ id: Date.now() + Math.random(), text: msg, type }, ...prev].slice(0, 6));
+            }
+        }, 400);
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(feedInterval);
+        };
+    }, [relayData]);
 
     const handleCalibrateClick = async (relayId: string) => {
         if (setOrbMode) setOrbMode('CONCORDANCE');
@@ -366,36 +419,53 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                     />
                 </div>
                 
-                <div className="flex-1 w-full space-y-8">
+                <div className="flex-1 w-full space-y-6">
                     <div className="space-y-3">
                         <div className="flex justify-between text-[10px] font-mono uppercase tracking-[0.4em] text-slate-500 font-bold">
                             <span>Matrix_Phase_Integrity</span>
-                            <span className="text-pearl">{(signalStrength * 100).toFixed(2)}%</span>
+                            <span className="text-pearl">{(jitteredStrength * 100).toFixed(2)}%</span>
                         </div>
                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner">
                             <div 
-                                className="h-full bg-gradient-to-r from-violet-600 to-pearl transition-all duration-[2500ms] shadow-[0_0_20px_white]" 
-                                style={{ width: `${signalStrength * 100}%` }} 
+                                className="h-full bg-gradient-to-r from-violet-600 to-pearl transition-all duration-[200ms] shadow-[0_0_20px_white]" 
+                                style={{ width: `${jitteredStrength * 100}%` }} 
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="bg-white/[0.03] p-5 rounded-lg border border-white/[0.06] transition-all hover:bg-white/[0.05] hover:border-gold/30 group/card">
-                            <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-2 font-bold group-hover/card:text-gold transition-colors">Uplink Nodes</p>
-                            <p className="font-orbitron text-2xl text-pearl">{activeCount}<span className="text-[12px] opacity-30 ml-2">/ 4</span></p>
-                            <div className="mt-3 flex gap-1">
-                                {Array.from({length: 4}).map((_, i) => (
-                                    <div key={i} className={`h-1 flex-1 rounded-full ${i < activeCount ? 'bg-gold shadow-[0_0_5px_#e6c77f]' : 'bg-white/5'}`} />
-                                ))}
+                    {/* Live Data Feed Terminal */}
+                    <div className="bg-black/40 border border-white/5 rounded-lg p-4 font-mono text-[9px] relative overflow-hidden h-32">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-2">
+                            <span className="text-slate-500 uppercase tracking-widest font-bold">Live_Telemetry_Stream</span>
+                            <div className="flex items-center gap-2">
+                                <span className={`w-1.5 h-1.5 rounded-full ${wsStatus === 'LOCKED' ? 'bg-emerald-500 animate-pulse' : 'bg-gold'}`} />
+                                <span className={`font-bold ${wsStatus === 'LOCKED' ? 'text-emerald-500' : 'text-gold'}`}>{wsStatus}</span>
                             </div>
                         </div>
-                        <div className="bg-white/[0.03] p-5 rounded-lg border border-white/[0.06] transition-all hover:bg-white/[0.05] hover:border-cyan-400/30 group/card">
+                        <div className="relative space-y-1 h-full overflow-hidden mask-bottom-fade">
+                             {feedLogs.map(log => (
+                                 <div key={log.id} className="flex gap-3 animate-fade-in">
+                                     <span className={`font-bold ${log.type === 'TX' ? 'text-cyan-400' : log.type === 'RX' ? 'text-emerald-400' : 'text-gold'}`}>
+                                         {log.type === 'SYS' ? '>>' : log.type}
+                                     </span>
+                                     <span className="text-slate-400 opacity-90 truncate">{log.text}</span>
+                                 </div>
+                             ))}
+                             {/* Scanline effect */}
+                             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-white/[0.03] p-4 rounded-lg border border-white/[0.06] transition-all hover:bg-white/[0.05] hover:border-gold/30 group/card">
+                            <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-2 font-bold group-hover/card:text-gold transition-colors">Uplink Nodes</p>
+                            <p className="font-orbitron text-2xl text-pearl">{activeCount}<span className="text-[12px] opacity-30 ml-2">/ 4</span></p>
+                        </div>
+                        <div className="bg-white/[0.03] p-4 rounded-lg border border-white/[0.06] transition-all hover:bg-white/[0.05] hover:border-cyan-400/30 group/card">
                             <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-2 font-bold group-hover/card:text-cyan-400 transition-colors">Parity Lock</p>
                             <p className={`font-orbitron text-2xl ${liveTelemetry ? 'text-cyan-400 animate-pulse' : 'text-pearl/60'}`}>
                                 {liveTelemetry ? 'ACTIVE' : 'IDLE'}
                             </p>
-                            <p className="text-[8px] font-mono text-slate-600 uppercase tracking-tighter mt-3">Drift: {(Math.random() * 0.005).toFixed(4)}zHz</p>
                         </div>
                     </div>
                 </div>
@@ -452,6 +522,7 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
                 .custom-audit-scrollbar::-webkit-scrollbar { width: 5px; }
                 .custom-audit-scrollbar::-webkit-scrollbar-thumb { background: rgba(109, 40, 217, 0.2); border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); }
                 .custom-audit-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(109, 40, 217, 0.4); }
+                .mask-bottom-fade { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }
             `}</style>
         </div>
     );

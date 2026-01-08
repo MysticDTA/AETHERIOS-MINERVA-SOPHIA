@@ -30,6 +30,7 @@ import { NoeticGraphNexus } from './components/NoeticGraphNexus';
 import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal';
 import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
+import { AccessDeniedScreen } from './components/AccessDeniedScreen';
 import { Modal } from './components/Modal';
 import { SimulationControls } from './components/SimulationControls';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -44,6 +45,7 @@ import { knowledgeBase } from './services/knowledgeBase';
 import { CoCreatorNexus } from './components/CoCreatorNexus';
 import { NeuralQuantizer } from './components/NeuralQuantizer';
 import { OrbMode, OrbModeConfig, LogType } from './types';
+import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring state.' },
@@ -60,7 +62,9 @@ export const App: React.FC = () => {
   const [simulationParams, setSimulationParams] = useState({ decoherenceChance: 0.05, lesionChance: 0.02 });
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfig, setShowConfig] = useState(false);
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(true); // Auto-start diagnostic
+  const [lastAuditReport, setLastAuditReport] = useState<{report: string, sources: any[]} | null>(null);
+  
   const [sophiaEngine, setSophiaEngine] = useState<SophiaEngineCore | null>(null);
   const audioEngineRef = useRef<AudioEngine | null>(null);
   
@@ -119,7 +123,7 @@ export const App: React.FC = () => {
 
   // Audio Mode Sync
   useEffect(() => {
-      audioEngineRef.current?.setMode(systemState.governanceAxiom);
+      audioEngineRef.current?.setMode(orbMode);
       audioEngineRef.current?.updateDynamicAmbience(systemState);
   }, [systemState.governanceAxiom, systemState, orbMode]);
 
@@ -130,6 +134,18 @@ export const App: React.FC = () => {
   };
 
   const renderPage = () => {
+      const nodeConfig = SYSTEM_NODES.find(n => n.id === currentPage);
+      
+      if (nodeConfig && !checkNodeAccess(systemState.userResources.sovereignTier, nodeConfig.requiredTier)) {
+          return (
+              <AccessDeniedScreen 
+                  requiredTier={nodeConfig.requiredTier} 
+                  currentTier={systemState.userResources.sovereignTier}
+                  onNavigateToVault={() => setCurrentPage(15)} 
+              />
+          );
+      }
+
       switch (currentPage) {
           case 1: // SANCTUM
               return <Dashboard 
@@ -140,9 +156,10 @@ export const App: React.FC = () => {
                   setOrbMode={setOrbMode}
                   orbMode={orbMode}
                   onOptimize={() => {}}
+                  onUpgrade={() => setCurrentPage(15)}
                   audioEngine={audioEngineRef.current}
               />;
-          case 2: // LATTICE (CoCreatorNexus)
+          case 2: // LATTICE
               return <CoCreatorNexus />;
           case 3: // STARMAP
               return <Display3 
@@ -182,9 +199,9 @@ export const App: React.FC = () => {
           case 7: // COMS
               return <Display7 
                   systemState={systemState}
-                  transmission={cosmosCommsService['currentState']} // Direct access hack for simplicity in this view
+                  transmission={cosmosCommsService['currentState']} 
                   memories={knowledgeBase.getMemories()}
-                  onMemoryChange={() => { /* logic to force update if needed */ }}
+                  onMemoryChange={() => {}}
               />;
           case 8: // FLOW
               return <Display8 
@@ -206,7 +223,7 @@ export const App: React.FC = () => {
                   <div className="absolute top-4 left-4 font-orbitron text-pearl">Neural Quantizer Matrix</div>
               </div>;
           case 14: // SUMMARY
-              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={lastAuditReport} />;
           case 15: // VAULT
               return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 16: // ORBIT
@@ -216,7 +233,7 @@ export const App: React.FC = () => {
           case 18: // VEO
               return <VeoFluxSynthesizer systemState={systemState} />;
           case 19: // AUDIT (Page View)
-              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+              return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={lastAuditReport} />;
           case 20: // MODULES
               return <ModuleManager systemState={systemState} />;
           case 21: // BRIDGE
@@ -278,7 +295,7 @@ export const App: React.FC = () => {
                 audioEngine={audioEngineRef.current}
                 tokens={systemState.userResources.cradleTokens}
                 userTier={systemState.userResources.sovereignTier}
-                transmissionStatus={cosmosCommsService['currentState']?.status} // Hack for reactivity if needed
+                transmissionStatus={cosmosCommsService['currentState']?.status} 
                 isVoiceActive={voiceInterface.isSessionActive}
                 onToggleVoice={voiceInterface.isSessionActive ? voiceInterface.closeVoiceSession : voiceInterface.startVoiceSession}
             />
@@ -320,10 +337,12 @@ export const App: React.FC = () => {
                     onComplete={() => {
                         setShowDiagnostic(false);
                         addLogEntry(LogType.SYSTEM, 'Deep heuristic audit completed. Core stabilized.');
+                        setCurrentPage(19); // Navigate to Full Audit Report
                     }}
                     systemState={systemState}
                     sophiaEngine={sophiaEngine}
                     audioEngine={audioEngineRef.current}
+                    onReportGenerated={setLastAuditReport}
                 />
             )}
           </Layout>

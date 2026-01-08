@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { LogType, OrbMode } from '../types';
 import { Tooltip } from './Tooltip';
+import { audioAnalysisService } from '../services/audioAnalysisService';
 
 interface VoiceInterfaceProps {
   isSessionActive: boolean;
@@ -15,6 +16,65 @@ interface VoiceInterfaceProps {
   onSetOrbMode?: (mode: OrbMode) => void;
   clearHistory?: () => void;
 }
+
+const AudioSpectrumVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrame: number;
+
+        const render = () => {
+            const width = canvas.width;
+            const height = canvas.height;
+            const freqData = audioAnalysisService.getFrequencyData();
+            
+            ctx.clearRect(0, 0, width, height);
+
+            if (active && freqData.length > 0) {
+                const barWidth = width / 32; // Display fewer bars for aesthetic clarity
+                const step = Math.floor(freqData.length / 32);
+
+                for (let i = 0; i < 32; i++) {
+                    const value = freqData[i * step];
+                    const percent = value / 255;
+                    const barHeight = height * percent * 0.8;
+                    
+                    const x = i * barWidth;
+                    const y = (height - barHeight) / 2; // Centered vertically
+
+                    // Color gradient based on intensity
+                    const hue = 260 + (percent * 60); // Violet to Pink range
+                    ctx.fillStyle = `hsl(${hue}, 80%, ${50 + percent * 40}%)`;
+                    
+                    // Draw symmetric bars
+                    ctx.fillRect(x + 1, y, barWidth - 2, barHeight);
+                    
+                    // Reflection
+                    ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.2)`;
+                    ctx.fillRect(x + 1, y + barHeight + 2, barWidth - 2, barHeight * 0.5);
+                }
+            } else {
+                // Idle State - thin line
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fillRect(0, height / 2, width, 1);
+            }
+
+            animationFrame = requestAnimationFrame(render);
+        };
+
+        render();
+        return () => cancelAnimationFrame(animationFrame);
+    }, [active]);
+
+    return (
+        <canvas ref={canvasRef} width={300} height={80} className="w-full h-20 rounded opacity-80" />
+    );
+};
 
 const ResonanceMemoryPulsar: React.FC<{ active: boolean; audioLevel?: number }> = ({ active, audioLevel = 0 }) => (
     <div className="relative w-24 h-24 flex items-center justify-center">
@@ -205,7 +265,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
     };
 
     return (
-        <div className="w-full h-full bg-[#050505] border border-white/10 p-6 rounded-xl relative overflow-hidden flex flex-col">
+        <div className="w-full h-full bg-dark-surface border border-white/10 p-6 rounded-xl relative overflow-hidden flex flex-col">
             <div className="flex justify-between items-start mb-6 z-10 border-b border-white/10 pb-4">
                 <div className="flex flex-col gap-2">
                     <h3 className="font-minerva text-3xl text-pearl italic tracking-tighter">Vocal Bridge Protocol</h3>
@@ -249,8 +309,11 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
             </div>
 
             {/* Resonance Centerpiece */}
-            <div className="flex justify-center items-center py-6 relative z-10 min-h-[160px]">
-                <ResonanceMemoryPulsar active={isSessionActive} />
+            <div className="flex flex-col justify-center items-center py-6 relative z-10 min-h-[160px] gap-6">
+                <div className="flex items-center justify-center gap-12">
+                    <ResonanceMemoryPulsar active={isSessionActive} />
+                    {isSessionActive && <AudioSpectrumVisualizer active={isSessionActive} />}
+                </div>
                 
                 {lastSystemCommand && (
                     <div className="absolute top-0 right-0 p-3 bg-black/60 border border-white/10 rounded backdrop-blur animate-fade-in">

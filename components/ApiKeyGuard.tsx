@@ -41,7 +41,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
 
   if (!hasKey) {
     return (
-      <div id="api-key-guard-overlay" className="fixed inset-0 z-[3000] bg-[#050505] flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+      <div id="api-key-guard-overlay" className="fixed inset-0 z-[3000] bg-dark-bg flex flex-col items-center justify-center p-8 text-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,199,127,0.1)_0%,transparent_70%)] pointer-events-none" />
         
         <div className="max-w-xl space-y-12 animate-fade-in relative z-10">
@@ -51,7 +51,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
             <p className="font-mono text-[10px] text-gold uppercase tracking-[0.4em] mt-4 font-bold opacity-60">Authentication Required for Pro-Tier Intelligence</p>
           </div>
 
-          <div className="bg-black/60 border border-white/10 p-8 rounded-sm shadow-2xl space-y-6">
+          <div className="bg-dark-surface border border-white/10 p-8 rounded-sm shadow-2xl space-y-6">
             <p className="font-minerva italic text-lg text-warm-grey leading-relaxed">
               "To access the Sovereign Matrix and high-reasoning modules, you must select an API key from your AI Studio account."
             </p>

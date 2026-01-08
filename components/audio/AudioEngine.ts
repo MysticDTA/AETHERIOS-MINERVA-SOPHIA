@@ -12,7 +12,7 @@ type SoundName = keyof typeof soundMap;
 export class AudioEngine {
   private audioContext: AudioContext;
   private buffers: Map<SoundName, AudioBuffer> = new Map();
-  private currentLoop: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private currentLoop: { source: AudioBufferSourceNode; gain: GainNode; name: SoundName } | null = null;
   private isLoaded = false;
   private isSuspended = true;
   private masterGainNode: GainNode;
@@ -125,7 +125,7 @@ export class AudioEngine {
       return this.masterGainNode?.gain.value || 0;
   }
 
-  private playSound(name: SoundName, loop = false, volume = 1.0, playbackRate = 1.0): { source: AudioBufferSourceNode; gain: GainNode } | null {
+  private playSound(name: SoundName, loop = false, volume = 1.0, playbackRate = 1.0): { source: AudioBufferSourceNode; gain: GainNode; name: SoundName } | null {
     if (!this.isLoaded) return null;
 
     const buffer = this.buffers.get(name);
@@ -144,7 +144,7 @@ export class AudioEngine {
     source.connect(gainNode);
     source.start();
 
-    return { source, gain: gainNode };
+    return { source, gain: gainNode, name };
   }
 
   public playEffect(name: SoundName): void {
@@ -190,31 +190,50 @@ export class AudioEngine {
   }
 
   /**
-   * Sets the core background resonance based on the current Governance Axiom.
+   * Sets the core background resonance based on OrbMode or Governance Axiom.
    */
   public setMode(mode: string): void {
     if (!this.isLoaded) return;
     
     let soundName: SoundName | null = null;
+    
+    // Map OrbModes and Axioms to specific loops
     switch (mode) {
+      case 'STANDBY':
       case 'CRADLE OF PRESENCE':
-      case 'SOVEREIGN EMBODIMENT':
-        soundName = 'synthesis';
+        soundName = 'synthesis'; // Calm baseline
         break;
+      case 'ANALYSIS':
       case 'RECALIBRATING HARMONICS':
-        soundName = 'injection';
+        soundName = 'analysis_loop'; // Active thought
         break;
+      case 'SYNTHESIS':
+      case 'SOVEREIGN EMBODIMENT':
+      case 'CONCORDANCE':
+        soundName = 'synthesis'; // Harmonic flow
+        break;
+      case 'REPAIR':
       case 'REGENERATIVE CYCLE':
-        soundName = 'renewal';
+        soundName = 'repair_loop'; // Healing tone
         break;
+      case 'GROUNDING':
+        soundName = 'grounding_loop'; // Deep rumble
+        break;
+      case 'OFFLINE':
       case 'SYSTEM COMPOSURE FAILURE':
-        soundName = 'eventHorizon';
+        soundName = 'offline_loop'; // Static
         break;
       default:
-        soundName = null;
+        soundName = 'synthesis';
         break;
     }
     
+    // If the requested sound is already playing, do nothing to prevent gaps
+    if (this.currentLoop && this.currentLoop.name === soundName) {
+        return;
+    }
+
+    // Fade out current loop
     if (this.currentLoop) {
       const { gain, source } = this.currentLoop;
       gain.gain.cancelScheduledValues(this.audioContext.currentTime);
@@ -224,6 +243,7 @@ export class AudioEngine {
       this.currentLoop = null;
     }
 
+    // Start new loop
     if (soundName) {
       const newLoop = this.playSound(soundName, true, 0.35);
       if (newLoop) {
@@ -242,7 +262,7 @@ export class AudioEngine {
       const rampTime = 1.5;
       const currentTime = this.audioContext.currentTime;
 
-      // Mechanical Hum based on system health
+      // Mechanical Hum based on system health (low health = louder hum)
       if (!this.dynamicHum) {
           this.dynamicHum = this.playSound('dynamic_hum_base', true, 0.0001);
       }
@@ -252,7 +272,7 @@ export class AudioEngine {
           this.dynamicHum.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
-      // Spectral Crackle based on decoherence
+      // Spectral Crackle based on decoherence (high decoherence = louder static)
       if (!this.dynamicStatic) {
           this.dynamicStatic = this.playSound('dynamic_static_crackle', true, 0.0001);
       }
