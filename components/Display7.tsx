@@ -3,6 +3,7 @@ import React from 'react';
 import { SystemState, TransmissionState, Memory } from '../types';
 import { CosmicDecodingReceiver } from './CosmicDecodingReceiver';
 import { MemoryWeaver } from './MemoryWeaver';
+import { Tooltip } from './Tooltip';
 
 interface Display7Props {
   systemState: SystemState;
@@ -31,8 +32,12 @@ export const Display7: React.FC<Display7Props> = ({
                 </div>
             </div>
             <div className="flex gap-6 text-[9px] font-mono text-slate-400 uppercase tracking-widest">
-                <span>PARITY: <span className="text-pearl font-bold">99.99%</span></span>
-                <span>RSSI: <span className="text-cyan-400 font-bold">-42dBm</span></span>
+                <Tooltip text="Signal Parity indicates the bit-level integrity of the received transmission.">
+                    <span className="cursor-help">PARITY: <span className="text-pearl font-bold">99.99%</span></span>
+                </Tooltip>
+                <Tooltip text="Received Signal Strength Indicator (RSSI) measures the power of the incoming deep space signal.">
+                    <span className="cursor-help">RSSI: <span className="text-cyan-400 font-bold">-42dBm</span></span>
+                </Tooltip>
             </div>
         </div>
         <div className="flex-1 min-h-0 relative">

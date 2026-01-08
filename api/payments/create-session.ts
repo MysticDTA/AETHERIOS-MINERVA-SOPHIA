@@ -1,3 +1,4 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
@@ -40,10 +41,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success_url: `${baseUrl}?status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}?status=cancelled`,
       customer_email: req.body.email, // Optional: if passed from frontend
-      billing_address_collection: 'auto',
+      
+      // Institutional Refinements for Visa/Mastercard Portal Compliance
+      billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
+      phone_number_collection: { enabled: true },
+      
       allow_promotion_codes: true,
       metadata: {
-        operator_id: req.body.operatorId || 'anonymous_node'
+        operator_id: req.body.operatorId || 'anonymous_node',
+        portal_type: 'institutional_gold_v1.3.1'
       }
     });
 

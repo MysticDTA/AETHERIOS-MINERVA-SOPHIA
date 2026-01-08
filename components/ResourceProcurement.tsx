@@ -42,6 +42,37 @@ const TIER_CARDS = [
     }
 ];
 
+const PaymentRailStatus: React.FC = () => {
+    return (
+        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[200px]">
+            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Global_Payment_Rails</span>
+                <span className="text-[8px] font-mono text-emerald-400 font-bold">ENCRYPTED_TLS_1.3</span>
+            </div>
+            <div className="flex gap-2">
+                <div className="flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border border-white/5 group hover:border-blue-500/30 transition-all cursor-help">
+                    <div className="flex items-center gap-2">
+                        <img src="https://stripe.com/img/v3/payments/overview/logos/visa.svg" className="h-3 opacity-90 filter brightness-125" alt="Visa" />
+                        <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-blue-200">VISA_NET</span>
+                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6] animate-pulse" />
+                </div>
+                <div className="flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border border-white/5 group hover:border-orange-500/30 transition-all cursor-help">
+                    <div className="flex items-center gap-2">
+                        <img src="https://stripe.com/img/v3/payments/overview/logos/mastercard.svg" className="h-3 opacity-90 filter brightness-125" alt="Mastercard" />
+                        <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-orange-200">MC_GRID</span>
+                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316] animate-pulse" />
+                </div>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+                <span className="text-[7px] font-mono text-slate-600 uppercase">Gateway_Latency</span>
+                <span className="text-[7px] font-mono text-gold">12ms [OPTIMAL]</span>
+            </div>
+        </div>
+    );
+};
+
 export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [procuringId, setProcuringId] = useState<string | null>(null);
     const [handshakeStep, setHandshakeStep] = useState(0);
@@ -95,7 +126,7 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
             const result = await ApiService.createCheckoutSession(priceId, sessionToken);
             if (result?.url) {
                 setHandshakeStep(3);
-                addLogEntry(LogType.SYSTEM, `ACQUISITION_SUCCESS: Capital Liquidation confirmed. Redirecting...`);
+                addLogEntry(LogType.SYSTEM, `ACQUISITION_SUCCESS: Capital Liquidation confirmed. Redirecting to Secure Portal...`);
                 setTimeout(() => { window.location.href = result.url; }, 800);
             } else {
                 throw new Error("Conduit Error");
@@ -142,10 +173,7 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-3 w-full lg:w-auto">
-                        <div className="flex gap-4">
-                            <img src="https://stripe.com/img/v3/payments/overview/logos/visa.svg" className="h-5 opacity-80 hover:opacity-100 transition-all filter brightness-150" alt="Visa" />
-                            <img src="https://stripe.com/img/v3/payments/overview/logos/mastercard.svg" className="h-5 opacity-80 hover:opacity-100 transition-all filter brightness-150" alt="Mastercard" />
-                        </div>
+                        <PaymentRailStatus />
                         <span className="text-[9px] font-mono text-pearl bg-gold/10 px-3 py-1 border border-gold/40 rounded-sm uppercase tracking-widest font-bold whitespace-nowrap">Gold-Tier Institutional Gateway</span>
                     </div>
                 </div>
