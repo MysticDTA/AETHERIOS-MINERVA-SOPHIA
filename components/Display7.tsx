@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SystemState, TransmissionState, Memory } from '../types';
 import { CosmicDecodingReceiver } from './CosmicDecodingReceiver';
 import { MemoryWeaver } from './MemoryWeaver';
 import { Tooltip } from './Tooltip';
+import { cosmosCommsService } from '../services/cosmosCommsService';
 
 interface Display7Props {
   systemState: SystemState;
-  transmission: TransmissionState;
+  transmission: TransmissionState; // Used for initial state and status checks
   memories: Memory[];
   onMemoryChange: () => void;
 }
@@ -18,8 +19,23 @@ export const Display7: React.FC<Display7Props> = ({
     memories,
     onMemoryChange,
 }) => {
+  // Optimization: Subscribe locally to high-frequency updates
+  const [liveTransmission, setLiveTransmission] = useState<TransmissionState>(transmission);
+
+  useEffect(() => {
+      // Sync local state with prop if prop changes (e.g. status update from parent)
+      setLiveTransmission(prev => ({ ...prev, status: transmission.status }));
+  }, [transmission.status]);
+
+  useEffect(() => {
+      const unsub = cosmosCommsService.subscribe((newState) => {
+          setLiveTransmission(newState);
+      });
+      return unsub;
+  }, []);
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full min-h-0 animate-fade-in pb-2">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full min-h-0 animate-fade-in">
       {/* --- DECODING INSTRUMENT (LEFT/CENTER) --- */}
       <div className="xl:col-span-8 2xl:col-span-8 h-full min-h-0 flex flex-col bg-black/20 rounded-xl border border-white/5 shadow-2xl relative overflow-hidden">
         <div className="flex justify-between items-center bg-black/40 border-b border-white/10 px-6 py-3 shrink-0 backdrop-blur-md z-10">
@@ -27,8 +43,8 @@ export const Display7: React.FC<Display7Props> = ({
                 <span className="text-[11px] font-mono text-gold uppercase tracking-[0.25em] font-black">Signal Reception Array</span>
                 <div className="h-4 w-px bg-white/10" />
                 <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${transmission.status === 'SIGNAL LOST' ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`} />
-                    <span className="text-[10px] font-mono text-slate-500 font-bold tracking-widest">{transmission.status}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full ${liveTransmission.status === 'SIGNAL LOST' ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`} />
+                    <span className="text-[10px] font-mono text-slate-500 font-bold tracking-widest">{liveTransmission.status}</span>
                 </div>
             </div>
             <div className="flex gap-6 text-[9px] font-mono text-slate-400 uppercase tracking-widest">
@@ -41,7 +57,7 @@ export const Display7: React.FC<Display7Props> = ({
             </div>
         </div>
         <div className="flex-1 min-h-0 relative">
-            <CosmicDecodingReceiver transmission={transmission} systemState={systemState} />
+            <CosmicDecodingReceiver transmission={liveTransmission} systemState={systemState} />
         </div>
       </div>
 

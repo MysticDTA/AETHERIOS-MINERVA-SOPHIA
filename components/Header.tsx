@@ -37,7 +37,7 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
     );
 };
 
-export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
+export const Header: React.FC<HeaderProps> = React.memo(({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
     const activeTier = TIER_REGISTRY[userTier] || TIER_REGISTRY['ACOLYTE'];
 
     const handlePageChange = (pageId: number, requiredTier: UserTier) => {
@@ -118,4 +118,4 @@ export const Header: React.FC<HeaderProps> = ({ governanceAxiom, lesions, curren
             </div>
         </header>
     );
-};
+});

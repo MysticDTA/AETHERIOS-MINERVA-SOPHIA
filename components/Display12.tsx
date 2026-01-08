@@ -114,9 +114,9 @@ interface Display12Props {
 
 export const Display12: React.FC<Display12Props> = ({ systemState }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN: METRICS --- */}
-      <div className="flex flex-col gap-6 h-full min-h-0">
+      <div className="flex flex-col gap-6 h-full min-h-0 overflow-y-auto pr-2 scrollbar-thin">
          <MetricDisplay 
             label="Bio-Field Integrity"
             value={systemState.biometricSync.coherence}

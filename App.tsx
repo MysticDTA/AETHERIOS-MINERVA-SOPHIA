@@ -65,7 +65,6 @@ const orbModes: OrbModeConfig[] = [
 ];
 
 const App: React.FC = () => {
-    // State - Default to Page 19 (Audit) for "Run Display Audit" request
     const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
     const [currentPage, setCurrentPage] = useState(19);
     const [showConfig, setShowConfig] = useState(false);
@@ -74,37 +73,31 @@ const App: React.FC = () => {
     const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
     const [showFailureAlert, setShowFailureAlert] = useState(false);
 
-    // Engines
     const audioEngineRef = useRef<AudioEngine | null>(null);
     const sophiaEngineRef = useRef<SophiaEngineCore | null>(null);
 
-    // Initialize Audio Engine once
     useEffect(() => {
         audioEngineRef.current = new AudioEngine();
         audioEngineRef.current.loadSounds();
         sophiaEngineRef.current = new SophiaEngineCore(AETHERIOS_MANIFEST);
     }, []);
 
-    // Simulation Hook
     const { 
         systemState, 
         setSystemState, 
         addLogEntry, 
         setGrounded, 
     } = useSystemSimulation(
-        { decoherenceChance: 0.05, lesionChance: 0.01 }, // Default params
+        { decoherenceChance: 0.05, lesionChance: 0.01 }, 
         orbMode
     );
 
-    // Global Cognitive Core for Failure Prediction & Strategy
     const { prediction, runPrediction, isPredicting, isLoading } = useSophiaCore(sophiaEngineRef.current, systemState);
 
-    // Monitor System Health for Critical Failures
     useEffect(() => {
         const health = systemState.quantumHealing.health;
         const decoherence = systemState.quantumHealing.decoherence;
         
-        // Trigger prediction if health is low or decoherence is high
         if ((health < 0.45 || decoherence > 0.55) && !showFailureAlert && !prediction && !isPredicting) {
             runPrediction();
             setShowFailureAlert(true);
@@ -112,20 +105,17 @@ const App: React.FC = () => {
             if (audioEngineRef.current) audioEngineRef.current.playEffect('renewal');
         } 
         
-        // Auto-resolve alert if system stabilizes significantly
         if (health > 0.8 && decoherence < 0.2 && showFailureAlert) {
             setShowFailureAlert(false);
         }
     }, [systemState.quantumHealing.health, systemState.quantumHealing.decoherence, showFailureAlert, runPrediction, isPredicting, prediction, addLogEntry]);
 
-    // Voice Hook
     const voiceInterface = useVoiceInterface({
         addLogEntry,
         systemInstruction: AETHERIOS_MANIFEST,
         onSetOrbMode: setOrbMode
     });
 
-    // Effect to update audio engine mode
     useEffect(() => {
         if (audioEngineRef.current) {
             audioEngineRef.current.setMode(systemState.governanceAxiom);
@@ -133,7 +123,6 @@ const App: React.FC = () => {
         }
     }, [systemState, orbMode]);
 
-    // Handlers
     const handleManualReset = useCallback(() => {
         window.location.reload();
     }, []);
@@ -160,7 +149,6 @@ const App: React.FC = () => {
         if (audioEngineRef.current) audioEngineRef.current.playAscensionChime();
     }, [addLogEntry, setSystemState]);
 
-    // Interactive Subsystems
     const interactive = useInteractiveSubsystems({
         addLogEntry,
         setSystemState,
@@ -168,28 +156,35 @@ const App: React.FC = () => {
         audioEngine: audioEngineRef.current
     });
 
-    // Resume Audio Context on interaction
     const handleInteraction = () => {
         audioEngineRef.current?.resumeContext();
     };
 
-    // Cosmos Comms Service
     const [transmission, setTransmission] = useState(cosmosCommsService.initialState);
+    
     useEffect(() => {
         if (currentPage === 7) cosmosCommsService.start();
         else cosmosCommsService.stop();
         
-        const unsub = cosmosCommsService.subscribe(setTransmission);
+        // PERFORMANCE OPTIMIZATION:
+        // Only update App-level state when the status changes.
+        // The Display7 component handles the high-frequency text stream updates locally.
+        const unsub = cosmosCommsService.subscribe((newState) => {
+            setTransmission(prev => {
+                if (prev.status !== newState.status) {
+                    return { ...prev, status: newState.status };
+                }
+                return prev;
+            });
+        });
         return () => {
             unsub();
             cosmosCommsService.stop();
         }
     }, [currentPage]);
 
-    // Determine visual severity for the alert
     const isCriticalFailure = prediction?.severity === 'CRITICAL' || (prediction && prediction.probability > 0.8);
 
-    // Render Page Content
     const renderPage = () => {
         switch(currentPage) {
             case 1: return <Dashboard 

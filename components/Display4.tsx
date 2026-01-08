@@ -29,7 +29,7 @@ export const Display4: React.FC<Display4Props> = ({
     onTriggerAudit
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-h-0 overflow-hidden pb-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0 overflow-hidden">
       {/* --- CHAT CONSOLE (LEFT) --- */}
       <div className="h-full min-h-0 flex flex-col bg-black/20 rounded-2xl border border-white/5 overflow-hidden shadow-2xl backdrop-blur-sm relative">
         <SophiaConsole 

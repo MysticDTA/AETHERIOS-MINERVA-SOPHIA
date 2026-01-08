@@ -81,7 +81,7 @@ export const Display5: React.FC<Display5Props> = ({
   }, [systemState, sophiaEngine, setSystemState]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full min-h-0">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN: CORE COHERENCE MONITORING (6/12) --- */}
       <div className="lg:col-span-6 h-full min-h-0 flex flex-col gap-6">
         <div className="flex-grow min-h-0">

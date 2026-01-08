@@ -161,7 +161,7 @@ class CosmosCommsService {
             } else {
                 this.endTransmission();
             }
-        }, 30);
+        }, 3);
     }
 
     private endTransmission() {

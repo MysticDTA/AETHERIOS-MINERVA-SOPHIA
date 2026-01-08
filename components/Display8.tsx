@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SystemState } from '../types';
 import { AethericTransferMonitor } from './AethericTransferMonitor';
@@ -15,9 +16,9 @@ export const Display8: React.FC<Display8Props> = ({
     isPurgingAether,
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN --- */}
-      <div className="lg:col-span-1 flex flex-col gap-6">
+      <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
         <AethericTransferMonitor 
             data={systemState.aethericTransfer}
             onPurge={onPurgeAethericFlow}
@@ -26,7 +27,7 @@ export const Display8: React.FC<Display8Props> = ({
       </div>
 
       {/* --- RIGHT COLUMN --- */}
-      <div className="lg:col-span-1 flex flex-col gap-6">
+      <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
          <AbundanceCore data={systemState.abundanceCore} />
       </div>
     </div>

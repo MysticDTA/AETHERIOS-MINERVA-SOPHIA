@@ -19,10 +19,9 @@ const FrequencyWaterfall: React.FC<{ isActive: boolean }> = ({ isActive }) => {
         }
 
         const interval = setInterval(() => {
-            const width = 600; // Increased width simulation
+            const width = 600; 
             let points = "";
             for (let x = 0; x <= width; x += 10) {
-                // Simulating noise vs signal spikes
                 const y = (Math.random() > 0.95) ? Math.random() * 20 : Math.random() * 5;
                 points += `${x},${y} `;
             }
@@ -73,7 +72,6 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
             }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            // For real data, we use a professional, clear voice
             const prompt = `Speak this scientific telemetry data clearly and authoritatively: ${message}`;
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash-preview-tts",
@@ -132,7 +130,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 relative z-10">
-                <div className="lg:col-span-3 flex flex-col gap-4">
+                <div className="lg:col-span-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin max-h-[calc(100vh-300px)]">
                     <div className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all group/metric">
                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest group-hover/metric:text-pearl transition-colors">Scientific Metric</span>
@@ -164,7 +162,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
 
                 <div className="lg:col-span-9 flex flex-col gap-4 min-h-0 h-full">
-                    <div ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin">
+                    <div ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[200px]">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">RX</div>
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3 shrink-0">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>

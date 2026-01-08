@@ -17,7 +17,7 @@ export const Display10: React.FC<Display10Props> = ({ systemState }) => {
   const throughput = 500 + (respiratoryEfficiency * 500); // TB/s based on efficiency
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN: Respiratory Visualizer --- */}
       <div className="h-full min-h-0 flex flex-col">
         <HarmonicRespiratoryUplink 
@@ -28,8 +28,8 @@ export const Display10: React.FC<Display10Props> = ({ systemState }) => {
       </div>
 
       {/* --- RIGHT COLUMN: Metrics & Context --- */}
-      <div className="flex flex-col gap-6">
-         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
+      <div className="flex flex-col gap-6 h-full min-h-0 overflow-y-auto pr-2 scrollbar-thin">
+         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm shrink-0">
             <h3 className="font-orbitron text-md text-warm-grey mb-4">Breathing Performance</h3>
             <div className="space-y-4">
                 <MetricDisplay 
