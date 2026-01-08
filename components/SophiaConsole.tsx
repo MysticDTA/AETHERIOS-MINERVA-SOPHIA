@@ -51,6 +51,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const currentSophiaMessageId = useRef<number | null>(null);
+  const shouldAutoScroll = useRef(true);
 
   useEffect(() => {
     setMessages([{
@@ -65,12 +66,30 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     }
   }, []);
 
+  // Monitor scroll position to determine if we should auto-scroll
+  const handleScroll = () => {
+      if (!scrollRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      shouldAutoScroll.current = isNearBottom;
+  };
+
   useEffect(() => {
     const container = scrollRef.current;
     if (container) {
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (container && shouldAutoScroll.current) {
+        // Use 'auto' (instant) scrolling during active reply generation to prevent jitter/stutter
+        // Use 'smooth' only when a new message block is added
         container.scrollTo({ 
             top: container.scrollHeight, 
-            behavior: 'smooth' 
+            behavior: isReplying ? 'auto' : 'smooth' 
         });
     }
   }, [messages, isReplying]);
@@ -88,13 +107,18 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     const userMsg: Message = { sender: 'user', text: input.trim(), timestamp: Date.now(), isComplete: true, image: attachedImage || undefined };
     setMessages(prev => [...prev, userMsg]);
     setIsReplying(true);
+    shouldAutoScroll.current = true; // Force scroll on user send
     setOrbMode('ANALYSIS');
     const prompt = input;
     const img = attachedImage;
     setInput('');
     setAttachedImage(null);
     
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    // Reset textarea height
+    if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = '50px'; // Reset to min height
+    }
 
     currentSophiaMessageId.current = Date.now();
     setMessages(prev => [...prev, { sender: 'sophia', text: '', timestamp: currentSophiaMessageId.current!, isComplete: false }]);
@@ -150,7 +174,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       {/* Messages Area */}
       <div 
         ref={scrollRef} 
-        className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10"
+        className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10 scroll-smooth"
       >
         {messages.map((msg, idx) => {
             const isUser = msg.sender === 'user';
@@ -207,7 +231,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
 
       {/* Command Cradle Input */}
       <div className="p-6 bg-gradient-to-t from-[#020202] via-[#050505] to-transparent z-20">
-        <div className="relative bg-black/80 border border-white/10 rounded-xl p-2 flex items-end gap-3 shadow-2xl backdrop-blur-xl transition-all focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 focus-within:bg-black group/input">
+        <div className="relative bg-black/90 border border-white/10 rounded-xl p-2 flex items-end gap-3 shadow-2xl backdrop-blur-xl transition-all focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 focus-within:bg-black group/input">
             <button 
                 onClick={() => fileInputRef.current?.click()} 
                 className={`p-3 rounded-lg transition-all duration-300 border flex-shrink-0 group ${attachedImage ? 'bg-gold/10 border-gold/40 text-gold' : 'bg-transparent border-transparent hover:bg-white/5 text-slate-500 hover:text-pearl'}`}
@@ -232,7 +256,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Enter Causal Decree..."
-                className="w-full bg-transparent border-none focus:ring-0 text-sm text-pearl font-mono placeholder-slate-600 resize-none py-3 min-h-[50px] scrollbar-thin outline-none leading-relaxed transition-all"
+                className="w-full bg-transparent border-none focus:ring-0 text-sm text-pearl font-mono placeholder-slate-600 resize-none py-3 min-h-[50px] max-h-[200px] overflow-y-auto scrollbar-thin outline-none leading-relaxed transition-all"
                 rows={1}
             />
 

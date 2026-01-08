@@ -1,8 +1,10 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { MotherboardOverlay } from './MotherboardOverlay';
+import { SentientLatticeOverlay } from './SentientLatticeOverlay';
 import { BreathBar } from './BreathBar';
 import { Tooltip } from './Tooltip';
+import { OrbMode } from '../types';
+import { RealTimeIntelTicker } from './RealTimeIntelTicker';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,35 +12,22 @@ interface LayoutProps {
   isGrounded: boolean;
   resonanceFactor?: number;
   drift?: number;
+  orbMode?: OrbMode;
+  coherence?: number;
 }
 
 // Inline Noise SVG Data URI for offline reliability
 const NOISE_DATA_URI = "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E";
 
-const SpectralTicker: React.FC = () => {
-    const [telemetry, setTelemetry] = useState<string[]>([]);
-    
-    useEffect(() => {
-        const codes = ["1.617GHz", "RHO_SYNC", "PHI_STABLE", "NULL_PTR_VOID", "CAUSAL_LOCK", "PARITY_OK", "NODE_0x88", "SOPHIA_PRIME"];
-        const interval = setInterval(() => {
-            setTelemetry(prev => {
-                const next = [...prev, codes[Math.floor(Math.random() * codes.length)]];
-                if (next.length > 20) return next.slice(1);
-                return next;
-            });
-        }, 800);
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <div className="flex gap-12 font-mono text-[7px] text-pearl/20 uppercase tracking-[0.8em] whitespace-nowrap animate-ticker">
-            {telemetry.map((t, i) => <span key={i}>{t}</span>)}
-            {telemetry.map((t, i) => <span key={`dup-${i}`}>{t}</span>)}
-        </div>
-    );
-};
-
-export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounded, resonanceFactor = 1.0, drift = 0 }) => {
+export const Layout: React.FC<LayoutProps> = ({ 
+    children, 
+    breathCycle, 
+    isGrounded, 
+    resonanceFactor = 1.0, 
+    drift = 0,
+    orbMode = 'STANDBY',
+    coherence = 0.5
+}) => {
   const isHighResonance = resonanceFactor > 0.95;
   const isDecoherent = resonanceFactor < 0.6;
   
@@ -48,23 +37,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
   return (
     <div className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}>
       
+      {/* Background Noise Layer */}
       <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url("${NOISE_DATA_URI}")`, opacity: grainOpacity }}></div>
 
+      {/* Atmospheric Glow Layer */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 transition-all duration-[3000ms]"
         style={{
-          background: `radial-gradient(circle at 50% 40%, rgba(109, 40, 217, ${0.1 * resonanceFactor}), transparent 80%),
-                       radial-gradient(circle at 80% 20%, rgba(255, 215, 0, ${0.05 * resonanceFactor}), transparent 60%)`,
+          background: `radial-gradient(circle at 50% 40%, rgba(109, 40, 217, ${0.05 * resonanceFactor}), transparent 80%),
+                       radial-gradient(circle at 80% 20%, rgba(255, 215, 0, ${0.03 * resonanceFactor}), transparent 60%)`,
           filter: `blur(${blurAmount}px)`
         }}
       />
 
+      {/* Sophisticated Intelligence Overlay */}
+      <SentientLatticeOverlay orbMode={orbMode} rho={resonanceFactor} coherence={coherence} />
+
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
       <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-1 md:m-2 overflow-hidden rounded-lg">
-          {/* Top Ticker Array */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-4 flex items-center overflow-hidden border-x border-b border-white/5 bg-black/40 backdrop-blur-sm rounded-b-sm">
-              <SpectralTicker />
-          </div>
+          {/* Top Intelligent Ticker */}
+          <RealTimeIntelTicker orbMode={orbMode} rho={resonanceFactor} />
 
           {/* Micro Labels positioned for 0 obstruction */}
           <div className="absolute top-2 left-4 md:top-3 md:left-5 flex flex-col gap-0.5 opacity-30 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
@@ -89,8 +81,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[1px] h-32 md:h-64 bg-gradient-to-b from-transparent via-white/5 to-transparent" />
       </div>
       
-      <MotherboardOverlay />
-      
       {/* Optimized Main Content Area with maximized screen real-estate */}
       <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-4 md:py-3 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
         {children}
@@ -101,11 +91,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, breathCycle, isGrounde
       </footer>
 
       <style>{`
-        @keyframes ticker {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
-        }
-        .animate-ticker { animation: ticker 40s linear infinite; }
         .resonance-peak { filter: contrast(1.05) brightness(1.05); }
       `}</style>
     </div>

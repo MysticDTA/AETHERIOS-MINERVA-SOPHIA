@@ -11,6 +11,7 @@ import { SystemIntegrityCore } from './SystemIntegrityCore';
 import { PerformanceMetricsChart } from './PerformanceMetricsChart';
 import { NodeStabilityMatrix } from './NodeStabilityMatrix';
 import { Tooltip } from './Tooltip';
+import { AudioEngine } from './audio/AudioEngine';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -21,6 +22,7 @@ interface DashboardProps {
   orbMode: OrbMode;
   onOptimize: () => void;
   onUpgrade?: () => void;
+  audioEngine?: AudioEngine | null;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
@@ -29,7 +31,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     sophiaEngine,
     setOrbMode,
     orbMode,
-    onUpgrade
+    onOptimize,
+    onUpgrade,
+    audioEngine
 }) => {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-full min-h-0 overflow-hidden pb-4 px-2">
@@ -126,6 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 orbMode={orbMode} 
                 sophiaEngine={sophiaEngine} 
                 setOrbMode={setOrbMode} 
+                audioEngine={audioEngine}
              />
         </div>
         <div className="flex-grow min-h-0 bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">

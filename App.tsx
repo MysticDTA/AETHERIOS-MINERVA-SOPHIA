@@ -200,6 +200,7 @@ const App: React.FC = () => {
                 orbMode={orbMode}
                 onOptimize={() => setCurrentPage(14)}
                 onUpgrade={() => setCurrentPage(24)}
+                audioEngine={audioEngineRef.current}
             />;
             case 2: return <Display6 
                 systemState={systemState}
@@ -287,6 +288,7 @@ const App: React.FC = () => {
                 orbMode={orbMode}
                 onOptimize={() => setCurrentPage(14)}
                 onUpgrade={() => setCurrentPage(24)}
+                audioEngine={audioEngineRef.current}
             />;
         }
     };
@@ -302,6 +304,8 @@ const App: React.FC = () => {
                 isGrounded={systemState.isGrounded}
                 resonanceFactor={systemState.resonanceFactorRho}
                 drift={systemState.temporalCoherenceDrift}
+                orbMode={orbMode}
+                coherence={systemState.biometricSync.coherence}
             >
                 <div onClick={handleInteraction} className="h-full flex flex-col">
                     <Header 
