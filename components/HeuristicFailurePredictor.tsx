@@ -6,9 +6,10 @@ import { Tooltip } from './Tooltip';
 interface HeuristicFailurePredictorProps {
     prediction: FailurePrediction | null;
     isLoading: boolean;
+    onFix?: () => void;
 }
 
-export const HeuristicFailurePredictor: React.FC<HeuristicFailurePredictorProps> = ({ prediction, isLoading }) => {
+export const HeuristicFailurePredictor: React.FC<HeuristicFailurePredictorProps> = ({ prediction, isLoading, onFix }) => {
     if (!prediction) return (
         <div className="bg-black/20 border border-white/5 p-4 rounded-lg flex flex-col items-center justify-center h-full opacity-30 italic text-[10px] text-warm-grey uppercase tracking-widest min-h-[220px]">
             <div className={`w-8 h-8 border-2 border-slate-700 rounded-full mb-3 ${isLoading ? 'border-t-gold animate-spin' : ''}`} />
@@ -78,6 +79,16 @@ export const HeuristicFailurePredictor: React.FC<HeuristicFailurePredictorProps>
                     <p className="text-[10px] text-pearl/80 leading-relaxed italic">"{prediction.recommendedIntervention}"</p>
                 </div>
             </div>
+
+            {onFix && (
+                <button 
+                    onClick={onFix}
+                    className={`w-full mt-4 py-3 font-orbitron text-[10px] uppercase tracking-[0.2em] transition-all rounded-sm shadow-lg active:scale-95 group relative overflow-hidden ${isImminent ? 'bg-rose-600/20 border border-rose-500 text-rose-300 hover:bg-rose-600 hover:text-white' : 'bg-gold/10 border border-gold/40 text-gold hover:bg-gold hover:text-black'}`}
+                >
+                    <span className="relative z-10 font-bold">{isImminent ? 'EMERGENCY_OVERRIDE' : 'EXECUTE_INTERVENTION'}</span>
+                    <div className={`absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ${isImminent ? 'bg-rose-500/20' : 'bg-gold/20'}`} />
+                </button>
+            )}
 
             <div className="mt-6 pt-3 border-t border-white/5 text-[8px] font-mono text-slate-600 uppercase tracking-widest flex justify-between">
                 <span>Ref: Minerva_Predict_v4.1</span>

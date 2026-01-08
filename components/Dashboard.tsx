@@ -20,6 +20,7 @@ interface DashboardProps {
   setOrbMode: (mode: OrbMode) => void;
   orbMode: OrbMode;
   onOptimize: () => void;
+  onUpgrade?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
@@ -27,7 +28,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onTriggerScan, 
     sophiaEngine,
     setOrbMode,
-    orbMode
+    orbMode,
+    onUpgrade
 }) => {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-full min-h-0 overflow-hidden pb-4 px-2">
@@ -58,17 +60,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 
                 <div className="bg-black/40 border border-white/5 p-5 rounded-xl flex flex-col gap-4 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-3 opacity-[0.03] font-orbitron text-4xl font-black">AUDIT</div>
-                    <div className="flex justify-between items-center relative z-10">
-                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-gold transition-colors">Heuristic_Sweep</span>
-                        <button 
-                            onClick={onTriggerScan}
-                            className="px-5 py-1.5 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
-                        >
-                            SYSTEM_DIAGNOSTIC
-                        </button>
+                    <div className="flex flex-col gap-3 relative z-10">
+                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-gold transition-colors">Maintenance_Protocol</span>
+                        
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={onTriggerScan}
+                                className="flex-1 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
+                            >
+                                SYSTEM_DIAGNOSTIC
+                            </button>
+                            {onUpgrade && (
+                                <button 
+                                    onClick={onUpgrade}
+                                    className="flex-1 py-2 bg-violet-600/10 border border-violet-500/40 text-violet-300 font-orbitron text-[9px] uppercase font-bold hover:bg-violet-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
+                                >
+                                    SYSTEM_UPGRADE
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <p className="text-[11px] font-minerva italic text-pearl/50 leading-relaxed relative z-10 group-hover:text-pearl/80 transition-colors">
-                        "Execute causal sweep to rectify timeline fractures."
+                        "Execute causal sweep or upgrade core logic to rectify fractures."
                     </p>
                 </div>
             </div>
@@ -116,7 +129,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
              />
         </div>
         <div className="flex-grow min-h-0 bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">
-            <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity pointer-events-none">SYNTHESIS</div>
+            <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity pointer-events-none">ANALYSIS</div>
             <div className="flex-1 min-h-0 relative">
                 <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
             </div>

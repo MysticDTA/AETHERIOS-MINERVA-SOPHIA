@@ -55,6 +55,17 @@ const LogicTraceStream: React.FC<{ active: boolean }> = ({ active }) => {
 const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) => {
     const parsedContent = useMemo(() => {
         if (!htmlContent) return [];
+        if (!htmlContent.includes('<h3>')) {
+             // Fallback for non-structured output
+             return [{ 
+                 id: 'raw-output', 
+                 title: 'System Analysis', 
+                 type: 'p', 
+                 paragraph: htmlContent.replace(/<[^>]*>/g, ''), 
+                 listItems: [] 
+             }];
+        }
+
         const sections = htmlContent.split('<h3>').slice(1);
         return sections.map((section, index) => {
             const [title, ...rest] = section.split('</h3>');
@@ -71,7 +82,7 @@ const RenderedAnalysis: React.FC<{ htmlContent: string }> = ({ htmlContent }) =>
                 listType = 'ol';
                 const itemsMatch = content.match(/<li>(.*?)<\/li>/g);
                 if (itemsMatch) listItems = itemsMatch.map(item => item.replace(/<\/?li>/g, '').trim());
-            } else if (content.includes('<p>')) {
+            } else {
                 paragraph = content.replace(/<\/?p>/g, '').replace(/<[^>]*>/g, '').trim();
             }
 
@@ -140,6 +151,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
   useEffect(() => {
     if (isLoading && scrollContainerRef.current) {
         const container = scrollContainerRef.current;
+        // Auto-scroll to bottom as analysis streams in, unless user scrolled up
         const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
         if (isNearBottom) {
             container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
@@ -153,7 +165,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
       <div className="flex justify-between items-center px-8 py-6 flex-shrink-0 border-b border-white/[0.05] bg-black/20 z-20">
         <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
-                <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.5em] font-black">Heuristic Audit</h3>
+                <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.5em] font-black">System Analysis & Recommendations</h3>
                 <div className={`text-[8px] font-mono px-2 py-0.5 rounded-full border tracking-[0.3em] font-black transition-all ${isLoading ? 'border-gold text-gold animate-pulse' : 'border-pearl/10 text-slate-700'}`}>
                     {isLoading ? 'EXECUTING_REASONING' : 'IDLE'}
                 </div>
@@ -193,8 +205,18 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
                     <p className="text-[11px] font-minerva italic text-slate-500">"Constructing causal logic paths..."</p>
                 </div>
               </div>
-            ) : (
+            ) : analysis ? (
               <RenderedAnalysis htmlContent={analysis} />
+            ) : (
+                <div className="h-40 flex flex-col items-center justify-center text-center opacity-30 gap-4 mt-8">
+                    <div className="w-12 h-12 rounded-full border border-dashed border-white/20 animate-[spin_20s_linear_infinite] flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-orbitron text-[10px] uppercase tracking-[0.3em] font-bold text-white">Analysis Idle</p>
+                        <p className="font-minerva italic text-[11px] text-slate-500">"Initiate heuristic scan to generate insights."</p>
+                    </div>
+                </div>
             )}
         </div>
       </div>
@@ -207,7 +229,7 @@ export const SystemAnalysis: React.FC<SystemAnalysisProps> = ({ systemState, sop
             className={`flex-1 py-4 bg-white/[0.02] border border-white/10 hover:bg-gold/10 hover:border-gold/30 hover:text-gold transition-all rounded-sm font-orbitron text-[9px] uppercase tracking-[0.3em] font-bold shadow-lg active:scale-[0.98] group relative overflow-hidden ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
               <div className="absolute inset-0 bg-gold/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-              <span className="relative z-10">{isLoading ? 'Scanning...' : 'Execute_Heuristic_Sweep'}</span>
+              <span className="relative z-10">{isLoading ? 'Scanning...' : 'Generate Analysis'}</span>
           </button>
       </div>
     </div>

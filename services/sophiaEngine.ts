@@ -187,19 +187,32 @@ export class SophiaEngineCore {
     const activeChat = await this.ensureConnection();
     if (!activeChat) {
         // Provide a rich simulation response so the UI looks active
-        onChunk(`<h3>Heuristic Simulation Mode</h3>
-        <p>The Minerva cognitive core is currently <strong>offline</strong>. Running local heuristic approximation based on current telemetry.</p>
+        onChunk(`<h3>System State Summary</h3>
+        <p>The Minerva cognitive core is currently <strong>offline</strong>. Running local heuristic approximation.</p>
+        <p><strong>Status:</strong> Resonance Rho at ${(systemState.resonanceFactorRho * 100).toFixed(2)}%. Temporal drift nominal.</p>
+        <h3>Actionable Recommendations</h3>
         <ul>
-            <li>Resonance Rho: ${(systemState.resonanceFactorRho * 100).toFixed(2)}% (Local Estimate)</li>
-            <li>Temporal Drift: ${(systemState.temporalCoherenceDrift * 1000).toFixed(4)}ms (Nominal)</li>
-            <li>Causal Integrity: STABLE</li>
+            <li>Establish API Key Handshake for deep causal reasoning.</li>
+            <li>Monitor local coherence metrics manually.</li>
+            <li>Verify Lyran Concordance alignment.</li>
         </ul>
         <p><em>To enable deep reasoning analysis, please complete the API Key Handshake.</em></p>`);
         return;
     }
     try {
         const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Temporal Coherence Drift=${systemState.temporalCoherenceDrift}. 
-        Format your response using semantic HTML tags: <h3> for section titles, <p> for paragraphs, <ul> and <li> for lists. 
+        
+        Strictly structure your response with these two HTML sections:
+        <h3>System State Summary</h3>
+        <p>[Provide a high-level summary of system stability, resonance, and integrity]</p>
+        
+        <h3>Actionable Recommendations</h3>
+        <ul>
+          <li>[Recommendation 1]</li>
+          <li>[Recommendation 2]</li>
+          <li>[Recommendation 3]</li>
+        </ul>
+        
         Focus on causal implications and intellectual depth. Analyze the lattice integrity and resonant synergy.`;
         
         const stream = await activeChat.sendMessageStream({ message: prompt });

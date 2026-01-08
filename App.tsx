@@ -43,6 +43,9 @@ import { SimulationControls } from './components/SimulationControls';
 import { Modal } from './components/Modal';
 import { SYSTEM_NODES } from './Registry';
 import { ModuleManager } from './components/ModuleManager';
+import { useSophiaCore } from './components/hooks/useSophiaCore';
+import { HeuristicFailurePredictor } from './components/HeuristicFailurePredictor';
+import { QuantumAwarenessHUD } from './components/QuantumAwarenessHUD';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -68,6 +71,7 @@ const App: React.FC = () => {
     const [isDeploying, setIsDeploying] = useState(false);
     const [memories, setMemories] = useState(knowledgeBase.getMemories());
     const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
+    const [showFailureAlert, setShowFailureAlert] = useState(false);
 
     // Engines
     const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -90,6 +94,28 @@ const App: React.FC = () => {
         { decoherenceChance: 0.05, lesionChance: 0.01 }, // Default params
         orbMode
     );
+
+    // Global Cognitive Core for Failure Prediction & Strategy
+    const { prediction, runPrediction, isPredicting, isLoading } = useSophiaCore(sophiaEngineRef.current, systemState);
+
+    // Monitor System Health for Critical Failures
+    useEffect(() => {
+        const health = systemState.quantumHealing.health;
+        const decoherence = systemState.quantumHealing.decoherence;
+        
+        // Trigger prediction if health is low or decoherence is high
+        if ((health < 0.45 || decoherence > 0.55) && !showFailureAlert && !prediction && !isPredicting) {
+            runPrediction();
+            setShowFailureAlert(true);
+            addLogEntry(LogType.WARNING, "System health critical. Initializing heuristic failure prediction.");
+            if (audioEngineRef.current) audioEngineRef.current.playEffect('renewal');
+        } 
+        
+        // Auto-resolve alert if system stabilizes significantly
+        if (health > 0.8 && decoherence < 0.2 && showFailureAlert) {
+            setShowFailureAlert(false);
+        }
+    }, [systemState.quantumHealing.health, systemState.quantumHealing.decoherence, showFailureAlert, runPrediction, isPredicting, prediction, addLogEntry]);
 
     // Voice Hook
     const voiceInterface = useVoiceInterface({
@@ -119,6 +145,20 @@ const App: React.FC = () => {
         setMemories(knowledgeBase.getMemories());
     }, []);
 
+    const handleUpgradeComplete = useCallback(() => {
+        setCurrentPage(1);
+        setShowFailureAlert(false);
+        setSystemState(prev => ({
+            ...prev,
+            quantumHealing: { ...prev.quantumHealing, health: 1.0, decoherence: 0.0 },
+            resonanceFactorRho: 0.9999,
+            temporalCoherenceDrift: 0.0,
+            performance: { ...prev.performance, visualParity: 1.0 }
+        }));
+        addLogEntry(LogType.SYSTEM, "System Upgrade Complete: Coherence Restored. Version Parity Locked.");
+        if (audioEngineRef.current) audioEngineRef.current.playAscensionChime();
+    }, [addLogEntry, setSystemState]);
+
     // Interactive Subsystems
     const interactive = useInteractiveSubsystems({
         addLogEntry,
@@ -145,6 +185,9 @@ const App: React.FC = () => {
         }
     }, [currentPage]);
 
+    // Determine visual severity for the alert
+    const isCriticalFailure = prediction?.severity === 'CRITICAL' || (prediction && prediction.probability > 0.8);
+
     // Render Page Content
     const renderPage = () => {
         switch(currentPage) {
@@ -156,6 +199,7 @@ const App: React.FC = () => {
                 setOrbMode={setOrbMode}
                 orbMode={orbMode}
                 onOptimize={() => setCurrentPage(14)}
+                onUpgrade={() => setCurrentPage(24)}
             />;
             case 2: return <Display6 
                 systemState={systemState}
@@ -233,6 +277,7 @@ const App: React.FC = () => {
             case 21: return <MenervaBridge systemState={systemState} />;
             case 22: return <EventLog log={systemState.log} filter={LogType.INFO} onFilterChange={() => {}} />;
             case 23: return <SecurityShieldAudit systemState={systemState} />;
+            case 24: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={handleUpgradeComplete} />;
             default: return <Dashboard 
                 systemState={systemState} 
                 onTriggerScan={() => setCurrentPage(19)} 
@@ -241,6 +286,7 @@ const App: React.FC = () => {
                 setOrbMode={setOrbMode}
                 orbMode={orbMode}
                 onOptimize={() => setCurrentPage(14)}
+                onUpgrade={() => setCurrentPage(24)}
             />;
         }
     };
@@ -274,6 +320,43 @@ const App: React.FC = () => {
                             {renderPage()}
                         </ErrorBoundary>
                     </main>
+
+                    {/* --- QUANTUM AWARENESS HUD (Top Right) --- */}
+                    <QuantumAwarenessHUD 
+                        isActive={true} 
+                        isThinking={isPredicting || isLoading}
+                        systemState={systemState}
+                    />
+
+                    {/* --- ADAPTIVE FAILURE MONITORING OVERLAY (Bottom Right) --- */}
+                    {showFailureAlert && (prediction || isPredicting) && (
+                        <div className={`fixed z-50 animate-fade-in-up ${
+                            isCriticalFailure 
+                            ? 'inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md p-4' 
+                            : 'bottom-24 right-4 w-full max-w-sm md:max-w-md'
+                        }`}>
+                            <div className={`relative shadow-[0_0_60px_rgba(220,38,38,0.4)] rounded-xl bg-[#050505] border border-white/10 ${
+                                isCriticalFailure ? 'w-full max-w-lg border-2 border-rose-500 scale-105' : ''
+                            }`}>
+                                {isCriticalFailure && (
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-rose-600 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-[0.2em] shadow-lg animate-pulse">
+                                        Priority Interrupt
+                                    </div>
+                                )}
+                                <button 
+                                    onClick={() => setShowFailureAlert(false)}
+                                    className="absolute -top-3 -right-3 z-50 bg-black border border-white/20 text-slate-400 hover:text-white rounded-full w-8 h-8 flex items-center justify-center text-xs transition-colors hover:border-rose-500"
+                                >
+                                    ✕
+                                </button>
+                                <HeuristicFailurePredictor 
+                                    prediction={prediction} 
+                                    isLoading={isPredicting} 
+                                    onFix={() => setCurrentPage(24)} 
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <SystemFooter 
                         orbModes={orbModes}
