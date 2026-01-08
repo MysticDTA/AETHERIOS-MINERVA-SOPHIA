@@ -36,7 +36,7 @@ export const initialSystemState: SystemState = {
     memoryUsage: 12.4
   },
   auth: {
-    isAuthenticated: true,
+    isAuthenticated: false, // Default to false to enable Login Gate
     operatorId: 'OP_88_ALPHA',
     sessionToken: 'jwt_demo_token_sophia_v2'
   },

@@ -36,6 +36,8 @@ import { SimulationControls } from './components/SimulationControls';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ApiKeyGuard } from './components/ApiKeyGuard';
+import { Login } from './components/Login';
+import { PasswordReset } from './components/PasswordReset';
 import { AudioEngine } from './components/audio/AudioEngine';
 import { SophiaEngineCore } from './services/sophiaEngine';
 import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
@@ -64,6 +66,9 @@ export const App: React.FC = () => {
   const [showConfig, setShowConfig] = useState(false);
   const [showDiagnostic, setShowDiagnostic] = useState(true); // Auto-start diagnostic
   const [lastAuditReport, setLastAuditReport] = useState<{report: string, sources: any[]} | null>(null);
+  
+  // Auth State for View Switching
+  const [authView, setAuthView] = useState<'LOGIN' | 'RESET'>('LOGIN');
   
   const [sophiaEngine, setSophiaEngine] = useState<SophiaEngineCore | null>(null);
   const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -131,6 +136,14 @@ export const App: React.FC = () => {
       setSystemState(initialSystemState);
       addLogEntry(LogType.SYSTEM, 'Manual system reset triggered. Entropy cleared.');
       audioEngineRef.current?.playEffect('reset');
+  };
+
+  const handleLogin = () => {
+      setSystemState(prev => ({
+          ...prev,
+          auth: { ...prev.auth, isAuthenticated: true }
+      }));
+      addLogEntry(LogType.SYSTEM, "Operator Verified. Sovereign Gate Opened.");
   };
 
   const renderPage = () => {
@@ -264,6 +277,29 @@ export const App: React.FC = () => {
       }
   };
 
+  // --- AUTHENTICATION GATE ---
+  if (!systemState.auth.isAuthenticated) {
+      return (
+          <ThemeProvider>
+              <ErrorBoundary>
+                  {authView === 'LOGIN' ? (
+                      <Login 
+                          onLogin={handleLogin} 
+                          onForgotPassword={() => setAuthView('RESET')}
+                          audioEngine={audioEngineRef.current} 
+                      />
+                  ) : (
+                      <PasswordReset 
+                          onBack={() => setAuthView('LOGIN')}
+                          audioEngine={audioEngineRef.current}
+                      />
+                  )}
+              </ErrorBoundary>
+          </ThemeProvider>
+      );
+  }
+
+  // --- EVENT HORIZON ---
   if (systemState.quantumHealing.decoherence >= 1.0) {
       return (
           <ThemeProvider>
@@ -275,6 +311,7 @@ export const App: React.FC = () => {
       );
   }
 
+  // --- MAIN APP ---
   return (
     <ThemeProvider>
       <ErrorBoundary>

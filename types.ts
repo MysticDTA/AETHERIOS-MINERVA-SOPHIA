@@ -1,6 +1,12 @@
+
 import React from 'react';
 
 // Global shared types for SOPHIA DV99 / Alliance System
+
+// Ensure 3D modules are recognized even if types are missing in CI
+declare module 'three';
+declare module '@react-three/fiber';
+declare module '@react-three/drei';
 
 declare global {
   interface AIStudio {
