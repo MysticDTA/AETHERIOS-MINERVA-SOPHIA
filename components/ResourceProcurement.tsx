@@ -45,19 +45,28 @@ const TIER_CARDS = [
 const PaymentRailStatus: React.FC = () => {
     const [status, setStatus] = useState<'SCANNING' | 'ONLINE' | 'ERROR'>('SCANNING');
     const [latency, setLatency] = useState<number | null>(null);
+    const [region, setRegion] = useState('INIT_LINK');
 
     useEffect(() => {
-        const scanRails = async () => {
-            // Simulate a rigorous system link check
-            await new Promise(r => setTimeout(r, 800));
-            setLatency(Math.floor(Math.random() * 10) + 15); // 15-25ms
-            setStatus('ONLINE');
-        };
-        scanRails();
+        const regions = ['US_EAST_VA', 'EU_FRANKFURT', 'ASIA_TOKYO', 'GLOBAL_EDGE'];
+        let step = 0;
+
+        const interval = setInterval(() => {
+            if (step < regions.length) {
+                setRegion(regions[step]);
+                step++;
+            } else {
+                clearInterval(interval);
+                setLatency(Math.floor(Math.random() * 8) + 12); // 12-20ms
+                setStatus('ONLINE');
+            }
+        }, 600);
+
+        return () => clearInterval(interval);
     }, []);
 
     return (
-        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[200px] shadow-lg relative overflow-hidden">
+        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[220px] shadow-lg relative overflow-hidden group">
             {status === 'SCANNING' && (
                 <div className="absolute top-0 left-0 w-full h-0.5 bg-gold/50 animate-shimmer" />
             )}
@@ -65,7 +74,7 @@ const PaymentRailStatus: React.FC = () => {
             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                 <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Global_Payment_Rails</span>
                 <span className={`text-[8px] font-mono font-bold ${status === 'ONLINE' ? 'text-emerald-400' : 'text-gold animate-pulse'}`}>
-                    {status === 'ONLINE' ? 'ENCRYPTED_TLS_1.3' : 'VERIFYING_LINK...'}
+                    {status === 'ONLINE' ? 'TLS_1.3_LOCKED' : 'ROUTING...'}
                 </span>
             </div>
             <div className="flex gap-2">
@@ -85,9 +94,12 @@ const PaymentRailStatus: React.FC = () => {
                 </div>
             </div>
             <div className="flex justify-between items-center pt-1">
-                <span className="text-[7px] font-mono text-slate-600 uppercase">Gateway_Latency</span>
+                <div className="flex gap-2 items-center">
+                    <span className="text-[7px] font-mono text-slate-600 uppercase">Route:</span>
+                    <span className="text-[7px] font-mono text-pearl">{region}</span>
+                </div>
                 <span className={`text-[7px] font-mono font-bold ${status === 'ONLINE' ? 'text-gold' : 'text-slate-500'}`}>
-                    {status === 'ONLINE' ? `${latency}ms [OPTIMAL]` : 'PINGING...'}
+                    {status === 'ONLINE' ? `${latency}ms` : 'PINGING'}
                 </span>
             </div>
         </div>
@@ -97,9 +109,9 @@ const PaymentRailStatus: React.FC = () => {
 export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [procuringId, setProcuringId] = useState<string | null>(null);
     const [handshakeStep, setHandshakeStep] = useState(0);
-    const [showCheckoutTerm, setShowCheckoutTerm] = useState(false);
     const [gatewayStatus, setGatewayStatus] = useState<'ONLINE' | 'SYNCING'>('SYNCING');
     const [isAuditing, setIsAuditing] = useState(false);
+    const [auditLog, setAuditLog] = useState<string>('Initializing Handshake...');
 
     useEffect(() => {
         const timer = setTimeout(() => setGatewayStatus('ONLINE'), 1500);
@@ -112,13 +124,23 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
     const handleInitializePayment = async (id: string) => {
         setProcuringId(id);
         setIsAuditing(true);
-        addLogEntry(LogType.SYSTEM, `ACQUISITION_PROTOCOL: [${id}] Verifying Corporate Liquidity...`);
         
-        await new Promise(r => setTimeout(r, 2500));
+        const logs = [
+            `ACQUISITION_PROTOCOL: [${id}] Initiated`,
+            "Verifying Corporate Liquidity...",
+            "Checking OFAC Compliance Ledger...",
+            "Syncing Institutional Keys...",
+            "Establishing Secure Enclave..."
+        ];
+
+        for (const log of logs) {
+            setAuditLog(log);
+            addLogEntry(LogType.SYSTEM, log);
+            await new Promise(r => setTimeout(r, 800));
+        }
         
         setIsAuditing(false);
-        setShowCheckoutTerm(true);
-        setHandshakeStep(1);
+        handleFinalizePayment(id);
     };
 
     // Simulated ascension for demo purposes
@@ -134,52 +156,64 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
         }));
     };
 
-    const handleFinalizePayment = async () => {
+    const handleFinalizePayment = async (id: string) => {
         setHandshakeStep(2);
-        const tierMatch = TIER_CARDS.find(t => t.id === procuringId);
+        const tierMatch = TIER_CARDS.find(t => t.id === id);
         const priceId = tierMatch?.priceId || 'demo_gold_price';
 
         addLogEntry(LogType.SYSTEM, `STRIPE_SOVEREIGN: Initiating Multi-Sig Handshake [SHA-512]...`);
         
-        await new Promise(r => setTimeout(r, 2000));
-
         try {
             const result = await ApiService.createCheckoutSession(priceId, sessionToken);
             if (result?.url) {
                 setHandshakeStep(3);
                 addLogEntry(LogType.SYSTEM, `ACQUISITION_SUCCESS: Capital Liquidation confirmed. Redirecting to Secure Portal...`);
-                setTimeout(() => { window.location.href = result.url; }, 800);
+                // Slight delay for visual confirmation
+                setTimeout(() => { window.location.href = result.url; }, 1000);
             } else {
                 throw new Error("Conduit Error");
             }
         } catch (e: any) {
             addLogEntry(LogType.CRITICAL, `STRIPE_ERR: ${e.message || "Vault connection timed out."} Retrying link...`);
             setHandshakeStep(1);
+            setProcuringId(null);
         }
     };
 
     return (
         <div className="w-full h-full min-h-0 flex flex-col gap-8 animate-fade-in overflow-y-auto pr-2 scrollbar-thin pb-32">
             {isAuditing && (
-                <div className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-xl flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-8 p-16 bg-black border-2 border-gold rounded-sm shadow-[0_0_100px_rgba(255,215,0,0.2)] relative">
-                        <div className="absolute inset-0 gold-shimmer-bg opacity-10" />
-                        <div className="w-20 h-20 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
-                        <div className="text-center space-y-2">
-                            <span className="font-orbitron text-gold text-sm tracking-[0.8em] uppercase block">Liquidity_Verification</span>
-                            <span className="font-mono text-slate-500 text-[10px] uppercase">Node: 0xRESONANCE_VAULT_SFO</span>
+                <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+                    <div className="flex flex-col items-center gap-8 p-12 bg-black border border-gold rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.15)] relative max-w-lg w-full">
+                        <div className="absolute inset-0 gold-shimmer-bg opacity-10 pointer-events-none" />
+                        
+                        <div className="relative">
+                            <div className="w-24 h-24 border-4 border-gold/10 border-t-gold rounded-full animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-gold rounded-full shadow-[0_0_10px_gold]" />
+                            </div>
+                        </div>
+                        
+                        <div className="text-center space-y-3 w-full">
+                            <span className="font-orbitron text-gold text-sm tracking-[0.4em] uppercase block font-bold">Liquidity_Verification</span>
+                            <div className="h-px w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+                            <p className="font-mono text-pearl text-[11px] uppercase tracking-widest animate-pulse">{auditLog}</p>
+                        </div>
+                        
+                        <div className="absolute bottom-4 left-0 w-full text-center">
+                            <span className="text-[8px] font-mono text-slate-600 uppercase tracking-[0.2em]">Node: 0xRESONANCE_VAULT_SFO</span>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Sovereign Acquisition Banner - Compacted and Enhanced Visibility */}
-            <div className="relative p-8 bg-gradient-to-br from-[#0a0a0a] to-[#020202] border border-gold/40 rounded-sm overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9)] shrink-0 z-10">
+            {/* Sovereign Acquisition Banner */}
+            <div className="relative p-8 bg-gradient-to-br from-[#0a0a0a] to-[#020202] border border-gold/40 rounded-sm overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9)] shrink-0 z-10 group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent animate-shimmer" />
                 <div className="flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10">
                     <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-sm border-2 border-gold flex items-center justify-center font-orbitron text-gold font-black text-4xl shadow-[0_0_40px_rgba(255,215,0,0.3)] bg-gold/5 rotate-45 group">
-                            <span className="-rotate-45 group-hover:scale-110 transition-transform">G</span>
+                        <div className="w-20 h-20 rounded-sm border-2 border-gold flex items-center justify-center font-orbitron text-gold font-black text-4xl shadow-[0_0_40px_rgba(255,215,0,0.3)] bg-gold/5 rotate-45 group-hover:rotate-0 transition-transform duration-700">
+                            <span className="-rotate-45 group-hover:rotate-0 transition-transform duration-700">G</span>
                         </div>
                         <div className="space-y-2">
                             <h1 className="font-minerva italic text-4xl md:text-5xl text-pearl text-glow-pearl tracking-tighter leading-tight uppercase">Sovereign Acquisition</h1>
@@ -259,7 +293,7 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                                         {!isActive && (
                                             <button 
                                                 onClick={() => handleSimulateAscension(tier.id as UserTier)}
-                                                className="text-[8px] font-mono text-slate-700 hover:text-gold uppercase tracking-widest transition-colors mt-1"
+                                                className="text-[8px] font-mono text-slate-700 hover:text-gold uppercase tracking-widest transition-colors mt-1 opacity-50 hover:opacity-100"
                                             >
                                                 [Bypass_Wait] :: Simulate_Ascension
                                             </button>
