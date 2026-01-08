@@ -51,11 +51,16 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
   return (
     <div 
         ref={containerRef}
-        className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}
+        className={`relative min-h-screen w-full bg-[#030303] text-slate-200 font-sans antialiased flex flex-col overflow-x-hidden transition-all duration-[2000ms] ${isHighResonance ? 'resonance-peak' : ''} ${isDecoherent ? 'resonance-low' : ''}`}
     >
       
       {/* Background Noise Layer */}
       <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url("${NOISE_DATA_URI}")`, opacity: grainOpacity }}></div>
+      
+      {/* Quantum Grain (Dynamic) */}
+      <div className="fixed inset-0 pointer-events-none z-[2] opacity-[0.03] mix-blend-overlay animate-[grain_8s_steps(10)_infinite]" style={{ backgroundImage: `url("${NOISE_DATA_URI}")` }}>
+          <style>{`@keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); } 30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); } 60% { transform: translate(15%, 0); } 70% { transform: translate(0, 10%); } 80% { transform: translate(-15%, 0); } 90% { transform: translate(10%, 5%); } }`}</style>
+      </div>
 
       {/* Atmospheric Glow Layer with Parallax */}
       <div 
@@ -64,7 +69,7 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
           background: `radial-gradient(circle at ${50 + mousePos.x * 5}% ${40 + mousePos.y * 5}%, rgba(109, 40, 217, ${0.05 * resonanceFactor}), transparent 80%),
                        radial-gradient(circle at ${80 - mousePos.x * 5}% ${20 - mousePos.y * 5}%, rgba(255, 215, 0, ${0.03 * resonanceFactor}), transparent 60%)`,
           filter: `blur(${blurAmount}px)`,
-          transform: `scale(1.05)` // Slight scale to prevent edge bleeding
+          transform: `scale(1.05)` 
         }}
       />
 
@@ -100,7 +105,7 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
       </div>
       
       {/* Optimized Main Content Area */}
-      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-4 md:py-3 max-w-[2400px] mx-auto w-full h-full overflow-hidden">
+      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-4 md:py-3 max-w-[2400px] mx-auto w-full h-full">
         {children}
       </div>
       

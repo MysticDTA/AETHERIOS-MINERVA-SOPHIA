@@ -33,7 +33,7 @@ const FrequencyWaterfall: React.FC<{ isActive: boolean }> = ({ isActive }) => {
     }, [isActive]);
 
     return (
-        <div className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none opacity-30 mask-image-b-fade">
+        <div id="freq-waterfall-display" className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none opacity-30 mask-image-b-fade">
             {lines.map((line, i) => (
                 <svg key={line.id} viewBox="0 0 600 25" className="w-full h-6 overflow-visible transition-all duration-[3s] ease-linear" style={{ transform: `translateY(${i * 12}px)`, opacity: 1 - (i / 25) }}>
                     <polyline points={line.points} fill="none" stroke="var(--gold)" strokeWidth="0.5" />
@@ -108,7 +108,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
     };
 
     return (
-        <div className="w-full h-full p-6 flex flex-col relative overflow-hidden group">
+        <div id="cosmic-receiver-panel" className="w-full h-full p-6 flex flex-col relative overflow-hidden group">
             <FrequencyWaterfall isActive={isActiveSignal} />
             
             <div className="flex justify-between items-center mb-6 relative z-10 shrink-0">
@@ -117,7 +117,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                         <span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
                         <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold">Deep Space Telemetry Source</span>
                     </div>
-                    <h3 className="font-orbitron text-2xl md:text-3xl text-pearl tracking-tighter uppercase font-black pl-3.5 truncate max-w-[500px] text-glow-pearl">
+                    <h3 id="cosmic-source-title" className="font-orbitron text-2xl md:text-3xl text-pearl tracking-tighter uppercase font-black pl-3.5 truncate max-w-[500px] text-glow-pearl">
                         {status === 'AWAITING SIGNAL' ? 'SCANNING_SPECTRUM...' : source}
                     </h3>
                 </div>
@@ -131,7 +131,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 relative z-10">
                 <div className="lg:col-span-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin max-h-[calc(100vh-300px)]">
-                    <div className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all group/metric">
+                    <div id="cosmic-metric-display" className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all group/metric">
                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest group-hover/metric:text-pearl transition-colors">Scientific Metric</span>
                             <span className="text-[9px] text-green-500 font-mono font-bold bg-green-950/30 px-2 py-0.5 rounded border border-green-500/20">LIVE</span>
@@ -162,7 +162,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
 
                 <div className="lg:col-span-9 flex flex-col gap-4 min-h-0 h-full">
-                    <div ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[200px]">
+                    <div id="cosmic-log-terminal" ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[200px]">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">RX</div>
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3 shrink-0">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>
@@ -175,7 +175,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                             </p>
                             
                             {analysisResult && (
-                                <div className="mt-8 p-4 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[13px] text-blue-200 italic animate-fade-in shadow-lg border-l-4 border-l-blue-500">
+                                <div id="astrophysical-analysis-box" className="mt-8 p-4 bg-blue-950/20 border border-blue-500/30 rounded font-mono text-[13px] text-blue-200 italic animate-fade-in shadow-lg border-l-4 border-l-blue-500">
                                     <div className="flex items-center gap-2 mb-2 not-italic">
                                         <span className="text-blue-400 font-black uppercase tracking-widest text-[10px]">Astrophysical_Implication</span>
                                         <div className="h-px bg-blue-500/30 flex-1" />
@@ -190,6 +190,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                         {status === 'TRANSMISSION COMPLETE' ? (
                             <>
                                 <button 
+                                    id="cosmic-audio-btn"
                                     onClick={audioBuffer ? handlePlayAudio : handleSynthesize} 
                                     disabled={isSynthesizing} 
                                     className="flex-1 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[11px] tracking-[0.2em] font-bold hover:bg-gold hover:text-black transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(255,215,0,0.1)] flex items-center justify-center group"
@@ -199,6 +200,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                                     </span>
                                 </button>
                                 <button 
+                                    id="cosmic-analysis-btn"
                                     onClick={handleAstrophysicalAnalysis} 
                                     disabled={isAnalyzing} 
                                     className="flex-1 bg-blue-900/20 border border-blue-500/40 text-blue-300 font-orbitron text-[11px] tracking-[0.2em] font-bold hover:bg-blue-600 hover:text-white transition-all rounded-sm uppercase active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.2)] flex items-center justify-center group"

@@ -386,7 +386,7 @@ export default function App() {
                             onManualReset={handleManualReset} 
                         />
                     ) : (
-                        <div className="relative w-full h-screen overflow-hidden bg-dark-bg text-pearl font-sans selection:bg-gold/30 selection:text-white">
+                        <div className="relative w-full min-h-screen bg-dark-bg text-pearl font-sans selection:bg-gold/30 selection:text-white">
                             <Cursor />
                             <MotherboardOverlay />
                             

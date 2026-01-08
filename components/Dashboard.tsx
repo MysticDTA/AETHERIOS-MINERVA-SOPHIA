@@ -36,10 +36,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     audioEngine
 }) => {
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-full min-h-0 overflow-hidden pb-4 px-2">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-4 px-2">
       
       {/* --- COLUMN 1: SYSTEM TOPOLOGY & LATTICE (3/12) --- */}
-      <div className="xl:col-span-3 flex flex-col gap-6 overflow-y-auto pr-2 scrollbar-thin">
+      <div className="xl:col-span-3 flex flex-col gap-6 pr-2">
         <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex flex-col">
@@ -93,7 +93,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- COLUMN 2: CORE VISUALS & PERFORMANCE (5/12) --- */}
-      <div className="xl:col-span-5 flex flex-col items-center gap-6 overflow-y-auto px-2 hide-scrollbar">
+      <div className="xl:col-span-5 flex flex-col items-center gap-6 px-2">
         <div className="w-full flex flex-col items-center justify-center min-h-[440px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
             
@@ -123,7 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- COLUMN 3: COGNITIVE ANALYSIS & ARCHIVE (4/12) --- */}
-      <div className="xl:col-span-4 flex flex-col gap-6 h-full min-h-0 overflow-hidden">
+      <div className="xl:col-span-4 flex flex-col gap-6">
         <div className="flex-shrink-0 h-[360px]">
              <SophiaCognitiveCore 
                 systemState={systemState} 
@@ -133,9 +133,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 audioEngine={audioEngine}
              />
         </div>
-        <div className="flex-grow min-h-0 bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">
+        <div className="flex-grow min-h-[400px] bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">
             <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity pointer-events-none">ANALYSIS</div>
-            <div className="flex-1 min-h-0 relative">
+            <div className="flex-1 relative">
                 <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
             </div>
         </div>

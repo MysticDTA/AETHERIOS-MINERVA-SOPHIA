@@ -250,7 +250,7 @@ export const SecurityShieldAudit: React.FC<{ systemState: SystemState }> = ({ sy
                     </div>
 
                     <div className="flex-1 bg-black border border-white/10 rounded-sm p-6 flex flex-col shadow-2xl relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-5 scanline-overlay pointer-events-none" />
+                        {/* Scanline overlay removed for clearer view */}
                         <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
                             <span className="font-mono text-[10px] text-rose-500 font-bold tracking-widest uppercase">Firewall_Packet_Stream</span>
                             <span className="text-[8px] font-mono text-slate-700">NODE_0x88_SECURE</span>

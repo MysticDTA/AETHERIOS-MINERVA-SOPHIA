@@ -246,6 +246,7 @@ export interface OrbModeConfig {
 }
 
 export interface TransmissionState {
+    id: string;
     source: string;
     message: string;
     decodedCharacters: number;
@@ -342,6 +343,13 @@ export interface SchematicNode {
     type: 'CORE' | 'BRIDGE' | 'SENSOR' | 'GATEWAY';
     status: 'OPTIMAL' | 'LOCKED' | 'OFFLINE';
     dependencies: string[];
+}
+
+export interface VoiceInteraction {
+    id: string;
+    user: string;
+    sophia: string;
+    timestamp: number;
 }
 
 export interface SystemState {

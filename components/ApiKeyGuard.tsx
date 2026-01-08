@@ -41,13 +41,13 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
 
   if (!hasKey) {
     return (
-      <div className="fixed inset-0 z-[3000] bg-[#050505] flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+      <div id="api-key-guard-overlay" className="fixed inset-0 z-[3000] bg-[#050505] flex flex-col items-center justify-center p-8 text-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,199,127,0.1)_0%,transparent_70%)] pointer-events-none" />
         
         <div className="max-w-xl space-y-12 animate-fade-in relative z-10">
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center font-bold text-[#635bff] text-2xl mb-8 shadow-2xl animate-pulse">S</div>
-            <h2 className="font-orbitron text-3xl text-pearl font-bold tracking-tighter uppercase">AI Studio Handshake</h2>
+            <h2 id="guard-title" className="font-orbitron text-3xl text-pearl font-bold tracking-tighter uppercase">AI Studio Handshake</h2>
             <p className="font-mono text-[10px] text-gold uppercase tracking-[0.4em] mt-4 font-bold opacity-60">Authentication Required for Pro-Tier Intelligence</p>
           </div>
 
@@ -72,6 +72,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
           </div>
 
           <button 
+            id="api-key-select-btn"
             onClick={handleSelectKey}
             disabled={isVerifying}
             className="group relative px-16 py-5 overflow-hidden border border-gold/40 hover:border-gold transition-all rounded-sm bg-gold/5 active:scale-95"

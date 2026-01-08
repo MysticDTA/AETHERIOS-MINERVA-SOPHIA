@@ -24,6 +24,7 @@ class CosmosCommsService {
     private readonly MIN_SYNC_INTERVAL = 300000;
 
     public initialState: CosmosTransmission = {
+        id: 'INIT_SIGNAL',
         source: 'AWAITING_NASA_UPLINK',
         message: '',
         decodedCharacters: 0,
@@ -85,8 +86,10 @@ class CosmosCommsService {
         }
 
         this.isFetching = true;
+        const transmissionId = `TX_${Date.now()}_${Math.random().toString(36).substring(7).toUpperCase()}`;
         this.currentState = {
             ...this.currentState,
+            id: transmissionId,
             source: 'Syncing NOAA/NASA Telemetry...',
             message: '',
             decodedCharacters: 0,

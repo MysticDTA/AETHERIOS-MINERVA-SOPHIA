@@ -35,11 +35,13 @@ const initiateSystemAuditDeclaration: FunctionDeclaration = {
 };
 
 export class SophiaEngineCore {
+  public readonly instanceId: string;
   private chat: Chat | null = null;
   private systemInstruction: string;
   private isConnecting = false;
 
   constructor(systemInstruction: string) {
+    this.instanceId = `ENG_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     this.systemInstruction = MINERVA_SOPHIA_SYSTEM_PROMPT + "\n" + systemInstruction;
     this.ensureConnection();
   }

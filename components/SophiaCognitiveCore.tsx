@@ -28,7 +28,7 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     const prevHealthRef = useRef<number>(systemState.quantumHealing.health);
     const prevRhoRef = useRef<number>(systemState.resonanceFactorRho);
     
-    const cooldown = 30000; // 30s cooldown to prevent API saturation
+    const cooldown = 45000; // Increased cooldown to avoid fatigue
 
     const health = systemState.quantumHealing.health;
     const decoherence = systemState.quantumHealing.decoherence;
@@ -40,11 +40,18 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     const rhoDelta = rho - prevRhoRef.current;
 
     // Enhanced proactive triggers
-    // Critical: System is currently in a bad state
-    const isCritical = health < 0.6 || lesions > 1 || decoherence > 0.55;
+    // Critical: System is currently in a bad state (Health < 60% or Decoherence > 40%)
+    const isCritical = health < 0.6 || lesions > 1 || decoherence > 0.4;
     
-    // Degrading: System is actively getting worse (negative health trend or dropping resonance with high decoherence)
-    const isDegrading = healthDelta < -0.002 || (decoherence > 0.3 && rhoDelta < -0.001);
+    // Degrading: System is actively getting worse (negative health trend or dropping resonance with moderate decoherence)
+    const isDegrading = healthDelta < -0.001 || (decoherence > 0.2 && rhoDelta < -0.002);
+
+    // Auto-clear insight if system stabilizes to reduce visual noise
+    useEffect(() => {
+        if (!isCritical && !isDegrading && insight) {
+            setInsight(null);
+        }
+    }, [isCritical, isDegrading, insight]);
 
     // Update refs for next render cycle
     useEffect(() => {
@@ -56,8 +63,8 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     useEffect(() => {
         if (isLoading) {
             const interval = setInterval(() => {
-                setThinkingProgress(p => p < 98 ? p + Math.random() * 2 : p);
-            }, 200);
+                setThinkingProgress(p => p < 98 ? p + Math.random() * 3 : p);
+            }, 150);
             return () => clearInterval(interval);
         } else {
             setThinkingProgress(0);
@@ -79,9 +86,10 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
                 // Construct a context-aware prompt based on the specific trend
                 let trendContext = "";
                 if (isCritical) {
-                    trendContext = `CRITICAL SYSTEM STATE DETECTED. Health: ${health.toFixed(2)}, Decoherence: ${decoherence.toFixed(2)}. Immediate heuristic intervention required.`;
+                    trendContext = `CRITICAL SYSTEM STATE. Health is critically low (${(health*100).toFixed(1)}%) or Decoherence is high (${(decoherence*100).toFixed(1)}%). The system is fracturing. Provide immediate remedial protocols.`;
                 } else if (isDegrading) {
-                    trendContext = `NEGATIVE TREND DETECTED. Health Delta: ${healthDelta.toFixed(5)}, Rho Delta: ${rhoDelta.toFixed(5)}. Predictive decoherence analysis required.`;
+                    const rate = Math.abs(healthDelta) > 0.005 ? "RAPIDLY" : "MODERATELY";
+                    trendContext = `NEGATIVE TREND DETECTED. System is ${rate} degrading. Health Delta: ${healthDelta.toFixed(5)}/tick. Rho Delta: ${rhoDelta.toFixed(5)}/tick. Provide preventative resonance stabilization advice.`;
                 }
                 
                 try {
@@ -104,7 +112,7 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
     }, [systemState, sophiaEngine, isCritical, isDegrading, isLoading, setOrbMode, audioEngine, health, decoherence, healthDelta, rhoDelta]);
     
     return (
-        <div className={`w-full h-full glass-panel p-6 rounded-2xl flex flex-col items-center justify-between relative overflow-hidden group transition-all duration-700 ${insight?.alert ? 'shadow-[inset_0_0_40px_rgba(109,40,217,0.1)]' : ''}`}>
+        <div id="sophia-cognitive-core" className={`w-full h-full glass-panel p-6 rounded-2xl flex flex-col items-center justify-between relative overflow-hidden group transition-all duration-700 ${insight?.alert ? 'shadow-[inset_0_0_40px_rgba(220,38,38,0.15)] border-rose-500/30' : ''}`}>
             {/* Background Grid Accent */}
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '15px 15px' }} />
 
@@ -114,9 +122,9 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
                     <span className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.4em] font-bold">Intelligence_Prime</span>
                 </div>
                 <div className="text-right">
-                    <div className={`w-2 h-2 rounded-full mx-auto ${isLoading ? 'bg-violet-400 animate-ping' : 'bg-green-500 shadow-[0_0_8px_#10b981]'}`} />
-                    <span className={`text-[7px] font-mono uppercase mt-1 block tracking-widest ${isLoading ? 'text-violet-300' : 'text-slate-600'}`}>
-                        {isLoading ? 'ANALYZING...' : 'ACTIVE_SYNC'}
+                    <div className={`w-2 h-2 rounded-full mx-auto ${isLoading ? 'bg-violet-400 animate-ping' : insight?.alert ? 'bg-rose-500 animate-pulse' : 'bg-green-500 shadow-[0_0_8px_#10b981]'}`} />
+                    <span className={`text-[7px] font-mono uppercase mt-1 block tracking-widest ${isLoading ? 'text-violet-300' : insight?.alert ? 'text-rose-400' : 'text-slate-600'}`}>
+                        {isLoading ? 'ANALYZING...' : insight?.alert ? 'ALERT_ACTIVE' : 'ACTIVE_SYNC'}
                     </span>
                 </div>
             </div>
@@ -138,13 +146,13 @@ export const SophiaCognitiveCore: React.FC<SophiaCognitiveCoreProps> = ({ system
                         <p className="text-[9px] text-slate-500 italic text-center font-mono animate-pulse">Deep causal permutation in progress...</p>
                     </div>
                 ) : insight?.alert ? (
-                    <div className="bg-violet-950/20 border border-violet-500/30 rounded-lg p-4 animate-fade-in-up shadow-[0_0_20px_rgba(109,40,217,0.15)] relative overflow-hidden group/insight">
-                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-transparent opacity-0 group-hover/insight:opacity-100 transition-opacity" />
+                    <div className="bg-rose-950/30 border border-rose-500/40 rounded-lg p-4 animate-fade-in-up shadow-[0_0_30px_rgba(220,38,38,0.2)] relative overflow-hidden group/insight backdrop-blur-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 to-transparent opacity-0 group-hover/insight:opacity-100 transition-opacity" />
                         <div className="flex items-start gap-3 relative z-10">
-                            <span className="text-violet-400 mt-0.5 text-xs animate-pulse">◈</span>
+                            <span className="text-rose-400 mt-0.5 text-xs animate-pulse">⚠</span>
                             <div className="flex flex-col gap-1">
-                                <p className="text-[10px] font-orbitron text-violet-200 font-bold uppercase tracking-widest leading-tight">{insight.alert}</p>
-                                <p className="text-[11px] text-pearl/80 leading-relaxed font-minerva italic">"{insight.recommendation}"</p>
+                                <p className="text-[10px] font-orbitron text-rose-200 font-bold uppercase tracking-widest leading-tight">{insight.alert}</p>
+                                <p className="text-[11px] text-pearl/90 leading-relaxed font-minerva italic">"{insight.recommendation}"</p>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from '@google/genai';
-import { LogType, OrbMode } from '../../types';
+import { LogType, OrbMode, VoiceInteraction } from '../../types';
 import { encode, decode, decodeAudioData } from '../audio/liveUtils';
 import { knowledgeBase } from '../../services/knowledgeBase';
 
@@ -33,7 +33,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [userInputTranscription, setUserInputTranscription] = useState('');
     const [sophiaOutputTranscription, setSophiaOutputTranscription] = useState('');
-    const [transcriptionHistory, setTranscriptionHistory] = useState<{ user: string, sophia: string }[]>([]);
+    const [transcriptionHistory, setTranscriptionHistory] = useState<VoiceInteraction[]>([]);
     const [lastSystemCommand, setLastSystemCommand] = useState<string | null>(null);
     const [isHydrated, setIsHydrated] = useState(false);
     
@@ -173,7 +173,13 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                         const fullInput = currentTurnInputRef.current;
                         const fullOutput = currentTurnOutputRef.current;
                         if (fullInput.trim() || fullOutput.trim()) {
-                            setTranscriptionHistory(prev => [...prev, { user: fullInput, sophia: fullOutput }]);
+                            const newInteraction: VoiceInteraction = {
+                                id: `vocal_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+                                user: fullInput,
+                                sophia: fullOutput,
+                                timestamp: Date.now()
+                            };
+                            setTranscriptionHistory(prev => [...prev, newInteraction]);
                             knowledgeBase.addMemory(`Vocal Exchange - Operator: ${fullInput} | Sophia: ${fullOutput}`, 'SOPHIA_VOCAL');
                         }
                         currentTurnInputRef.current = '';

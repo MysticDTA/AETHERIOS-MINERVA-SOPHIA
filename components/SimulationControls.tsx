@@ -77,7 +77,7 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
   };
 
   return (
-    <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
+    <div id="simulation-controls-panel" className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
       <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
         <div>
           <h3 className="font-orbitron text-lg text-warm-grey mb-4 border-b border-dark-border pb-2">System Calibration</h3>
@@ -102,10 +102,11 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
             />
              <div className="pt-2">
                 <h4 className="text-sm text-warm-grey uppercase tracking-wider mb-2">Scenarios</h4>
-                <div className="flex flex-wrap gap-2">
+                <div id="scenario-list" className="flex flex-wrap gap-2">
                     {scenarios.map(s => (
                         <Tooltip key={s.name} text={s.description}>
                             <button
+                                id={`scenario-btn-${s.name.replace(/\s+/g, '-').toLowerCase()}`}
                                 onClick={() => onScenarioChange(s.params)}
                                 className="px-3 py-1 rounded-md text-xs font-bold transition-colors uppercase bg-dark-surface/70 hover:bg-slate-700 text-warm-grey"
                             >
@@ -122,10 +123,11 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
            <div className="space-y-3">
               <div className="grid grid-cols-5 items-center gap-4">
                 <h4 className="col-span-2 text-sm text-warm-grey uppercase tracking-wider">Performance Tier</h4>
-                <div className="col-span-3 flex justify-start space-x-2">
+                <div id="perf-tier-selector" className="col-span-3 flex justify-start space-x-2">
                   {(['LOW', 'MEDIUM', 'HIGH'] as PerformanceTier[]).map(tier => (
                     <button
                       key={tier}
+                      id={`perf-tier-${tier.toLowerCase()}`}
                       onClick={() => performanceService.setTier(tier)}
                       className={`px-3 py-1 rounded-md text-xs font-bold transition-colors uppercase ${
                         currentTier === tier 
@@ -141,10 +143,11 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
               
               <div className="grid grid-cols-5 items-center gap-4">
                 <h4 className="col-span-2 text-sm text-warm-grey uppercase tracking-wider">Visual Theme</h4>
-                <div className="col-span-3 flex justify-start space-x-2">
+                <div id="theme-mode-selector" className="col-span-3 flex justify-start space-x-2">
                   {(['RADIANT', 'VOID', 'BIOLUMINESCENT'] as ThemeMode[]).map(t => (
                     <button
                       key={t}
+                      id={`theme-btn-${t.toLowerCase()}`}
                       onClick={() => setMode(t)}
                       className={`px-2 py-1 rounded-md text-[10px] font-bold transition-colors uppercase ${
                         mode === t 
@@ -168,6 +171,7 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
                 onChange={handleVolumeChange}
               />
               <button
+                id="sim-grounding-btn"
                 onClick={onGrounding}
                 disabled={isGrounded}
                 className="w-full mt-2 p-2 rounded-md bg-pearl/80 border border-pearl text-dark-bg font-orbitron uppercase tracking-widest text-sm hover:bg-pearl hover:text-dark-bg transition-all text-glow-pearl disabled:opacity-50 disabled:cursor-not-allowed"
@@ -175,6 +179,7 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
                 {isGrounded ? 'GROUNDING...' : 'Ground & Stabilize'}
               </button>
                <button
+                  id="sim-manual-reset-btn"
                   onClick={onManualReset}
                   className="w-full mt-2 p-2 rounded-md bg-rose-800/50 border border-rose-500 text-rose-300 font-orbitron uppercase tracking-widest text-sm hover:bg-rose-700/50 hover:text-rose-200 transition-all text-glow-rose"
                 >

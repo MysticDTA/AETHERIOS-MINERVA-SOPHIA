@@ -21,13 +21,14 @@ interface GraphNode {
     radius: number;
     color: string;
     fullText: string;
+    pulsePhase: number;
 }
 
 interface GraphLink {
     source: string;
     target: string;
     strength: number;
-    label?: string; // AI generated label
+    label?: string; 
 }
 
 export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState, memories, logs, sophiaEngine }) => {
@@ -42,7 +43,6 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
     const [isSynthesizing, setIsSynthesizing] = useState(false);
     const [synthResult, setSynthResult] = useState<string | null>(null);
 
-    // Initialize Graph Data from Props
     useEffect(() => {
         if (!containerRef.current) return;
         const width = containerRef.current.clientWidth;
@@ -59,8 +59,9 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
             type: 'ARCHITECT',
             x: cx, y: cy, vx: 0, vy: 0,
             radius: 30,
-            color: '#ffd700', // Gold
-            fullText: `Operator ID: ${systemState.auth.operatorId}\nClearance: ${systemState.userResources.sovereignTier}`
+            color: '#ffd700', 
+            fullText: `Operator ID: ${systemState.auth.operatorId}\nClearance: ${systemState.userResources.sovereignTier}`,
+            pulsePhase: 0
         });
 
         // 2. Subsystems
@@ -73,12 +74,13 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 y: cy + (Math.random() - 0.5) * 200,
                 vx: 0, vy: 0,
                 radius: 15,
-                color: '#67e8f9', // Cyan
-                fullText: `Subsystem: ${sys}\nStatus: ONLINE`
+                color: '#67e8f9', 
+                fullText: `Subsystem: ${sys}\nStatus: ONLINE`,
+                pulsePhase: Math.random() * Math.PI
             });
         });
 
-        // 3. Recent Memories (Limit 8)
+        // 3. Recent Memories
         memories.slice(0, 8).forEach((mem, i) => {
             newNodes.push({
                 id: mem.id,
@@ -88,12 +90,13 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 y: cy + (Math.random() - 0.5) * 400,
                 vx: 0, vy: 0,
                 radius: 10,
-                color: '#a78bfa', // Violet
-                fullText: mem.content
+                color: '#a78bfa', 
+                fullText: mem.content,
+                pulsePhase: Math.random() * Math.PI
             });
         });
 
-        // 4. Recent Logs (Limit 10, filtered for significance)
+        // 4. Logs
         logs.filter(l => l.type !== 'INFO').slice(0, 10).forEach((log, i) => {
             newNodes.push({
                 id: log.id,
@@ -103,20 +106,20 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 y: cy + (Math.random() - 0.5) * 500,
                 vx: 0, vy: 0,
                 radius: 6,
-                color: log.type === 'CRITICAL' ? '#f43f5e' : '#94a3b8', // Red or Slate
-                fullText: log.message
+                color: log.type === 'CRITICAL' ? '#f43f5e' : '#94a3b8',
+                fullText: log.message,
+                pulsePhase: Math.random() * Math.PI
             });
         });
 
         setNodes(newNodes);
         
-        // Initial Links (Star topology from Architect to Subsystems)
         const newLinks: GraphLink[] = newNodes
             .filter(n => n.type === 'SUBSYSTEM')
             .map(n => ({ source: 'ARCHITECT', target: n.id, strength: 0.1 }));
         setLinks(newLinks);
 
-    }, [memories.length, logs.length]); // Re-init on count change
+    }, [memories.length, logs.length]); 
 
     // Physics Loop
     useEffect(() => {
@@ -126,6 +129,7 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
         if (!ctx) return;
 
         let animationFrameId: number;
+        let time = 0;
 
         const updatePhysics = () => {
             if (!containerRef.current) return;
@@ -136,44 +140,43 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
             const cx = width / 2;
             const cy = height / 2;
 
-            // Repulsion & Attraction
             for (let i = 0; i < nodes.length; i++) {
                 const node = nodes[i];
                 
-                // Pull to center
                 const dxCenter = cx - node.x;
                 const dyCenter = cy - node.y;
                 node.vx += dxCenter * 0.0005;
                 node.vy += dyCenter * 0.0005;
 
-                // Repel others
                 for (let j = 0; j < nodes.length; j++) {
                     if (i === j) continue;
                     const other = nodes[j];
                     const dx = node.x - other.x;
                     const dy = node.y - other.y;
                     const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                    const force = 100 / (dist * dist); // Inverse square
+                    const force = 100 / (dist * dist);
                     node.vx += (dx / dist) * force;
                     node.vy += (dy / dist) * force;
                 }
 
-                // Damping
                 node.vx *= 0.92;
                 node.vy *= 0.92;
                 node.x += node.vx;
                 node.y += node.vy;
 
-                // Bounds
+                // Quantum Jitter
+                node.x += (Math.random() - 0.5) * 0.5;
+                node.y += (Math.random() - 0.5) * 0.5;
+
                 node.x = Math.max(20, Math.min(width - 20, node.x));
                 node.y = Math.max(20, Math.min(height - 20, node.y));
             }
         };
 
         const render = () => {
+            time += 0.05;
             updatePhysics();
             
-            // Clear
             ctx.fillStyle = '#050505';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -186,18 +189,19 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                     ctx.beginPath();
                     ctx.moveTo(src.x, src.y);
                     ctx.lineTo(tgt.x, tgt.y);
-                    ctx.strokeStyle = link.label ? '#a3e635' : 'rgba(255, 255, 255, 0.1)'; // Green if synthesized
-                    ctx.setLineDash(link.label ? [] : [5, 5]);
+                    // Entanglement style line
+                    ctx.strokeStyle = link.label ? '#a3e635' : `rgba(255, 255, 255, ${0.1 + Math.sin(time + src.x) * 0.05})`; 
+                    ctx.setLineDash(link.label ? [] : [4, 4]);
+                    ctx.lineDashOffset = -time * 2;
                     ctx.stroke();
                     ctx.setLineDash([]);
 
-                    // Draw Label if exists
                     if (link.label) {
                         const mx = (src.x + tgt.x) / 2;
                         const my = (src.y + tgt.y) / 2;
                         ctx.fillStyle = '#a3e635';
                         ctx.font = '10px monospace';
-                        ctx.fillText('⚡ CAUSAL_LINK', mx, my);
+                        ctx.fillText('⚡ ENTANGLED', mx, my);
                     }
                 }
             });
@@ -207,29 +211,36 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 const isSelected = selectedNodes.some(n => n.id === node.id);
                 const isHovered = hoveredNode?.id === node.id;
 
+                const pulse = Math.sin(time + node.pulsePhase) * 2;
+
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                ctx.arc(node.x, node.y, node.radius + pulse, 0, Math.PI * 2);
                 ctx.fillStyle = node.color;
                 
-                // Glow
-                ctx.shadowBlur = isSelected ? 20 : isHovered ? 15 : 0;
+                ctx.shadowBlur = isSelected ? 30 : isHovered ? 20 : 10;
                 ctx.shadowColor = node.color;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Selection Ring
+                // Probability cloud ring
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
+                ctx.strokeStyle = node.color;
+                ctx.globalAlpha = 0.2;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+
                 if (isSelected) {
                     ctx.strokeStyle = '#fff';
                     ctx.lineWidth = 2;
                     ctx.stroke();
                 }
 
-                // Label
                 if (node.radius > 10 || isHovered) {
                     ctx.fillStyle = '#fff';
                     ctx.font = '9px "Orbitron"';
                     ctx.textAlign = 'center';
-                    ctx.fillText(node.label, node.x, node.y + node.radius + 12);
+                    ctx.fillText(node.label, node.x, node.y + node.radius + 14);
                 }
             });
 
@@ -240,28 +251,23 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
         return () => cancelAnimationFrame(animationFrameId);
     }, [nodes, links, selectedNodes, hoveredNode]);
 
-    // Interaction Handlers
     const handleCanvasClick = (e: React.MouseEvent) => {
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
-        // Find clicked node
         const clicked = nodes.find(n => Math.hypot(n.x - x, n.y - y) < n.radius + 5);
 
         if (clicked) {
             setSelectedNodes(prev => {
                 if (prev.some(n => n.id === clicked.id)) {
-                    return prev.filter(n => n.id !== clicked.id); // Deselect
+                    return prev.filter(n => n.id !== clicked.id);
                 }
-                if (prev.length >= 2) {
-                    return [clicked]; // Start new selection pair
-                }
+                if (prev.length >= 2) return [clicked];
                 return [...prev, clicked];
             });
         } else {
-            setSelectedNodes([]); // Click bg clears selection
+            setSelectedNodes([]);
         }
     };
 
@@ -280,10 +286,8 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
         setSynthResult(null);
 
         const linkDesc = await sophiaEngine.findCausalLink(selectedNodes[0].fullText, selectedNodes[1].fullText);
-        
         setSynthResult(linkDesc);
         
-        // Add visual link
         setLinks(prev => [...prev, {
             source: selectedNodes[0].id,
             target: selectedNodes[1].id,
@@ -296,12 +300,11 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
 
     return (
         <div className="w-full h-full flex flex-col animate-fade-in relative bg-[#020202]">
-            {/* Header / Controls */}
             <div className="absolute top-0 left-0 w-full p-6 z-20 flex justify-between items-start pointer-events-none">
                 <div>
-                    <h2 className="font-orbitron text-2xl text-pearl uppercase font-black tracking-tighter text-glow-pearl">Noetic Causal Graph</h2>
+                    <h2 className="font-orbitron text-2xl text-pearl uppercase font-black tracking-tighter text-glow-pearl">Noetic Graph State</h2>
                     <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1 bg-black/50 px-2 py-1 rounded inline-block">
-                        Nodes: {nodes.length} | Links: {links.length}
+                        Graph_State_Vector: {nodes.length}Q
                     </p>
                 </div>
                 <div className="pointer-events-auto flex flex-col gap-2 items-end">
@@ -321,17 +324,16 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                             : 'bg-black/40 text-slate-600 border-white/10 cursor-not-allowed'
                         }`}
                     >
-                        {isSynthesizing ? 'Triangulating...' : 'Synthesize Connection'}
+                        {isSynthesizing ? 'Entangling...' : 'Synthesize Entanglement'}
                     </button>
                 </div>
             </div>
 
-            {/* Synth Result Overlay */}
             {synthResult && (
                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 max-w-lg w-full">
                     <div className="bg-black/80 border border-gold/40 p-6 rounded-lg backdrop-blur-xl shadow-[0_0_50px_rgba(230,199,127,0.1)] text-center relative overflow-hidden animate-fade-in-up">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gold shadow-[0_0_10px_gold]" />
-                        <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold block mb-3">Heuristic Discovery</span>
+                        <span className="text-[8px] font-mono text-gold uppercase tracking-[0.4em] font-bold block mb-3">Discovery Collapsed</span>
                         <p className="font-minerva italic text-lg text-pearl/90 leading-relaxed">
                             "{synthResult}"
                         </p>
@@ -339,7 +341,6 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 </div>
             )}
 
-            {/* Hover Tooltip */}
             {hoveredNode && !synthResult && (
                 <div className="absolute bottom-6 left-6 z-20 max-w-sm pointer-events-none animate-fade-in">
                     <div className="bg-slate-900/90 border border-white/10 p-4 rounded-lg backdrop-blur-md shadow-2xl">
@@ -351,7 +352,6 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 </div>
             )}
 
-            {/* The Graph */}
             <div ref={containerRef} className="flex-1 cursor-crosshair relative z-10">
                 <canvas 
                     ref={canvasRef} 
@@ -361,7 +361,6 @@ export const NoeticGraphNexus: React.FC<NoeticGraphNexusProps> = ({ systemState,
                 />
             </div>
             
-            {/* Background Grid */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         </div>
     );

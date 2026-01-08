@@ -41,6 +41,7 @@ export const EventHorizonScreen: React.FC<EventHorizonScreenProps> = ({ audioEng
 
   return (
     <div 
+      id="event-horizon-screen"
       className="min-h-screen w-full flex flex-col items-center justify-center text-center p-4 bg-black overflow-hidden relative z-[9999]"
       style={{ animation: 'blackhole-pulse 8s infinite ease-in-out' }}
     >
@@ -57,7 +58,7 @@ export const EventHorizonScreen: React.FC<EventHorizonScreenProps> = ({ audioEng
           System Integrity Critical // Event Horizon Reached
         </p>
 
-        <div className="mt-12 p-6 bg-black/50 border border-red-500/30 font-mono text-left w-full max-w-2xl">
+        <div id="critical-error-display" className="mt-12 p-6 bg-black/50 border border-red-500/30 font-mono text-left w-full max-w-2xl">
             <p className="text-yellow-300 text-glow-gold text-lg"><span className="text-red-500 mr-4">&gt;&gt;</span>{currentError}<span className="inline-block w-3 h-5 bg-yellow-300 ml-1 animate-blink align-middle" /></p>
         </div>
 
@@ -68,6 +69,7 @@ export const EventHorizonScreen: React.FC<EventHorizonScreenProps> = ({ audioEng
         {onManualReset && (
             <div className="mt-16">
                 <button 
+                    id="manual-reset-button"
                     onClick={onManualReset}
                     className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-bold font-orbitron text-lg uppercase tracking-[0.2em] border-2 border-red-400 shadow-[0_0_40px_rgba(220,38,38,0.5)] transition-all hover:scale-105 active:scale-95 animate-pulse"
                 >
