@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useSystemSimulation } from './useSystemSimulation';
 import { SophiaEngineCore } from './services/sophiaEngine';
@@ -5,6 +6,7 @@ import { AudioEngine } from './components/audio/AudioEngine';
 import { OrbMode, LogType, CommsStatus } from './types';
 import { ApiKeyGuard } from './components/ApiKeyGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ThemeProvider } from './components/ThemeProvider';
 import { Layout } from './components/Layout';
 import { Header } from './components/Header';
 import { SystemFooter } from './components/SystemFooter';
@@ -33,6 +35,7 @@ import { MenervaBridge } from './components/MenervaBridge';
 import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
 import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 import { NoeticGraphNexus } from './components/NoeticGraphNexus';
+import { NeuralQuantizer } from './components/NeuralQuantizer';
 import { useVoiceInterface } from './components/hooks/useVoiceInterface';
 import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
 import { Cursor } from './components/Cursor';
@@ -71,6 +74,7 @@ export default function App() {
     const [showInstructions, setShowInstructions] = useState(false);
     const [showDeepDiagnostic, setShowDeepDiagnostic] = useState(false);
     const [forceUpdateTick, setForceUpdateTick] = useState(0);
+    const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
 
     // Services
     const sophiaEngineRef = useRef<SophiaEngineCore | null>(null);
@@ -103,6 +107,18 @@ export default function App() {
             audioEngineRef.current?.stopAllSounds();
         };
     }, []);
+
+    // Intelligent Coherence Monitoring
+    useEffect(() => {
+        if (systemState.coherenceResonance.status === 'CRITICAL') {
+            audioEngineRef.current?.playAlarm();
+            // Debounce log entry to avoid spamming
+            const lastLog = systemState.log[0];
+            if (!lastLog || !lastLog.message.includes('CRITICAL RESONANCE')) {
+                addLogEntry(LogType.CRITICAL, "CRITICAL RESONANCE FAILURE DETECTED. IMMEDIATE GROUNDING REQUIRED.");
+            }
+        }
+    }, [systemState.coherenceResonance.status, addLogEntry, systemState.log]);
 
     // Update Sophia Instruction
     useEffect(() => {
@@ -171,6 +187,16 @@ export default function App() {
                     setCurrentPage(19);
                     audioEngineRef.current?.playUIScanStart();
                     addLogEntry(LogType.SYSTEM, "Hotkey [Ctrl+S]: Diagnostic Audit Triggered.");
+                }
+            }
+
+            // 'Ctrl+M' -> Module Manager (Page 20)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                if (currentPage !== 20) {
+                    setCurrentPage(20);
+                    audioEngineRef.current?.playUIClick();
+                    addLogEntry(LogType.INFO, "Hotkey [Ctrl+M]: Module Manager Accessed.");
                 }
             }
 
@@ -289,10 +315,13 @@ export default function App() {
             case 12: // AURA
                 return <Display12 systemState={systemState} />;
             case 13: // NEURON
-                // Placeholder if NeuralQuantizer needs a full page wrapper, or use directly
-                return <div className="h-full flex flex-col"><h2 className="font-orbitron text-2xl text-pearl p-6">Neural Quantizer Matrix</h2><div className="flex-1"><Dashboard systemState={systemState} onTriggerScan={() => {}} scanCompleted={false} sophiaEngine={sophiaEngineRef.current} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} /></div></div>; // Fallback or implementation
+                return (
+                    <div className="h-full flex flex-col">
+                        <NeuralQuantizer orbMode={orbMode} systemState={systemState} />
+                    </div>
+                );
             case 14: // SUMMARY
-                return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngineRef.current} />;
+                return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngineRef.current} existingReport={lastAuditReport} />;
             case 15: // VAULT
                 return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
             case 16: // ORBIT
@@ -316,6 +345,7 @@ export default function App() {
                     systemState={systemState}
                     sophiaEngine={sophiaEngineRef.current}
                     audioEngine={audioEngineRef.current}
+                    onReportGenerated={setLastAuditReport}
                 />;
             case 20: // MODULES
                 return <ModuleManager systemState={systemState} />;
@@ -346,89 +376,98 @@ export default function App() {
 
     return (
         <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `UI Crash: ${err.message}`)}>
-            <ApiKeyGuard>
-                {showSovereignPortal && <SovereignPortal onInitialize={handlePortalInitialize} />}
-                
-                {systemState.quantumHealing.health <= 0 ? (
-                    <EventHorizonScreen 
-                        audioEngine={audioEngineRef.current} 
-                        onManualReset={handleManualReset} 
-                    />
-                ) : (
-                    <div className="relative w-full h-screen overflow-hidden bg-dark-bg text-pearl font-sans selection:bg-gold/30 selection:text-white">
-                        <Cursor />
-                        <MotherboardOverlay />
-                        
-                        <Layout 
-                            breathCycle={systemState.breathCycle} 
-                            isGrounded={systemState.isGrounded} 
-                            resonanceFactor={systemState.resonanceFactorRho}
-                            drift={systemState.temporalCoherenceDrift}
-                            orbMode={orbMode}
-                            coherence={systemState.biometricSync.coherence}
-                        >
-                            <Header 
-                                governanceAxiom={systemState.governanceAxiom} 
-                                lesions={systemState.quantumHealing.lesions} 
-                                currentPage={currentPage} 
-                                onPageChange={setCurrentPage} 
-                                audioEngine={audioEngineRef.current}
-                                tokens={systemState.userResources.cradleTokens}
-                                userTier={systemState.userResources.sovereignTier}
-                                transmissionStatus={cosmosCommsService.initialState.status as CommsStatus}
-                                onToggleVoice={() => setShowVoiceOverlay(prev => !prev)}
-                                isVoiceActive={showVoiceOverlay || voiceInterface.isSessionActive}
-                            />
+            <ThemeProvider>
+                <ApiKeyGuard>
+                    {showSovereignPortal && <SovereignPortal onInitialize={handlePortalInitialize} />}
+                    
+                    {systemState.quantumHealing.health <= 0 ? (
+                        <EventHorizonScreen 
+                            audioEngine={audioEngineRef.current} 
+                            onManualReset={handleManualReset} 
+                        />
+                    ) : (
+                        <div className="relative w-full h-screen overflow-hidden bg-dark-bg text-pearl font-sans selection:bg-gold/30 selection:text-white">
+                            <Cursor />
+                            <MotherboardOverlay />
                             
-                            <main className="flex-grow min-h-0 py-4 relative z-10">
-                                {renderPage()}
-                            </main>
+                            <Layout 
+                                breathCycle={systemState.breathCycle} 
+                                isGrounded={systemState.isGrounded} 
+                                resonanceFactor={systemState.resonanceFactorRho}
+                                drift={systemState.temporalCoherenceDrift}
+                                orbMode={orbMode}
+                                coherence={systemState.biometricSync.coherence}
+                            >
+                                <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Header Component Failure: ${err.message}`)}>
+                                    <Header 
+                                        governanceAxiom={systemState.governanceAxiom} 
+                                        lesions={systemState.quantumHealing.lesions} 
+                                        currentPage={currentPage} 
+                                        onPageChange={setCurrentPage} 
+                                        audioEngine={audioEngineRef.current}
+                                        tokens={systemState.userResources.cradleTokens}
+                                        userTier={systemState.userResources.sovereignTier}
+                                        transmissionStatus={cosmosCommsService.initialState.status as CommsStatus}
+                                        onToggleVoice={() => setShowVoiceOverlay(prev => !prev)}
+                                        isVoiceActive={showVoiceOverlay || voiceInterface.isSessionActive}
+                                    />
+                                </ErrorBoundary>
+                                
+                                <main className="flex-grow min-h-0 py-4 relative z-10">
+                                    <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Display Module Failure (Page ${currentPage}): ${err.message}`)}>
+                                        {renderPage()}
+                                    </ErrorBoundary>
+                                </main>
 
-                            <SystemFooter 
-                                orbModes={ORB_MODES as any} 
-                                currentMode={orbMode} 
-                                setMode={setOrbMode}
-                                currentPage={currentPage}
-                                setCurrentPage={setCurrentPage}
-                                onOpenConfig={() => setShowConfig(true)}
-                            />
-                        </Layout>
+                                <ErrorBoundary onError={(err) => addLogEntry(LogType.CRITICAL, `Footer Component Failure: ${err.message}`)}>
+                                    <SystemFooter 
+                                        orbModes={ORB_MODES as any} 
+                                        currentMode={orbMode} 
+                                        setMode={setOrbMode}
+                                        currentPage={currentPage}
+                                        setCurrentPage={setCurrentPage}
+                                        onOpenConfig={() => setShowConfig(true)}
+                                    />
+                                </ErrorBoundary>
+                            </Layout>
 
-                        {/* Overlays */}
-                        {showDeepDiagnostic && (
-                            <DeepDiagnosticOverlay 
-                                onClose={() => setShowDeepDiagnostic(false)} 
-                                onComplete={() => {
-                                    setShowDeepDiagnostic(false);
-                                    addLogEntry(LogType.INFO, "Diagnostic Audit Complete.");
-                                }}
-                                systemState={systemState}
-                                sophiaEngine={sophiaEngineRef.current}
-                                audioEngine={audioEngineRef.current}
-                            />
-                        )}
+                            {/* Overlays */}
+                            {showDeepDiagnostic && (
+                                <DeepDiagnosticOverlay 
+                                    onClose={() => setShowDeepDiagnostic(false)} 
+                                    onComplete={() => {
+                                        setShowDeepDiagnostic(false);
+                                        addLogEntry(LogType.INFO, "Diagnostic Audit Complete.");
+                                    }}
+                                    systemState={systemState}
+                                    sophiaEngine={sophiaEngineRef.current}
+                                    audioEngine={audioEngineRef.current}
+                                    onReportGenerated={setLastAuditReport}
+                                />
+                            )}
 
-                        <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
-                            <SimulationControls 
-                                params={{ decoherenceChance: 0.02, lesionChance: 0.005 }} 
-                                onParamsChange={() => {}} 
-                                onScenarioChange={() => {}} 
-                                onManualReset={handleManualReset}
-                                onGrounding={() => setGrounded(true)}
-                                isGrounded={systemState.isGrounded}
-                                audioEngine={audioEngineRef.current}
-                            />
-                        </Modal>
+                            <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
+                                <SimulationControls 
+                                    params={{ decoherenceChance: 0.02, lesionChance: 0.005 }} 
+                                    onParamsChange={() => {}} 
+                                    onScenarioChange={() => {}} 
+                                    onManualReset={handleManualReset}
+                                    onGrounding={() => setGrounded(true)}
+                                    isGrounded={systemState.isGrounded}
+                                    audioEngine={audioEngineRef.current}
+                                />
+                            </Modal>
 
-                        <Modal isOpen={showInstructions} onClose={() => setShowInstructions(false)}>
-                            <SophiaInstructions 
-                                currentInstruction={sophiaInstruction} 
-                                onUpdate={setSophiaInstruction} 
-                            />
-                        </Modal>
-                    </div>
-                )}
-            </ApiKeyGuard>
+                            <Modal isOpen={showInstructions} onClose={() => setShowInstructions(false)}>
+                                <SophiaInstructions 
+                                    currentInstruction={sophiaInstruction} 
+                                    onUpdate={setSophiaInstruction} 
+                                />
+                            </Modal>
+                        </div>
+                    )}
+                </ApiKeyGuard>
+            </ThemeProvider>
         </ErrorBoundary>
     );
 }

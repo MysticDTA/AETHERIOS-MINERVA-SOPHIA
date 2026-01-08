@@ -8,13 +8,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        pearl: '#f8f5ec',
-        gold: '#ffd700',
-        'dark-bg': '#020202',
-        'dark-surface': '#080808',
-        'warm-grey': '#b6b0a0',
-        'aether-blue': '#6d28d9',
-        'aether-violet': '#4c1d95',
+        pearl: 'var(--pearl)',
+        gold: 'var(--gold)',
+        'dark-bg': 'var(--dark-bg)',
+        'dark-surface': 'var(--dark-surface)',
+        'warm-grey': 'var(--warm-grey)',
+        'aether-blue': 'var(--aether-blue)',
+        'aether-violet': 'var(--aether-violet)',
       },
       fontFamily: {
         orbitron: ['Orbitron', 'sans-serif'],

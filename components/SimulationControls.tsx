@@ -4,6 +4,7 @@ import { Scenario } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
 import { AudioEngine } from './audio/AudioEngine';
 import { Tooltip } from './Tooltip';
+import { useTheme, ThemeMode } from './ThemeProvider';
 
 interface SimulationControlsProps {
   params: {
@@ -57,6 +58,7 @@ const ControlSlider: React.FC<{
 export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, onParamsChange, onScenarioChange, onManualReset, onGrounding, isGrounded, audioEngine }) => {
   const [currentTier, setCurrentTier] = useState<PerformanceTier>(performanceService.tier);
   const [volume, setVolume] = useState(0.5);
+  const { mode, setMode } = useTheme();
 
   useEffect(() => {
     const unsubscribe = performanceService.subscribe(setCurrentTier);
@@ -136,6 +138,26 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({ params, 
                   ))}
                 </div>
               </div>
+              
+              <div className="grid grid-cols-5 items-center gap-4">
+                <h4 className="col-span-2 text-sm text-warm-grey uppercase tracking-wider">Visual Theme</h4>
+                <div className="col-span-3 flex justify-start space-x-2">
+                  {(['RADIANT', 'VOID', 'BIOLUMINESCENT'] as ThemeMode[]).map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setMode(t)}
+                      className={`px-2 py-1 rounded-md text-[10px] font-bold transition-colors uppercase ${
+                        mode === t 
+                          ? 'bg-pearl text-dark-bg border border-pearl' 
+                          : 'bg-dark-surface/70 hover:bg-slate-700 text-warm-grey border border-transparent'
+                      }`}
+                    >
+                      {t.substring(0, 4)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <ControlSlider
                 label="Master Volume"
                 paramKey="masterVolume"
