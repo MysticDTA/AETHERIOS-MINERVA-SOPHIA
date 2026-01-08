@@ -126,6 +126,43 @@ export const App: React.FC = () => {
       return () => cosmosCommsService.stop();
   }, []);
 
+  // Global Hotkeys
+  useEffect(() => {
+      const handleGlobalHotkeys = (e: KeyboardEvent) => {
+          const target = e.target as HTMLElement;
+          const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+          // Ctrl+S: Trigger System Scan
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+              e.preventDefault();
+              setShowDiagnostic(true);
+              audioEngineRef.current?.playUIClick();
+              return;
+          }
+
+          // Ctrl+V: Activate/Toggle Voice Commands
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+              e.preventDefault();
+              if (voiceInterface.isSessionActive) {
+                  voiceInterface.closeVoiceSession();
+              } else {
+                  voiceInterface.startVoiceSession();
+              }
+              return;
+          }
+
+          // '/': Open Console (Navigate to Cradle)
+          if (e.key === '/' && !isTyping) {
+              e.preventDefault();
+              setCurrentPage(4); // ID 4 is CRADLE / CONSOLE
+              audioEngineRef.current?.playUIClick();
+          }
+      };
+
+      window.addEventListener('keydown', handleGlobalHotkeys);
+      return () => window.removeEventListener('keydown', handleGlobalHotkeys);
+  }, [voiceInterface.isSessionActive, voiceInterface.startVoiceSession, voiceInterface.closeVoiceSession]);
+
   // Audio Mode Sync
   useEffect(() => {
       audioEngineRef.current?.setMode(orbMode);
@@ -168,7 +205,7 @@ export const App: React.FC = () => {
                   sophiaEngine={sophiaEngine}
                   setOrbMode={setOrbMode}
                   orbMode={orbMode}
-                  onOptimize={() => {}}
+                  onOptimize={() => setCurrentPage(24)}
                   onUpgrade={() => setCurrentPage(15)}
                   audioEngine={audioEngineRef.current}
               />;
@@ -255,6 +292,8 @@ export const App: React.FC = () => {
               return <EventLog log={systemState.log} filter={'ALL'} onFilterChange={() => {}} />;
           case 23: // SHIELD
               return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
+          case 24: // OPTIMIZE
+              return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={() => setCurrentPage(1)} />;
           case 25: // QUANTUM
               return <QuantumComputeNexus 
                   systemState={systemState} 
@@ -271,7 +310,7 @@ export const App: React.FC = () => {
                   sophiaEngine={sophiaEngine}
                   setOrbMode={setOrbMode}
                   orbMode={orbMode}
-                  onOptimize={() => {}}
+                  onOptimize={() => setCurrentPage(24)}
                   audioEngine={audioEngineRef.current}
               />;
       }
@@ -377,6 +416,7 @@ export const App: React.FC = () => {
                         setCurrentPage(19); // Navigate to Full Audit Report
                     }}
                     systemState={systemState}
+                    setSystemState={setSystemState}
                     sophiaEngine={sophiaEngine}
                     audioEngine={audioEngineRef.current}
                     onReportGenerated={setLastAuditReport}

@@ -108,6 +108,7 @@ export const SYSTEM_NODES: NavNode[] = [
     // VEO is Tier-0 Sovereign only
     { id: 18, label: 'VEO', requiredTier: 'SOVEREIGN', description: 'Visual Evidence Synthesis' },
     { id: 19, label: 'AUDIT', requiredTier: 'ARCHITECT', isAudit: true, description: 'Heuristic System Sweep' },
+    { id: 24, label: 'OPTIMIZE', requiredTier: 'ARCHITECT', description: 'Full System Performance Tuning' },
     { id: 21, label: 'BRIDGE', requiredTier: 'ARCHITECT', isBridge: true, description: 'Menerva Project Ingestion' },
     { id: 22, label: 'LOGS', requiredTier: 'ACOLYTE', isLogs: true, description: 'Causal Event Registry' },
     { id: 23, label: 'SHIELD', requiredTier: 'ARCHITECT', isShield: true, description: 'Firewall & Security Audit' },

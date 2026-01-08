@@ -8,6 +8,7 @@ interface DeepDiagnosticOverlayProps {
   onClose: () => void;
   onComplete: () => void;
   systemState: SystemState;
+  setSystemState?: React.Dispatch<React.SetStateAction<SystemState>>;
   sophiaEngine: SophiaEngineCore | null;
   audioEngine: AudioEngine | null;
   onReportGenerated?: (report: { report: string; sources: any[] }) => void;
@@ -133,18 +134,12 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
             ctx.beginPath();
             ctx.moveTo(0, beamProjStart.y);
             ctx.lineTo(w, beamProjEnd.y);
-            ctx.strokeStyle = foundDefect ? 'rgba(244, 63, 94, 0.5)' : 'rgba(255, 215, 0, 0.3)';
+            ctx.strokeStyle = foundDefect ? 'rgba(244, 63, 94, 0.5)' : 'rgba(16, 185, 129, 0.5)';
             ctx.lineWidth = 2;
             ctx.shadowBlur = 10;
-            ctx.shadowColor = foundDefect ? '#f43f5e' : '#ffd700';
+            ctx.shadowColor = foundDefect ? '#f43f5e' : '#10b981';
             ctx.stroke();
             ctx.shadowBlur = 0;
-
-            // HUD Elements
-            ctx.font = '10px "JetBrains Mono"';
-            ctx.fillStyle = '#ffd700';
-            ctx.fillText(`SCAN_DEPTH: ${scanY.toFixed(2)}`, 20, 20);
-            ctx.fillText(`ENTROPY_DETECT: ${foundDefect ? 'CRITICAL' : 'NOMINAL'}`, 20, 35);
 
             animationFrame = requestAnimationFrame(render);
         };
@@ -157,260 +152,142 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     }, [foundDefect]);
 
     return (
-        <div ref={containerRef} className="bg-black/80 border border-white/5 p-4 rounded-sm relative overflow-hidden h-64 lg:h-80 group shadow-inner z-10 w-full transition-colors duration-500 hover:border-white/10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.1)_0%,transparent_70%)] pointer-events-none" />
-            <canvas ref={canvasRef} className="w-full h-full block relative z-10 mix-blend-screen" />
-            {foundDefect && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                    <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 text-red-100 font-orbitron text-xs font-bold tracking-widest animate-pulse backdrop-blur-md">
-                        ⚠ QUANTUM FRACTURE DETECTED
-                    </div>
-                </div>
-            )}
+        <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-black/80 rounded-lg border border-white/10 shadow-inner">
+            <div className="absolute top-2 left-2 text-[8px] font-mono text-emerald-500 uppercase tracking-widest z-10 flex gap-2">
+                <span>Scanner_Active:</span>
+                <span className="text-white">{activeStepId.toUpperCase()}</span>
+            </div>
+            <canvas ref={canvasRef} className="w-full h-full block opacity-80" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.05)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none mix-blend-screen" />
         </div>
     );
 };
 
-export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({ onClose, onComplete, systemState, sophiaEngine, audioEngine, onReportGenerated }) => {
-  const [steps, setSteps] = useState<DiagnosticStep[]>(QUANTUM_AUDIT_SEQUENCE);
-  const [activeStepIdx, setActiveStepIdx] = useState(0);
-  const [diagnosticStatus, setDiagnosticStatus] = useState<DiagnosticStatus>('SCANNING');
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(["INIT QUANTUM AUDIT v4.1-RADIANT...", "TARGET: KERNEL_LATENCY_OPTIMIZATION", "BENCHMARK_PROTOCOL: ACTIVE"]);
-  const [auditReport, setAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [foundDefect, setFoundDefect] = useState(false);
-  const terminalRef = useRef<HTMLDivElement>(null);
-  const isMounted = useRef(true);
+export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
+    onClose,
+    onComplete,
+    systemState,
+    setSystemState,
+    sophiaEngine,
+    audioEngine,
+    onReportGenerated
+}) => {
+    const [steps, setSteps] = useState<DiagnosticStep[]>(QUANTUM_AUDIT_SEQUENCE);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [isScanning, setIsScanning] = useState(true);
+    const [telemetry, setTelemetry] = useState<string>("Initializing Deep Diagnostic Kernel...");
 
-  useEffect(() => {
-    isMounted.current = true;
-    return () => { isMounted.current = false; };
-  }, []);
+    useEffect(() => {
+        if (!isScanning) return;
 
-  useEffect(() => {
-    if (diagnosticStatus === 'COMPLETED') return;
+        let timeout: ReturnType<typeof setTimeout>;
 
-    const runScan = async () => {
-      for (let i = 0; i < steps.length; i++) {
-        if (!isMounted.current) return;
-        
-        setActiveStepIdx(i);
-        setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
-        audioEngine?.playUIClick();
-        
-        // Random defect simulation
-        const triggerDefect = (i === 5 || i === 3) && Math.random() > 0.6; 
-        
-        const iterations = 10; 
-        for (let p = 0; p <= iterations; p++) {
-          if (!isMounted.current) return;
-          const progress = (p / iterations) * 100;
-          await new Promise(r => setTimeout(r, 60 + Math.random() * 40));
-          
-          if (!isMounted.current) return;
-          setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress } : s));
-          
-          if (triggerDefect && p === 8 && !foundDefect) {
-              setFoundDefect(true);
-              audioEngine?.playAlarm();
-              setTerminalOutput(prev => [...prev.slice(-50), `[WARN] ENTROPY SPIKE DETECTED IN ${steps[i].label.split(' ')[0]}`, `[AUTO-FIX] INITIATING CAUSAL PATCH...`]);
-              await new Promise(r => setTimeout(r, 800));
-              if (!isMounted.current) return;
-              setFoundDefect(false);
-              audioEngine?.playPurgeEffect();
-              setTerminalOutput(prev => [...prev.slice(-50), `[SUCCESS] PATCH APPLIED. PARITY RESTORED.`]);
-          }
+        const processStep = async () => {
+            if (currentStepIndex >= steps.length) {
+                setIsScanning(false);
+                setTelemetry("AUDIT_COMPLETE. COMPILING_REPORT...");
+                
+                if (sophiaEngine && onReportGenerated) {
+                    const report = await sophiaEngine.performSystemAudit(systemState);
+                    onReportGenerated(report);
+                }
+                
+                audioEngine?.playAscensionChime();
+                setTimeout(onComplete, 1000);
+                return;
+            }
 
-          if (Math.random() > 0.4) {
-             const msg = SCAN_TELEMETRY[Math.floor(Math.random() * SCAN_TELEMETRY.length)];
-             setTerminalOutput(prev => [...prev.slice(-50), `[${steps[i].id.toUpperCase()}] ${msg}`]);
-          }
-        }
-
-        if (!isMounted.current) return;
-        setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'SUCCESS', progress: 100 } : s));
-        setTerminalOutput(prev => [...prev, `[SUCCESS] ${steps[i].id} benchmark verified.`]);
-
-        if (steps[i].id === 'audit_logic' && sophiaEngine) {
-            setIsAuditing(true);
-            setTerminalOutput(prev => [...prev, "[SOPHIA] Initiating 32k token deep intellectual synthesis..."]);
-            const report = await sophiaEngine.performSystemAudit(systemState);
-            if (!isMounted.current) return;
-            setAuditReport(report);
-            if (onReportGenerated) onReportGenerated(report);
-            setIsAuditing(false);
-            setTerminalOutput(prev => [...prev, "[SUCCESS] Performance heuristic audit report generated."]);
-        }
-      }
-
-      setDiagnosticStatus('PARITY_CHECK');
-      setTerminalOutput(prev => [...prev, "--- SYSTEM PERFORMANCE OPTIMIZED ---", `ESTABLISHING GLOBAL PARITY LOCK AT ${systemState.resonanceFactorRho.toFixed(4)} GHz...`]);
-      await new Promise(r => setTimeout(r, 1000));
-      if (!isMounted.current) return;
-      setDiagnosticStatus('COMPLETED');
-      audioEngine?.playAscensionChime(); 
-    };
-
-    runScan();
-  }, []);
-
-  useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-    }
-  }, [terminalOutput]);
-
-  return (
-    <div className="fixed inset-0 z-[600] bg-black/98 backdrop-blur-3xl flex flex-col p-6 md:p-12 animate-fade-in font-mono overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none overflow-hidden bg-[radial-gradient(circle_at_center,rgba(76,29,149,0.15)_0%,transparent_80%)]">
-        <div className="grid grid-cols-12 gap-8 h-full text-[6px] leading-tight text-violet-500/20">
-          {Array.from({ length: 48 }).map((_, i) => (
-            <div key={i} className="animate-[pulse_4s_infinite]" style={{ animationDelay: `${i * 0.1}s` }}>
-              {Math.random().toString(36).repeat(20)}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex flex-col gap-8">
-        <div className="flex justify-between items-end border-b border-white/10 pb-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-                <div className="w-3 h-3 bg-violet-500 rounded-full animate-ping shadow-[0_0_10px_#8b5cf6]" />
-                <h1 className="font-orbitron text-3xl md:text-5xl text-pearl tracking-tighter uppercase font-bold text-glow-violet">Quantum Interference Audit</h1>
-            </div>
-            <p className="text-slate-500 uppercase tracking-[0.5em] text-[10px] font-bold">Node_SFO_CORE // Deep Causal Scan // Grade_S++</p>
-          </div>
-          <div className="hidden md:block">
-            <div className={`px-8 py-3 rounded-sm border-2 text-[12px] font-bold tracking-[0.3em] transition-all duration-1000 ${
-              diagnosticStatus === 'COMPLETED' ? 'border-green-500/60 text-green-400 bg-green-950/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-violet-500/40 text-violet-300 bg-violet-950/10 animate-pulse'
-            }`}>
-              {diagnosticStatus === 'COMPLETED' ? 'PARITY_VERIFIED' : 'QUANTUM_SCAN_ACTIVE'}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
-          <div className="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-6 scrollbar-thin relative z-20">
-            <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-bold mb-4">Benchmark Registry</h4>
-            {steps.map((step, i) => (
-              <div key={step.id} className={`p-5 rounded-sm border transition-all duration-500 group ${
-                step.status === 'ACTIVE' ? 'border-violet-500 text-violet-200 bg-violet-950/20 scale-[1.02] shadow-[0_0_30px_rgba(139,92,246,0.1)]' : 
-                step.status === 'SUCCESS' ? 'border-green-500/20 bg-green-950/10 opacity-70' : 
-                'border-white/5 bg-black/40 opacity-30'
-              }`}>
-                <div className="flex justify-between items-center mb-3">
-                  <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${step.status === 'ACTIVE' ? 'text-violet-300' : 'text-slate-400'}`}>
-                    {step.label}
-                  </span>
-                  <span className="text-[10px] font-mono opacity-80">{step.progress.toFixed(0)}%</span>
-                </div>
-                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className={`h-full transition-all duration-300 ease-out ${step.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_#10b981]' : foundDefect && step.status === 'ACTIVE' ? 'bg-red-500 shadow-[0_0_15px_red]' : 'bg-violet-500 shadow-[0_0_8px_#8b5cf6]'}`}
-                    style={{ width: `${step.progress}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-
-            {auditReport && (
-                <div className="mt-6 p-6 bg-gold/5 border border-gold/30 rounded animate-fade-in shadow-2xl relative overflow-hidden z-20">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-gold/40" />
-                    <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.4em] mb-6 border-b border-gold/10 pb-3 font-bold">Formal Heuristic Conclusion</h4>
-                    <div className="text-[12px] text-pearl/80 leading-relaxed font-minerva italic audit-report-content space-y-4 select-text" dangerouslySetInnerHTML={{ __html: auditReport.report }} />
-                </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-7 flex flex-col gap-6 min-h-0 relative z-20">
-            <SystemArchitectureScanner activeStepId={steps[activeStepIdx].id} foundDefect={foundDefect} />
+            const currentStep = steps[currentStepIndex];
             
-            <div 
-              ref={terminalRef}
-              className="flex-1 bg-black/90 border border-white/10 rounded-sm p-8 overflow-y-auto scrollbar-thin shadow-2xl relative font-mono text-[11px] select-text z-20"
-            >
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/60" />
-              {terminalOutput.map((line, i) => (
-                <div key={i} className="leading-relaxed mb-2 flex gap-6 group">
-                  <span className="text-slate-700 font-bold shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">0x{(i * 4).toString(16).padStart(4, '0')}</span>
-                  <span className={line.includes('[SUCCESS]') ? 'text-green-400 font-bold' : line.includes('SOPHIA') ? 'text-gold italic' : line.includes('[WARN]') ? 'text-red-400 font-bold' : line.includes('[AUTO-FIX]') ? 'text-blue-400' : line.includes('QUANTUM') || line.includes('CHRONON') ? 'text-violet-300' : 'text-pearl/70'}>
-                    {line}
-                  </span>
+            // Mark step as active
+            setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status: 'ACTIVE' } : s));
+            setTelemetry(SCAN_TELEMETRY[currentStepIndex % SCAN_TELEMETRY.length]);
+            
+            if (currentStepIndex % 3 === 0) audioEngine?.playUIClick();
+
+            const duration = 600 + Math.random() * 800; // Simulated work time
+            
+            timeout = setTimeout(() => {
+                // Mark step as success
+                setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status: 'SUCCESS', progress: 100 } : s));
+                
+                // Heal system during audit (Quantum Repair)
+                if (setSystemState) {
+                    setSystemState(prev => ({
+                        ...prev,
+                        quantumHealing: { 
+                            ...prev.quantumHealing, 
+                            health: Math.min(1, prev.quantumHealing.health + 0.05),
+                            decoherence: Math.max(0, prev.quantumHealing.decoherence - 0.05)
+                        },
+                        resonanceFactorRho: Math.min(1, prev.resonanceFactorRho + 0.01)
+                    }));
+                }
+
+                setCurrentStepIndex(prev => prev + 1);
+            }, duration);
+        };
+
+        processStep();
+
+        return () => clearTimeout(timeout);
+    }, [currentStepIndex, isScanning, steps.length, sophiaEngine, systemState, onReportGenerated, onComplete, audioEngine, setSystemState]);
+
+    return (
+        <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-xl flex flex-col p-6 md:p-10 animate-fade-in overflow-hidden">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4 shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 border-2 border-emerald-500 rounded-full flex items-center justify-center animate-spin-slow">
+                        <span className="font-mono text-emerald-500 font-bold">+</span>
+                    </div>
+                    <div>
+                        <h2 className="font-orbitron text-2xl md:text-3xl text-pearl uppercase tracking-tighter font-black">Deep Diagnostic Scan</h2>
+                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Protocol: HEURISTIC_PURGE_V9</p>
+                    </div>
                 </div>
-              ))}
-              {(diagnosticStatus !== 'COMPLETED' || isAuditing) && (
-                <div className="flex items-center gap-3 mt-6 animate-pulse text-green-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_#4ade80]" />
-                  <span className="text-[11px] font-mono uppercase tracking-[0.2em] font-bold">
-                    {isAuditing ? 'SOPHIA_COG_BUDGET_EXECUTING [MAX_PARITY]...' : 'EXECUTING_QUANTUM_SWEEP...'}
-                  </span>
-                </div>
-              )}
+                <button onClick={onClose} className="text-slate-500 hover:text-white font-mono text-xs uppercase border border-white/10 px-4 py-2 rounded hover:bg-white/5 transition-all">Cancel</button>
             </div>
-          </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
+                {/* Left: Visualizer */}
+                <div className="flex flex-col gap-4 min-h-0">
+                    <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-white/10 shadow-2xl">
+                        <SystemArchitectureScanner activeStepId={steps[currentStepIndex]?.id || 'COMPLETE'} foundDefect={false} />
+                    </div>
+                    <div className="bg-black/60 border border-white/10 p-4 rounded font-mono text-[10px] text-emerald-400 h-32 overflow-y-auto scrollbar-thin shadow-inner">
+                        <p className="mb-1 text-slate-500 opacity-50">{'>'} SYSTEM_ROOT_ACCESS_GRANTED</p>
+                        <p className="mb-1 text-slate-500 opacity-50">{'>'} INIT_DIAGNOSTIC_DAEMON_V9</p>
+                        <p className="mb-1 text-slate-500 opacity-50">{'>'} MOUNTING_LOGIC_SHARDS...</p>
+                        <p className="animate-pulse text-pearl font-bold">{'>'} {telemetry}</p>
+                    </div>
+                </div>
+
+                {/* Right: Step List */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-lg p-1 overflow-y-auto scrollbar-thin">
+                    <div className="space-y-1">
+                        {steps.map((step, idx) => (
+                            <div key={step.id} className={`px-4 py-3 border-l-2 flex justify-between items-center transition-all ${
+                                step.status === 'ACTIVE' 
+                                ? 'bg-emerald-900/10 border-emerald-500 text-emerald-300' 
+                                : step.status === 'SUCCESS' 
+                                    ? 'bg-black/20 border-slate-700 text-slate-500 opacity-60' 
+                                    : 'bg-transparent border-transparent text-slate-700'
+                            }`}>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-[10px] uppercase tracking-widest font-bold">{step.label}</span>
+                                    <span className="text-[8px] font-mono opacity-60">ID: {step.id.toUpperCase()}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {step.status === 'ACTIVE' && <span className="animate-spin text-[10px]">⟳</span>}
+                                    {step.status === 'SUCCESS' && <span className="text-emerald-500 text-[10px]">VERIFIED</span>}
+                                    {step.status === 'PENDING' && <span className="text-[10px] opacity-20">PENDING</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      {diagnosticStatus === 'COMPLETED' && (
-          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999] bg-black/90 backdrop-blur-3xl animate-fade-in perspective-1000">
-              <div className="relative group perspective-1000">
-                  <div className="bg-[#050505] border border-gold/40 w-[500px] h-[700px] p-12 rounded-sm shadow-[0_0_150px_rgba(255,215,0,0.2)] text-center animate-scale-in relative overflow-hidden transform-gpu transition-transform hover:rotate-x-12 hover:rotate-y-12">
-                      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,215,0,0.05)_0%,transparent_50%,rgba(255,215,0,0.05)_100%)] pointer-events-none" />
-                      <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffd700 1px, transparent 0)', backgroundSize: '20px 20px' }} />
-                      
-                      <div className="absolute top-0 right-0 p-6 opacity-20 font-orbitron text-9xl text-gold font-black select-none pointer-events-none -mr-16 -mt-16 rotate-12">S</div>
-                      
-                      <div className="w-24 h-24 border-4 border-double border-gold rounded-full flex items-center justify-center mx-auto mb-12 shadow-[0_0_60px_gold] animate-pulse bg-gold/10 relative z-10">
-                          <svg className="w-12 h-12 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                      </div>
-                      
-                      <div className="relative z-10 space-y-6">
-                          <div>
-                              <h2 className="text-4xl font-orbitron text-white font-bold tracking-tighter text-glow-pearl uppercase">Scan Verified</h2>
-                              <p className="text-gold font-mono text-[10px] uppercase tracking-[0.6em] mt-2 font-bold">Certificate of Integrity</p>
-                          </div>
-                          
-                          <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent my-8" />
-
-                          <div className="grid grid-cols-2 gap-y-8 gap-x-12 text-left text-[11px] font-mono text-slate-400 mb-12">
-                              <div className="flex flex-col gap-1">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Files Scanned</span>
-                                  <span className="text-cyan-400 font-bold text-sm">52 MODULES</span>
-                              </div>
-                              <div className="flex flex-col gap-1 text-right">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Quantum Grade</span>
-                                  <span className="text-violet-400 font-bold text-sm">S++</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Latency</span>
-                                  <span className="text-pearl font-bold text-sm">{(systemState.performance.logicalLatency * 1000).toFixed(2)}ms</span>
-                              </div>
-                              <div className="flex flex-col gap-1 text-right">
-                                  <span className="uppercase tracking-widest text-[8px] text-slate-600">Status</span>
-                                  <span className="text-emerald-400 font-black text-xl shadow-green-glow">OPTIMAL</span>
-                              </div>
-                          </div>
-                          
-                          <button onClick={() => { onComplete(); onClose(); }} className="w-full py-5 bg-gold/10 border border-gold text-gold font-orbitron font-black uppercase tracking-[0.25em] hover:bg-gold hover:text-black transition-all shadow-[0_0_40px_rgba(255,215,0,0.2)] active:scale-95 text-[12px] relative overflow-hidden group/btn">
-                              <span className="relative z-10">Review Full Report</span>
-                              <div className="absolute inset-0 bg-gold/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
-                          </button>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      )}
-      
-      <style>{`
-        .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 11px; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.25rem; font-weight: bold; }
-        .audit-report-content p { margin-bottom: 1rem; }
-        .audit-report-content ul { margin-left: 1.5rem; list-style: square; margin-bottom: 1rem; }
-        .audit-report-content li { margin-bottom: 0.5rem; }
-        .audit-report-content b { color: var(--gold); }
-        .perspective-1000 { perspective: 1000px; }
-        .shadow-green-glow { text-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
-      `}</style>
-    </div>
-  );
+    );
 };

@@ -57,6 +57,21 @@ const TIER_CARDS = [
     }
 ];
 
+// --- INLINE LOGOS FOR HIGH FIDELITY ---
+const VisaLogo = () => (
+    <svg className="h-3 w-auto fill-current" viewBox="0 0 32 10" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.6 0L9.4 8.7L7.8 2.8C7.6 2.1 7.3 1.8 6.4 1.6C4.8 1.3 2.3 1.1 0 1V2.6C1.6 3 3.3 3.5 4.3 4.8L7.1 10H10.6L16 0H12.6ZM20.1 0C19.2 0 18.5 0.5 18.2 1.1L15.6 10H19L19.7 7.7H23.9L24.3 10H27.5L24 0H20.1ZM20.8 2.2L23 6.3H20.6L20.8 2.2ZM32 0H28.6L26.3 10H29.5L32 0ZM10.5 0L7.6 10H4.2L7.1 0H10.5Z" />
+    </svg>
+);
+
+const MastercardLogo = () => (
+    <svg className="h-4 w-auto" viewBox="0 0 24 15" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7" cy="7.5" r="7" fill="currentColor" fillOpacity="0.6"/>
+        <circle cx="17" cy="7.5" r="7" fill="currentColor" fillOpacity="0.6"/>
+        <path d="M12 11.5a4.7 4.7 0 0 1 0-7 4.7 4.7 0 0 1 0 7z" fill="currentColor" fillOpacity="0.8"/>
+    </svg>
+);
+
 const PaymentRailStatus: React.FC = () => {
     const [status, setStatus] = useState<'SCANNING' | 'ONLINE' | 'ERROR'>('SCANNING');
     const [latency, setLatency] = useState<number | null>(null);
@@ -81,31 +96,27 @@ const PaymentRailStatus: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex flex-col gap-2 p-3 bg-black/60 border border-white/10 rounded-sm min-w-[220px] shadow-lg relative overflow-hidden group">
+        <div className="flex flex-col gap-2 p-4 bg-black/80 border border-white/10 rounded-sm min-w-[240px] shadow-lg relative overflow-hidden group">
             {status === 'SCANNING' && (
                 <div className="absolute top-0 left-0 w-full h-0.5 bg-gold/50 animate-shimmer" />
             )}
             
             <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Global_Payment_Rails</span>
+                <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Secure_Payment_Rail</span>
                 <span className={`text-[8px] font-mono font-bold ${status === 'ONLINE' ? 'text-emerald-400' : 'text-gold animate-pulse'}`}>
                     {status === 'ONLINE' ? 'TLS_1.3_LOCKED' : 'ROUTING...'}
                 </span>
             </div>
             <div className="flex gap-2">
-                <div className={`flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-blue-500/30'}`}>
-                    <div className="flex items-center gap-2">
-                        <img src="https://stripe.com/img/v3/payments/overview/logos/visa.svg" className="h-3 opacity-90 filter brightness-125" alt="Visa" />
-                        <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-blue-200">VISA_NET</span>
+                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-blue-500/30'}`}>
+                    <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-300 transition-colors">
+                        <VisaLogo />
                     </div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${status === 'ONLINE' ? 'bg-blue-500 shadow-[0_0_5px_#3b82f6]' : 'bg-slate-700'} animate-pulse`} />
                 </div>
-                <div className={`flex-1 flex items-center justify-between bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-orange-500/30'}`}>
-                    <div className="flex items-center gap-2">
-                        <img src="https://stripe.com/img/v3/payments/overview/logos/mastercard.svg" className="h-3 opacity-90 filter brightness-125" alt="Mastercard" />
-                        <span className="text-[7px] font-mono text-slate-300 uppercase tracking-tight group-hover:text-orange-200">MC_GRID</span>
+                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-orange-500/30'}`}>
+                    <div className="flex items-center gap-2 text-slate-400 group-hover:text-orange-300 transition-colors">
+                        <MastercardLogo />
                     </div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${status === 'ONLINE' ? 'bg-orange-500 shadow-[0_0_5px_#f97316]' : 'bg-slate-700'} animate-pulse`} />
                 </div>
             </div>
             <div className="flex justify-between items-center pt-1">
@@ -222,29 +233,50 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                 </div>
             )}
 
-            {/* Sovereign Acquisition Banner */}
-            <div className="relative p-8 bg-gradient-to-br from-[#0a0a0a] to-[#020202] border border-gold/40 rounded-sm overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9)] shrink-0 z-10 group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent animate-shimmer" />
-                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10">
+            {/* Sovereign Acquisition Banner - Upgraded */}
+            <div className="relative p-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/10 via-black to-black border-y border-gold/30 rounded-sm overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,1)] shrink-0 z-10 group isolate">
+                {/* Secure Grid Background */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none" 
+                     style={{ backgroundImage: 'linear-gradient(rgba(255,215,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+                />
+                
+                {/* Scanning Beam */}
+                <div className="absolute top-0 bottom-0 w-1 bg-gold/30 blur-md animate-[scanline-sweep_6s_linear_infinite] pointer-events-none z-0 opacity-50" />
+
+                <div className="flex flex-col xl:flex-row justify-between items-center gap-10 relative z-10">
                     <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-sm border-2 border-gold flex items-center justify-center font-orbitron text-gold font-black text-4xl shadow-[0_0_40px_rgba(255,215,0,0.3)] bg-gold/5 rotate-45 group-hover:rotate-0 transition-transform duration-700">
-                            <span className="-rotate-45 group-hover:rotate-0 transition-transform duration-700">G</span>
+                        {/* High-Tech Logo Container */}
+                        <div className="relative">
+                            <div className="w-24 h-24 rounded-sm border border-gold/30 flex items-center justify-center font-orbitron text-gold font-black text-5xl shadow-[0_0_60px_rgba(255,215,0,0.15)] bg-black rotate-45 group-hover:rotate-0 transition-transform duration-[1000ms] ease-out z-10 relative">
+                                <span className="-rotate-45 group-hover:rotate-0 transition-transform duration-[1000ms]">G</span>
+                            </div>
+                            <div className="absolute inset-0 border border-gold/10 rounded-sm scale-110 animate-pulse" />
                         </div>
-                        <div className="space-y-2">
-                            <h1 className="font-minerva italic text-4xl md:text-5xl text-pearl text-glow-pearl tracking-tighter leading-tight uppercase">Sovereign Acquisition</h1>
-                            <div className="flex items-center gap-4 flex-wrap">
-                                <span className="text-[10px] font-mono text-gold uppercase tracking-[0.4em] font-black">Capital Reserve: OPTIMAL</span>
-                                <div className="h-4 w-px bg-white/10 hidden md:block" />
-                                <div className="flex items-center gap-2">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${gatewayStatus === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-gold animate-pulse'}`} />
-                                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Vault_Protocol: v2.1_LOCKED</span>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <span className="text-[9px] font-mono text-gold uppercase tracking-[0.6em] font-bold block mb-1">Vault_Access_Authorized</span>
+                                <h1 className="font-minerva italic text-5xl text-pearl text-glow-pearl tracking-tighter leading-none">Sovereign Acquisition</h1>
+                            </div>
+                            
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${gatewayStatus === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-gold animate-pulse'}`} />
+                                    <span className="text-[9px] font-mono text-slate-300 uppercase tracking-widest font-bold">Protocol: v2.1_LOCKED</span>
                                 </div>
+                                <div className="h-px w-8 bg-white/20" />
+                                <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Capital Reserve: <span className="text-gold font-bold">OPTIMAL</span></span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-3 w-full lg:w-auto">
+
+                    <div className="flex items-center gap-6">
                         <PaymentRailStatus />
-                        <span className="text-[9px] font-mono text-pearl bg-gold/10 px-3 py-1 border border-gold/40 rounded-sm uppercase tracking-widest font-bold whitespace-nowrap">Gold-Tier Institutional Gateway</span>
+                        <div className="h-16 w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent hidden xl:block" />
+                        <div className="flex flex-col items-end gap-1 text-right">
+                            <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.2em] font-bold">Gold-Tier Gateway</span>
+                            <span className="text-[8px] font-mono text-slate-500 max-w-[120px] leading-tight">Institutional-grade encryption for high-volume asset liquidation.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -359,6 +391,11 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                     background: linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.1) 50%, transparent 60%);
                     background-size: 200% 200%;
                     animation: shimmer 3s infinite linear;
+                }
+                @keyframes scanline-sweep {
+                    0% { transform: translateX(-100%); opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { transform: translateX(100%); opacity: 0; }
                 }
             `}</style>
         </div>
