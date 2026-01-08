@@ -5,7 +5,7 @@ import { CoherenceMonitor } from './CoherenceMonitor';
 import { CoherenceResonanceMonitor } from './CoherenceResonanceMonitor';
 import { BohrEinsteinCorrelator } from './BohrEinsteinCorrelator';
 import { SophiaEngineCore } from '../services/sophiaEngine';
-import { ResonanceSymmetryArray } from './ResonanceSymmetryArray';
+import { HarmonicCorrelator } from './HarmonicCorrelator';
 import { AudioEngine } from './audio/AudioEngine';
 import { Tooltip } from './Tooltip';
 
@@ -98,7 +98,7 @@ export const Display5: React.FC<Display5Props> = ({
             />
         </div>
         
-        <div className="bg-dark-surface/60 border border-white/10 p-8 rounded-2xl flex flex-col gap-6 shadow-2xl relative overflow-hidden group">
+        <div className="bg-dark-surface/60 border border-white/10 p-8 rounded-2xl flex flex-col gap-6 shadow-2xl relative overflow-hidden group shrink-0">
              <div className="absolute top-0 right-0 p-4 opacity-5 font-orbitron text-7xl uppercase font-black tracking-tighter select-none pointer-events-none leading-none">SYNERGY</div>
              <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.5em] font-black border-b border-gold/20 pb-4">Institutional Resonance Matrix</h4>
              <div className="space-y-6">
@@ -131,7 +131,7 @@ export const Display5: React.FC<Display5Props> = ({
       {/* --- RIGHT COLUMN: HIGH-FIDELITY SPECTRAL ANALYSIS (6/12) --- */}
       <div className="lg:col-span-6 flex flex-col gap-6 h-full min-h-0 overflow-y-auto pr-2 scrollbar-thin scroll-smooth">
         
-        {/* CORE HARMONIC VISUALIZATION REPLACEMENT */}
+        {/* CORE HARMONIC VISUALIZATION */}
         <div className="flex-shrink-0 flex flex-col gap-6">
             <div className="h-[480px] rounded-2xl relative group shadow-2xl backdrop-blur-xl">
                <CoherenceResonanceMonitor 
@@ -142,9 +142,9 @@ export const Display5: React.FC<Display5Props> = ({
                />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[220px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[240px]">
                 <div className="h-full">
-                    <ResonanceSymmetryArray rho={systemState.resonanceFactorRho} isOptimizing={isInterpreting} />
+                    <HarmonicCorrelator data={systemState.resonanceCoherence} />
                 </div>
                 <div className="h-full">
                     <BohrEinsteinCorrelator data={systemState.bohrEinsteinCorrelator} />
@@ -152,7 +152,7 @@ export const Display5: React.FC<Display5Props> = ({
             </div>
         </div>
 
-        <div className="bg-violet-950/20 border border-violet-500/30 p-8 rounded-2xl flex gap-6 items-center shadow-2xl relative overflow-hidden group">
+        <div className="bg-violet-950/20 border border-violet-500/30 p-8 rounded-2xl flex gap-6 items-center shadow-2xl relative overflow-hidden group shrink-0">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="w-14 h-14 rounded-sm bg-violet-500/10 border border-violet-500/40 flex items-center justify-center shrink-0 shadow-lg">
                 <svg className={`w-8 h-8 text-violet-400 ${isInterpreting ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">

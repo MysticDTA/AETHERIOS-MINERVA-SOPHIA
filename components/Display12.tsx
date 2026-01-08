@@ -116,21 +116,23 @@ export const Display12: React.FC<Display12Props> = ({ systemState }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* --- LEFT COLUMN: METRICS --- */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 h-full min-h-0">
          <MetricDisplay 
             label="Bio-Field Integrity"
             value={systemState.biometricSync.coherence}
             maxValue={1}
             formatAs="percent"
-            className="h-32"
+            className="h-32 shrink-0"
             tooltip="The overall structural integrity of the operator's bio-field, calculated from HRV coherence and optical aura analysis."
          />
          
-         <ResonanceHistoryChart currentRho={systemState.resonanceFactorRho} />
+         <div className="shrink-0">
+            <ResonanceHistoryChart currentRho={systemState.resonanceFactorRho} />
+         </div>
 
-         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg flex-1 border-glow-gold backdrop-blur-sm overflow-hidden">
-            <h4 className="font-orbitron text-sm text-warm-grey uppercase mb-4 px-1">Chakra Alignment</h4>
-            <div className="space-y-3.5 h-[calc(100%-2rem)] overflow-y-auto pr-2 scrollbar-thin">
+         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg flex-1 min-h-0 flex flex-col border-glow-gold backdrop-blur-sm overflow-hidden">
+            <h4 className="font-orbitron text-sm text-warm-grey uppercase mb-4 px-1 shrink-0">Chakra Alignment</h4>
+            <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-3.5">
                 {[
                     { name: 'Crown', val: 0.95, color: '#a78bfa' },
                     { name: 'Third Eye', val: 0.88, color: '#818cf8' },

@@ -19,8 +19,8 @@ export const SubsystemsDisplay: React.FC<SubsystemsDisplayProps> = ({
     isDischargingGround,
 }) => {
   return (
-    <div className="flex flex-col gap-8 h-full animate-fade-in overflow-y-auto pr-2 scrollbar-thin pb-4">
-        <div className="flex justify-between items-center border-b border-white/10 pb-6">
+    <div className="flex flex-col gap-8 h-full min-h-0 animate-fade-in overflow-y-auto pr-2 scrollbar-thin pb-4">
+        <div className="flex justify-between items-center border-b border-white/10 pb-6 shrink-0">
              <div className="flex items-center gap-5">
                 <div className="w-2 h-6 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]" />
                 <h2 className="font-orbitron text-xl text-pearl uppercase tracking-[0.4em] font-black">Resonant Subsystem Cluster</h2>
@@ -30,7 +30,7 @@ export const SubsystemsDisplay: React.FC<SubsystemsDisplayProps> = ({
              </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 shrink-0">
             <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="h-full"><BiometricSync data={systemState.biometricSync} /></div>
                 <div className="h-full"><SchumannResonance data={systemState.schumannResonance} /></div>
@@ -77,7 +77,7 @@ export const SubsystemsDisplay: React.FC<SubsystemsDisplayProps> = ({
             </div>
         </div>
         
-        <div className="mt-auto bg-black/40 p-6 rounded-xl border border-white/10 flex justify-between items-center text-[10px] font-mono text-slate-500 uppercase tracking-widest shadow-2xl backdrop-blur-xl">
+        <div className="mt-auto bg-black/40 p-6 rounded-xl border border-white/10 flex justify-between items-center text-[10px] font-mono text-slate-500 uppercase tracking-widest shadow-2xl backdrop-blur-xl shrink-0">
             <div className="flex gap-12">
                 <span className="flex items-center gap-4 group cursor-help"><div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_#10b981]" /> SENSORS: <span className="text-pearl opacity-60 group-hover:opacity-100 transition-opacity">OPTIMAL_SYNC</span></span>
                 <span className="flex items-center gap-4 group cursor-help"><div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_8px_cyan]" /> DRIFT_COEFF: <span className="text-pearl opacity-60 group-hover:opacity-100 transition-opacity">+{systemState.temporalCoherenceDrift.toFixed(6)}</span></span>
