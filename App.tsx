@@ -46,6 +46,7 @@ import { ModuleManager } from './components/ModuleManager';
 import { useSophiaCore } from './components/hooks/useSophiaCore';
 import { HeuristicFailurePredictor } from './components/HeuristicFailurePredictor';
 import { QuantumAwarenessHUD } from './components/QuantumAwarenessHUD';
+import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -64,9 +65,9 @@ const orbModes: OrbModeConfig[] = [
 ];
 
 const App: React.FC = () => {
-    // State
+    // State - Default to Page 19 (Audit) for "Run Display Audit" request
     const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(19);
     const [showConfig, setShowConfig] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
     const [memories, setMemories] = useState(knowledgeBase.getMemories());
@@ -279,6 +280,7 @@ const App: React.FC = () => {
             case 22: return <EventLog log={systemState.log} filter={LogType.INFO} onFilterChange={() => {}} />;
             case 23: return <SecurityShieldAudit systemState={systemState} />;
             case 24: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={handleUpgradeComplete} />;
+            case 25: return <QuantumComputeNexus systemState={systemState} />;
             default: return <Dashboard 
                 systemState={systemState} 
                 onTriggerScan={() => setCurrentPage(19)} 

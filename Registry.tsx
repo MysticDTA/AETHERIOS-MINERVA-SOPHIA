@@ -91,6 +91,7 @@ export const SYSTEM_NODES: NavNode[] = [
     { id: 4, label: 'CRADLE', requiredTier: 'ARCHITECT', description: 'Interaction & Vocal Bridge' },
     { id: 16, label: 'ORBIT', requiredTier: 'ARCHITECT', description: 'Satellite & Uplink Telemetry' },
     { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT', description: 'Coherence Resonance Monitoring' },
+    { id: 25, label: 'QUANTUM', requiredTier: 'ARCHITECT', description: 'Bloch Sphere & Qubit Gates' },
     { id: 6, label: 'MATRIX', requiredTier: 'ARCHITECT', description: 'Sub-system Energy Clusters' },
     { id: 7, label: 'COMS', requiredTier: 'ACOLYTE', description: 'Deep Space Signal Reception' },
     { id: 8, label: 'FLOW', requiredTier: 'ARCHITECT', description: 'Aetheric Transfer & Abundance' },
