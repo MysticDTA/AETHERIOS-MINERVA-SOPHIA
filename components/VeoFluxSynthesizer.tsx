@@ -16,6 +16,12 @@ export const VeoFluxSynthesizer: React.FC<VeoFluxSynthesizerProps> = ({ systemSt
 
   const generateFluxVideo = async () => {
     if (isGenerating) return;
+    
+    if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+        setStatusMsg("ERROR: API_KEY_MISSING");
+        return;
+    }
+
     setIsGenerating(true);
     setVideoUrl(null);
     setProgress(0);

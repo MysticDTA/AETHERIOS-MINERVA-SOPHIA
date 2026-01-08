@@ -4,9 +4,10 @@ import React from 'react';
 // Global shared types for SOPHIA DV99 / Alliance System
 
 // Ensure 3D modules are recognized even if types are missing in CI
-declare module 'three';
-declare module '@react-three/fiber';
-declare module '@react-three/drei';
+// We comment these out to prevent augmentation errors if packages are missing or misconfigured in the environment.
+// declare module 'three';
+// declare module '@react-three/fiber';
+// declare module '@react-three/drei';
 
 declare global {
   interface AIStudio {
@@ -21,7 +22,8 @@ declare global {
     webkitSpeechRecognition: any;
   }
 
-  // Extend JSX.IntrinsicElements to recognize React Three Fiber elements
+  // Manually augment JSX.IntrinsicElements to include React Three Fiber elements
+  // This resolves TypeScript errors where 'group', 'ambientLight', etc. are not recognized.
   namespace JSX {
     interface IntrinsicElements {
       group: any;
@@ -30,7 +32,30 @@ declare global {
       mesh: any;
       sphereGeometry: any;
       meshStandardMaterial: any;
+      meshBasicMaterial: any;
       primitive: any;
+      directionalLight: any;
+      spotLight: any;
+      planeGeometry: any;
+    }
+  }
+}
+
+// Augment React's JSX namespace directly for compatibility with newer React types
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      ambientLight: any;
+      pointLight: any;
+      mesh: any;
+      sphereGeometry: any;
+      meshStandardMaterial: any;
+      meshBasicMaterial: any;
+      primitive: any;
+      directionalLight: any;
+      spotLight: any;
+      planeGeometry: any;
     }
   }
 }
@@ -314,7 +339,7 @@ export interface CausalStrategy {
 export interface DiagnosticStep {
     id: string;
     label: string;
-    status: 'PENDING' | 'ACTIVE' | 'SUCCESS' | 'ERROR';
+    status: 'PENDING' | 'ACTIVE' | 'SUCCESS' | 'ERROR' | 'WARNING';
     progress: number;
     sublogs: string[];
 }

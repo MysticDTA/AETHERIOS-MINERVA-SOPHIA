@@ -31,6 +31,27 @@ const HISTORY_LENGTH = 80;
 const GRAPH_HEIGHT = 120;
 const GRAPH_WIDTH = 400;
 
+const DataStreamOverlay: React.FC = () => {
+    const [lines, setLines] = useState<string[]>([]);
+    
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const hex = Math.random().toString(16).substr(2, 8).toUpperCase();
+            const val = (Math.random() * 100).toFixed(2);
+            setLines(prev => [`0x${hex} :: ${val}Ψ`, ...prev].slice(0, 8));
+        }, 300);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="absolute top-4 right-4 font-mono text-[9px] text-cyan-500/40 text-right pointer-events-none select-none">
+            {lines.map((l, i) => (
+                <div key={i} style={{ opacity: 1 - i * 0.12 }}>{l}</div>
+            ))}
+        </div>
+    );
+}
+
 export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contributingFactors, systemState, sophiaEngine }) => {
     const { score, status, entropyFlux, phaseSync, intelligenceLog } = data;
     const config = getStatusConfig(status);
@@ -58,6 +79,7 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
     return (
         <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-6 rounded-2xl border-glow-rose backdrop-blur-md relative overflow-hidden flex flex-col transition-all duration-700 shadow-2xl">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-orbitron text-[100px] text-white/[0.01] pointer-events-none select-none">RESONANCE</div>
+            <DataStreamOverlay />
             
             <div className="flex justify-between items-end mb-8 z-10 border-b border-white/5 pb-6">
                 <div className="space-y-1">
@@ -132,6 +154,11 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
                                         <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" /> {/* Red */}
                                     </linearGradient>
                                 </defs>
+                                {/* Grid Lines */}
+                                <line x1="0" y1={GRAPH_HEIGHT/2} x2={GRAPH_WIDTH} y2={GRAPH_HEIGHT/2} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                                <line x1="0" y1={GRAPH_HEIGHT/4} x2={GRAPH_WIDTH} y2={GRAPH_HEIGHT/4} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                                <line x1="0" y1={GRAPH_HEIGHT*0.75} x2={GRAPH_WIDTH} y2={GRAPH_HEIGHT*0.75} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+
                                 <path d={graphPath.area} fill="url(#spectralFluxGrad)" className="transition-all duration-300" />
                                 <path d={graphPath.stroke} fill="none" stroke={config.color} strokeWidth="2" className="transition-all duration-300" />
                                 <circle cx={GRAPH_WIDTH} cy={GRAPH_HEIGHT - (score * GRAPH_HEIGHT * 0.8) - (GRAPH_HEIGHT * 0.1)} r="4" fill={config.color} className="animate-pulse shadow-[0_0_10px_currentColor]" />

@@ -324,7 +324,7 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
         
         const feedInterval = setInterval(() => {
             if (Math.random() > 0.4) {
-                const activeRelays = Object.values(relayData).filter(r => r.status === 'ONLINE');
+                const activeRelays = (Object.values(relayData) as GalacticRelay[]).filter((r: GalacticRelay) => r.status === 'ONLINE');
                 let type: 'TX' | 'RX' | 'SYS' = 'SYS';
                 let msg = '';
 
@@ -386,7 +386,7 @@ export const CosmicUplinkArray: React.FC<CosmicUplinkArrayProps> = React.memo(({
         }, 8000); 
     };
 
-    const activeCount = (Object.values(relayData) as GalacticRelay[]).filter(r => r.status === 'ONLINE').length;
+    const activeCount = (Object.values(relayData) as GalacticRelay[]).filter((r: GalacticRelay) => r.status === 'ONLINE').length;
 
     return (
         <div className="w-full bg-[#0a0a0a]/70 border border-white/[0.08] p-8 rounded-2xl flex flex-col h-full relative overflow-hidden group shadow-2xl backdrop-blur-3xl transition-all duration-700 hover:border-white/20">

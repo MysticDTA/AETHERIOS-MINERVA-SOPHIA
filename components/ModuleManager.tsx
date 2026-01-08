@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { SystemState, IngestedModule } from '../types';
+import { SystemState, IngestedModule, LogType } from '../types';
 import { Tooltip } from './Tooltip';
 
 interface ModuleManagerProps {
   systemState: SystemState;
+  setSystemState: React.Dispatch<React.SetStateAction<SystemState>>;
+  addLogEntry: (type: LogType, message: string) => void;
 }
 
 const RuntimeVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
@@ -28,11 +30,40 @@ const RuntimeVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
     );
 };
 
-export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState }) => {
+export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const modules = systemState.ingestedModules || [];
 
     const selectedModule = modules.find(m => m.id === selectedId);
+
+    const handleUnmount = (id: string) => {
+        addLogEntry(LogType.SYSTEM, `Unmounting logic shard: ${id}`);
+        setSystemState(prev => ({
+            ...prev,
+            ingestedModules: prev.ingestedModules.filter(m => m.id !== id)
+        }));
+        setSelectedId(null);
+    };
+
+    const handleRestart = (id: string) => {
+        addLogEntry(LogType.SYSTEM, `Restarting module process: ${id}`);
+        setSystemState(prev => ({
+            ...prev,
+            ingestedModules: prev.ingestedModules.map(m => 
+                m.id === id ? { ...m, status: 'SYNCING' } : m
+            )
+        }));
+        
+        setTimeout(() => {
+            setSystemState(prev => ({
+                ...prev,
+                ingestedModules: prev.ingestedModules.map(m => 
+                    m.id === id ? { ...m, status: 'MOUNTED' } : m
+                )
+            }));
+            addLogEntry(LogType.INFO, `Module ${id} synced and mounted.`);
+        }, 3000);
+    };
 
     return (
         <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20">
@@ -137,10 +168,16 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState }) => 
                             </div>
 
                             <div className="flex gap-4 pt-4 border-t border-white/10">
-                                <button className="px-6 py-2 bg-red-900/20 border border-red-500/30 text-red-400 text-[10px] font-orbitron uppercase tracking-widest hover:bg-red-900/40 transition-all rounded-sm">
+                                <button 
+                                    onClick={() => handleUnmount(selectedModule.id)}
+                                    className="px-6 py-2 bg-red-900/20 border border-red-500/30 text-red-400 text-[10px] font-orbitron uppercase tracking-widest hover:bg-red-900/40 transition-all rounded-sm"
+                                >
                                     Unmount Shard
                                 </button>
-                                <button className="px-6 py-2 bg-blue-900/20 border border-blue-500/30 text-blue-300 text-[10px] font-orbitron uppercase tracking-widest hover:bg-blue-900/40 transition-all rounded-sm">
+                                <button 
+                                    onClick={() => handleRestart(selectedModule.id)}
+                                    className="px-6 py-2 bg-blue-900/20 border border-blue-500/30 text-blue-300 text-[10px] font-orbitron uppercase tracking-widest hover:bg-blue-900/40 transition-all rounded-sm"
+                                >
                                     Restart Process
                                 </button>
                             </div>

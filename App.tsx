@@ -46,6 +46,7 @@ import { cosmosCommsService } from './services/cosmosCommsService';
 import { knowledgeBase } from './services/knowledgeBase';
 import { CoCreatorNexus } from './components/CoCreatorNexus';
 import { NeuralQuantizer } from './components/NeuralQuantizer';
+import { VoiceInterface } from './components/VoiceInterface';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
@@ -65,6 +66,7 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfig, setShowConfig] = useState(false);
   const [showDiagnostic, setShowDiagnostic] = useState(true); // Auto-start diagnostic
+  const [showVoicePanel, setShowVoicePanel] = useState(false);
   const [lastAuditReport, setLastAuditReport] = useState<{report: string, sources: any[]} | null>(null);
   
   // Auth State for View Switching
@@ -126,6 +128,16 @@ export const App: React.FC = () => {
       return () => cosmosCommsService.stop();
   }, []);
 
+  const toggleVoiceAndPanel = useCallback(() => {
+      if (voiceInterface.isSessionActive) {
+          voiceInterface.closeVoiceSession();
+          setShowVoicePanel(false);
+      } else {
+          voiceInterface.startVoiceSession();
+          setShowVoicePanel(true);
+      }
+  }, [voiceInterface]);
+
   // Global Hotkeys
   useEffect(() => {
       const handleGlobalHotkeys = (e: KeyboardEvent) => {
@@ -143,11 +155,7 @@ export const App: React.FC = () => {
           // Ctrl+V: Activate/Toggle Voice Commands
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
               e.preventDefault();
-              if (voiceInterface.isSessionActive) {
-                  voiceInterface.closeVoiceSession();
-              } else {
-                  voiceInterface.startVoiceSession();
-              }
+              toggleVoiceAndPanel();
               return;
           }
 
@@ -161,7 +169,7 @@ export const App: React.FC = () => {
 
       window.addEventListener('keydown', handleGlobalHotkeys);
       return () => window.removeEventListener('keydown', handleGlobalHotkeys);
-  }, [voiceInterface.isSessionActive, voiceInterface.startVoiceSession, voiceInterface.closeVoiceSession]);
+  }, [toggleVoiceAndPanel]);
 
   // Audio Mode Sync
   useEffect(() => {
@@ -285,7 +293,11 @@ export const App: React.FC = () => {
           case 19: // AUDIT (Page View)
               return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={lastAuditReport} />;
           case 20: // MODULES
-              return <ModuleManager systemState={systemState} />;
+              return <ModuleManager 
+                  systemState={systemState} 
+                  setSystemState={setSystemState}
+                  addLogEntry={addLogEntry}
+              />;
           case 21: // BRIDGE
               return <MenervaBridge systemState={systemState} />;
           case 22: // LOGS
@@ -373,7 +385,7 @@ export const App: React.FC = () => {
                 userTier={systemState.userResources.sovereignTier}
                 transmissionStatus={cosmosCommsService['currentState']?.status} 
                 isVoiceActive={voiceInterface.isSessionActive}
-                onToggleVoice={voiceInterface.isSessionActive ? voiceInterface.closeVoiceSession : voiceInterface.startVoiceSession}
+                onToggleVoice={toggleVoiceAndPanel}
             />
 
             <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">
@@ -422,6 +434,27 @@ export const App: React.FC = () => {
                     onReportGenerated={setLastAuditReport}
                 />
             )}
+
+            {/* Voice Interface Global Overlay */}
+            <Modal isOpen={showVoicePanel} onClose={() => setShowVoicePanel(false)}>
+                <div className="h-[600px] w-full">
+                    <VoiceInterface 
+                        isSessionActive={voiceInterface.isSessionActive}
+                        startSession={voiceInterface.startVoiceSession}
+                        closeSession={() => {
+                            voiceInterface.closeVoiceSession();
+                            setShowVoicePanel(false);
+                        }}
+                        userInput={voiceInterface.userInputTranscription}
+                        sophiaOutput={voiceInterface.sophiaOutputTranscription}
+                        history={voiceInterface.transcriptionHistory}
+                        resonance={systemState.resonanceFactorRho}
+                        lastSystemCommand={voiceInterface.lastSystemCommand}
+                        onSetOrbMode={setOrbMode}
+                        clearHistory={voiceInterface.clearHistory}
+                    />
+                </div>
+            </Modal>
           </Layout>
         </ApiKeyGuard>
       </ErrorBoundary>

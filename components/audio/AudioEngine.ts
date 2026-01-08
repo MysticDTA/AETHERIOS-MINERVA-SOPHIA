@@ -46,6 +46,8 @@ export class AudioEngine {
         const B64_MARKER = ';base64,';
         const base64Index = dataUri.indexOf(B64_MARKER);
         if (base64Index === -1) {
+            // Fallback if not a data URI (e.g. external URL in dev), though soundMap implies base64
+            // For this specific implementation we expect base64 data URIs as per soundMap
             throw new Error('Invalid data URI format: missing base64 marker.');
         }
         const base64 = dataUri.substring(base64Index + B64_MARKER.length);
@@ -93,6 +95,7 @@ export class AudioEngine {
         this.isSuspended = false;
       });
     }
+    this.isSuspended = false;
     return Promise.resolve();
   }
   
@@ -126,7 +129,7 @@ export class AudioEngine {
   }
 
   private playSound(name: SoundName, loop = false, volume = 1.0, playbackRate = 1.0): { source: AudioBufferSourceNode; gain: GainNode; name: SoundName } | null {
-    if (!this.isLoaded) return null;
+    if (!this.isLoaded || this.audioContext.state === 'suspended') return null;
 
     const buffer = this.buffers.get(name);
     if (!buffer) return null;
@@ -191,13 +194,14 @@ export class AudioEngine {
 
   /**
    * Sets the core background resonance based on OrbMode or Governance Axiom.
+   * Manages cross-fading between different system states.
    */
   public setMode(mode: string): void {
     if (!this.isLoaded) return;
     
     let soundName: SoundName | null = null;
     
-    // Map OrbModes and Axioms to specific loops
+    // Map OrbModes and Axioms to specific loops for distinct auditory feedback
     switch (mode) {
       case 'STANDBY':
       case 'CRADLE OF PRESENCE':
@@ -205,12 +209,12 @@ export class AudioEngine {
         break;
       case 'ANALYSIS':
       case 'RECALIBRATING HARMONICS':
-        soundName = 'analysis_loop'; // Active thought
+        soundName = 'analysis_loop'; // Active thought / scanning
         break;
       case 'SYNTHESIS':
       case 'SOVEREIGN EMBODIMENT':
       case 'CONCORDANCE':
-        soundName = 'synthesis'; // Harmonic flow
+        soundName = 'synthesis'; // Harmonic flow (shared with standby for stability)
         break;
       case 'REPAIR':
       case 'REGENERATIVE CYCLE':
@@ -221,7 +225,7 @@ export class AudioEngine {
         break;
       case 'OFFLINE':
       case 'SYSTEM COMPOSURE FAILURE':
-        soundName = 'offline_loop'; // Static
+        soundName = 'offline_loop'; // Static / Degradation
         break;
       default:
         soundName = 'synthesis';
@@ -255,6 +259,7 @@ export class AudioEngine {
   /**
    * Adjusts ambient sound textures based on real-time system diagnostics.
    * Higher decoherence increases spectral static. Lower health adds a mechanical hum.
+   * Syncs heartbeat to biometric data.
    */
   public updateDynamicAmbience(state: SystemState): void {
       if (!this.isLoaded || this.isSuspended) return;
@@ -262,27 +267,31 @@ export class AudioEngine {
       const rampTime = 1.5;
       const currentTime = this.audioContext.currentTime;
 
-      // Mechanical Hum based on system health (low health = louder hum)
+      // 1. Mechanical Hum based on system health (low health = louder hum)
       if (!this.dynamicHum) {
           this.dynamicHum = this.playSound('dynamic_hum_base', true, 0.0001);
       }
       if (this.dynamicHum) {
           const health = state.quantumHealing.health;
           const targetVolume = health < 0.75 ? (1 - health) * 0.4 : 0.0001;
+          this.dynamicHum.gain.gain.cancelScheduledValues(currentTime);
+          this.dynamicHum.gain.gain.setValueAtTime(this.dynamicHum.gain.gain.value, currentTime);
           this.dynamicHum.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
-      // Spectral Crackle based on decoherence (high decoherence = louder static)
+      // 2. Spectral Crackle based on decoherence (high decoherence = louder static)
       if (!this.dynamicStatic) {
           this.dynamicStatic = this.playSound('dynamic_static_crackle', true, 0.0001);
       }
       if (this.dynamicStatic) {
           const decoherence = state.quantumHealing.decoherence;
           const targetVolume = Math.max(0.0001, decoherence * 0.35);
+          this.dynamicStatic.gain.gain.cancelScheduledValues(currentTime);
+          this.dynamicStatic.gain.gain.setValueAtTime(this.dynamicStatic.gain.gain.value, currentTime);
           this.dynamicStatic.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVolume), currentTime + rampTime);
       }
 
-      // Biometric Heartbeat pulse linked to HRV coherence
+      // 3. Biometric Heartbeat pulse linked to HRV coherence
       if (!this.dynamicHeartbeat) {
           this.dynamicHeartbeat = this.playSound('dynamic_heartbeat', true, 0.0001);
       }
@@ -305,7 +314,12 @@ export class AudioEngine {
               volume = 0.55;
           }
           
+          this.dynamicHeartbeat.source.playbackRate.cancelScheduledValues(currentTime);
+          this.dynamicHeartbeat.source.playbackRate.setValueAtTime(this.dynamicHeartbeat.source.playbackRate.value, currentTime);
           this.dynamicHeartbeat.source.playbackRate.exponentialRampToValueAtTime(Math.max(0.1, rate), currentTime + rampTime);
+          
+          this.dynamicHeartbeat.gain.gain.cancelScheduledValues(currentTime);
+          this.dynamicHeartbeat.gain.gain.setValueAtTime(this.dynamicHeartbeat.gain.gain.value, currentTime);
           this.dynamicHeartbeat.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), currentTime + rampTime);
       }
   }

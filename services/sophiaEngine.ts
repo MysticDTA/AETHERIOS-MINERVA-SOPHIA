@@ -51,7 +51,10 @@ export class SophiaEngineCore {
   }
 
   private getClient(): GoogleGenAI | null {
-      if (!this.hasValidKey()) return null;
+      if (!this.hasValidKey()) {
+          console.warn("SophiaCore: API Key missing or invalid. Engine entering simulation mode.");
+          return null;
+      }
       try {
           return new GoogleGenAI({ apiKey: process.env.API_KEY });
       } catch (e) {
@@ -69,7 +72,7 @@ export class SophiaEngineCore {
     this.isConnecting = true;
     try {
         const ai = this.getClient();
-        if (!ai) throw new Error("Client initialization failed");
+        if (!ai) throw new Error("Client initialization failed (No Key)");
 
         this.chat = ai.chats.create({
           model: 'gemini-3-pro-preview',
@@ -81,7 +84,7 @@ export class SophiaEngineCore {
         });
         return this.chat;
     } catch (e) {
-        console.warn("Sophia connection failed (likely offline/no-key):", e);
+        console.warn("Sophia connection deferred:", e);
         return null;
     } finally {
         this.isConnecting = false;
@@ -158,7 +161,7 @@ export class SophiaEngineCore {
     } catch (e) { return "Causal Noise Detected."; }
   }
 
-  async performSystemAudit(systemState: SystemState): Promise<{ report: string; sources: any[] }> {
+  async performSystemAudit(systemState: SystemState, scanFindings: string[] = []): Promise<{ report: string; sources: any[] }> {
     const ai = this.getClient();
     if (!ai) {
         return { 
@@ -167,12 +170,15 @@ export class SophiaEngineCore {
         };
     }
 
+    const findingsText = scanFindings.length > 0 ? `Detected Anomalies: ${scanFindings.join(', ')}.` : "No structural anomalies detected.";
+
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: `Execute deep causal audit. 
             Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Decoherence=${systemState.quantumHealing.decoherence}. 
-            Identify specific fractures in the institutional lattice. 
+            ${findingsText}
+            Identify specific fractures in the institutional lattice based on these findings. 
             Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
             config: { thinkingConfig: { thinkingBudget: 32768 } }
         });

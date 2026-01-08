@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { LogType, OrbMode } from '../types';
+import { LogType, OrbMode, VoiceInteraction } from '../types';
 import { Tooltip } from './Tooltip';
 import { audioAnalysisService } from '../services/audioAnalysisService';
 
@@ -157,7 +157,7 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
             </div>
 
             {/* Live Text Area */}
-            <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin relative z-10 min-h-[100px]">
+            <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin relative z-10 min-h-[80px]">
                 <p className={`text-[16px] leading-relaxed transition-opacity duration-500 ${theme.font} ${theme.text} ${!text ? 'opacity-30' : 'opacity-100'}`}>
                     {text || (isUser ? "Awaiting vocal input..." : "Reasoning matrix idle...")}
                     {text && <span className={`inline-block w-2 h-4 ml-1 animate-pulse align-middle ${theme.indicator}`} />}
@@ -266,7 +266,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
 
     return (
         <div className="w-full h-full bg-dark-surface border border-white/10 p-6 rounded-xl relative overflow-hidden flex flex-col">
-            <div className="flex justify-between items-start mb-6 z-10 border-b border-white/10 pb-4">
+            <div className="flex justify-between items-start mb-6 z-10 border-b border-white/10 pb-4 shrink-0">
                 <div className="flex flex-col gap-2">
                     <h3 className="font-minerva text-3xl text-pearl italic tracking-tighter">Vocal Bridge Protocol</h3>
                     <div className="flex items-center gap-3">
@@ -309,7 +309,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
             </div>
 
             {/* Resonance Centerpiece */}
-            <div className="flex flex-col justify-center items-center py-6 relative z-10 min-h-[160px] gap-6">
+            <div className="flex flex-col justify-center items-center py-6 relative z-10 min-h-[120px] gap-6 shrink-0">
                 <div className="flex items-center justify-center gap-12">
                     <ResonanceMemoryPulsar active={isSessionActive} />
                     {isSessionActive && <AudioSpectrumVisualizer active={isSessionActive} />}
@@ -346,7 +346,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
 
             {/* History Feed */}
             {history.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-white/10 max-h-[160px] overflow-y-auto scrollbar-thin relative z-10">
+                <div className="mt-6 pt-4 border-t border-white/10 max-h-[160px] overflow-y-auto scrollbar-thin relative z-10 shrink-0">
                     <div className="flex justify-between items-center mb-3 bg-black/40 p-2 rounded border border-white/5 sticky top-0 z-20 backdrop-blur">
                         <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest font-bold">Causal_Memory_Buffer</span>
                         <button onClick={clearHistory} className="text-[8px] text-slate-600 hover:text-rose-400 uppercase tracking-wider transition-colors border border-transparent hover:border-rose-500/30 px-2 rounded">Clear_Buffer</button>

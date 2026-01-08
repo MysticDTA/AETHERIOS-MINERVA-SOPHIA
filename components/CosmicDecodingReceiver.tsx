@@ -130,8 +130,8 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 relative z-10">
-                <div className="lg:col-span-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin max-h-[calc(100vh-300px)]">
-                    <div id="cosmic-metric-display" className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all group/metric">
+                <div className="lg:col-span-3 flex flex-col gap-4 h-full min-h-0 overflow-y-auto scrollbar-thin">
+                    <div id="cosmic-metric-display" className="bg-white/[0.02] border border-white/10 rounded p-5 flex flex-col gap-3 shadow-inner hover:border-gold/20 transition-all group/metric shrink-0">
                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest group-hover/metric:text-pearl transition-colors">Scientific Metric</span>
                             <span className="text-[9px] text-green-500 font-mono font-bold bg-green-950/30 px-2 py-0.5 rounded border border-green-500/20">LIVE</span>
@@ -162,7 +162,7 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                 </div>
 
                 <div className="lg:col-span-9 flex flex-col gap-4 min-h-0 h-full">
-                    <div id="cosmic-log-terminal" ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[300px]">
+                    <div id="cosmic-log-terminal" ref={logRef} className="flex-1 bg-[#050505] rounded border border-white/10 p-6 font-mono text-gold text-lg overflow-y-auto shadow-inner relative flex flex-col leading-loose selection:bg-gold selection:text-black scrollbar-thin min-h-[200px]">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-orbitron text-8xl font-black pointer-events-none select-none">RX</div>
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3 shrink-0">
                              <span className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Downlink Terminal [REAL-TIME]</span>

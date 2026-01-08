@@ -68,7 +68,7 @@ class CosmosCommsService {
         if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
 
         // OPTIMIZATION: If we're just waiting for a key, check every 10 seconds
-        const isWaitingForKey = !process.env.API_KEY;
+        const isWaitingForKey = !process.env.API_KEY || process.env.API_KEY === 'undefined';
         const baseDelay = isWaitingForKey ? 10000 : (isError ? 30000 * Math.pow(2, this.retryCount) : 900000); 
         const jitter = Math.random() * 5000;
         const delay = Math.min(baseDelay + jitter, 3600000); 
@@ -80,7 +80,7 @@ class CosmosCommsService {
         if (this.isFetching || !this.isRunning) return;
         
         // Muted warning check to prevent console spam
-        if (!process.env.API_KEY) {
+        if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
             this.scheduleNextTransmission(true);
             return;
         }

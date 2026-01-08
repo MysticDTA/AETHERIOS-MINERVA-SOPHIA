@@ -176,6 +176,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [isScanning, setIsScanning] = useState(true);
     const [telemetry, setTelemetry] = useState<string>("Initializing Deep Diagnostic Kernel...");
+    const [findings, setFindings] = useState<string[]>([]);
 
     useEffect(() => {
         if (!isScanning) return;
@@ -188,7 +189,8 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                 setTelemetry("AUDIT_COMPLETE. COMPILING_REPORT...");
                 
                 if (sophiaEngine && onReportGenerated) {
-                    const report = await sophiaEngine.performSystemAudit(systemState);
+                    // Pass gathered error findings to Sophia for analysis
+                    const report = await sophiaEngine.performSystemAudit(systemState, findings);
                     onReportGenerated(report);
                 }
                 
@@ -208,17 +210,35 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
             const duration = 600 + Math.random() * 800; // Simulated work time
             
             timeout = setTimeout(() => {
-                // Mark step as success
-                setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status: 'SUCCESS', progress: 100 } : s));
+                // Probabilistic Error Generation for Realism
+                const rand = Math.random();
+                let status: 'SUCCESS' | 'WARNING' | 'ERROR' = 'SUCCESS';
                 
-                // Heal system during audit (Quantum Repair)
+                // 15% chance of warning, 5% chance of critical error
+                if (rand > 0.95) {
+                    status = 'ERROR';
+                    const errorMsg = `CRITICAL_FAILURE: ${currentStep.label.split('::')[0]} decoherence`;
+                    setFindings(prev => [...prev, errorMsg]);
+                    setTelemetry(`[ALERT] ${errorMsg}`);
+                    audioEngine?.playAlarm();
+                } else if (rand > 0.80) {
+                    status = 'WARNING';
+                    const warnMsg = `WARNING: High latency in ${currentStep.label.split('::')[0]}`;
+                    setFindings(prev => [...prev, warnMsg]);
+                }
+
+                // Mark step complete with status
+                setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status, progress: 100 } : s));
+                
+                // Heal system during audit (Quantum Repair), reducing efficacy if errors found
                 if (setSystemState) {
+                    const healAmount = status === 'SUCCESS' ? 0.05 : 0.01;
                     setSystemState(prev => ({
                         ...prev,
                         quantumHealing: { 
                             ...prev.quantumHealing, 
-                            health: Math.min(1, prev.quantumHealing.health + 0.05),
-                            decoherence: Math.max(0, prev.quantumHealing.decoherence - 0.05)
+                            health: Math.min(1, prev.quantumHealing.health + healAmount),
+                            decoherence: Math.max(0, prev.quantumHealing.decoherence - healAmount)
                         },
                         resonanceFactorRho: Math.min(1, prev.resonanceFactorRho + 0.01)
                     }));
@@ -253,12 +273,15 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                 {/* Left: Visualizer */}
                 <div className="flex flex-col gap-4 min-h-0">
                     <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-white/10 shadow-2xl">
-                        <SystemArchitectureScanner activeStepId={steps[currentStepIndex]?.id || 'COMPLETE'} foundDefect={false} />
+                        <SystemArchitectureScanner activeStepId={steps[currentStepIndex]?.id || 'COMPLETE'} foundDefect={findings.length > 0} />
                     </div>
-                    <div className="bg-black/60 border border-white/10 p-4 rounded font-mono text-[10px] text-emerald-400 h-32 overflow-y-auto scrollbar-thin shadow-inner">
+                    <div className="bg-black/60 border border-white/10 p-4 rounded font-mono text-[10px] text-emerald-400 h-40 overflow-y-auto scrollbar-thin shadow-inner">
                         <p className="mb-1 text-slate-500 opacity-50">{'>'} SYSTEM_ROOT_ACCESS_GRANTED</p>
                         <p className="mb-1 text-slate-500 opacity-50">{'>'} INIT_DIAGNOSTIC_DAEMON_V9</p>
                         <p className="mb-1 text-slate-500 opacity-50">{'>'} MOUNTING_LOGIC_SHARDS...</p>
+                        {findings.map((finding, i) => (
+                            <p key={i} className="text-rose-400 font-bold animate-pulse">{'>'} {finding}</p>
+                        ))}
                         <p className="animate-pulse text-pearl font-bold">{'>'} {telemetry}</p>
                     </div>
                 </div>
@@ -272,7 +295,11 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                                 ? 'bg-emerald-900/10 border-emerald-500 text-emerald-300' 
                                 : step.status === 'SUCCESS' 
                                     ? 'bg-black/20 border-slate-700 text-slate-500 opacity-60' 
-                                    : 'bg-transparent border-transparent text-slate-700'
+                                    : step.status === 'WARNING'
+                                        ? 'bg-yellow-900/20 border-yellow-500 text-yellow-300'
+                                        : step.status === 'ERROR'
+                                            ? 'bg-rose-900/20 border-rose-500 text-rose-300'
+                                            : 'bg-transparent border-transparent text-slate-700'
                             }`}>
                                 <div className="flex flex-col gap-0.5">
                                     <span className="font-mono text-[10px] uppercase tracking-widest font-bold">{step.label}</span>
@@ -281,6 +308,8 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                                 <div className="flex items-center gap-2">
                                     {step.status === 'ACTIVE' && <span className="animate-spin text-[10px]">⟳</span>}
                                     {step.status === 'SUCCESS' && <span className="text-emerald-500 text-[10px]">VERIFIED</span>}
+                                    {step.status === 'WARNING' && <span className="text-yellow-500 text-[10px] font-bold">WARNING</span>}
+                                    {step.status === 'ERROR' && <span className="text-rose-500 text-[10px] font-bold">FAILURE</span>}
                                     {step.status === 'PENDING' && <span className="text-[10px] opacity-20">PENDING</span>}
                                 </div>
                             </div>

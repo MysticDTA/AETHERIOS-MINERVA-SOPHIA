@@ -78,7 +78,7 @@ const ParticleFlow: React.FC<{ density: number; efficiency: number, color: strin
     }, [particleCount, efficiency, status]);
 
     return (
-        <div className="w-full h-24 bg-black/20 rounded-md relative overflow-hidden">
+        <div className="w-full h-full min-h-[120px] bg-black/20 rounded-md relative overflow-hidden">
              <svg className="w-full h-full" preserveAspectRatio="none">
                 <style>{`
                     @keyframes particle-flow {
@@ -125,8 +125,8 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
     const filterOptions: AethericTransferStatus[] = ['STABLE', 'TURBULENT', 'STAGNANT'];
 
     return (
-        <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm">
-            <div className="flex justify-between items-start mb-2">
+        <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm flex flex-col">
+            <div className="flex justify-between items-start mb-4">
                 <div>
                     <h3 className="font-orbitron text-md text-warm-grey">Aetheric Transfer</h3>
                      <p className={`font-orbitron font-bold text-md ${displayConfig.color} ${!isPreviewing && fluxStatus !== 'STABLE' ? 'animate-pulse' : ''}`}>
@@ -143,7 +143,9 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
                 </button>
             </div>
             
-            <ParticleFlow density={particleDensity} efficiency={efficiency} color={displayConfig.particleColor} status={displayStatus} />
+            <div className="flex-1 min-h-0 relative">
+                <ParticleFlow density={particleDensity} efficiency={efficiency} color={displayConfig.particleColor} status={displayStatus} />
+            </div>
 
             <div className="mt-4 flex flex-wrap justify-center items-center gap-2 border-t border-dark-border/30 pt-3">
                 <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mr-1">Visual Filter:</span>

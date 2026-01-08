@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Tooltip } from './Tooltip';
 
@@ -26,7 +27,7 @@ export const HarmonicRespiratoryUplink: React.FC<HarmonicRespiratoryUplinkProps>
   const flowDirection = isInhale ? 'normal' : 'reverse';
 
   return (
-    <div className="w-full bg-dark-surface/50 border border-dark-border/50 p-6 rounded-lg border-glow-pearl backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-1000"
+    <div className="w-full h-full bg-dark-surface/50 border border-dark-border/50 p-6 rounded-lg border-glow-pearl backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-1000"
          style={{ borderColor: isInhale ? 'rgba(165, 243, 252, 0.3)' : 'rgba(244, 194, 194, 0.3)' }}>
       
       <div className="absolute top-4 left-4 z-10">

@@ -99,6 +99,12 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
 
     const startVoiceSession = useCallback(async () => {
         if (isSessionActive) return;
+        
+        if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+            addLogEntry(LogType.CRITICAL, "Vocal Bridge Failed: API Key handshake incomplete.");
+            return;
+        }
+
         addLogEntry(LogType.SYSTEM, "Synchronizing ÆTHERIOS Vocal Bridge...");
 
         try {
