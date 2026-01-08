@@ -391,4 +391,25 @@ export class SophiaEngineCore {
         return JSON.parse(response.text || '{}');
     } catch (e) { return null; }
   }
+
+  async findCausalLink(nodeA: string, nodeB: string): Promise<string> {
+    const ai = this.getClient();
+    if (!ai) return "Connection Failed: No Cognitive Uplink.";
+
+    const prompt = `Analyze the hidden causal relationship between these two system artifacts:
+    A: "${nodeA}"
+    B: "${nodeB}"
+    Synthesize a speculative, profound, or technical link explaining how A might influence B or vice versa. Max 25 words. Abstract tone.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: prompt,
+            config: { thinkingConfig: { thinkingBudget: 4000 } }
+        });
+        return response.text || "No causal link detected.";
+    } catch (e) {
+        return "Decoherence prevents linkage.";
+    }
+  }
 }

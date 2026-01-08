@@ -47,6 +47,8 @@ import { useSophiaCore } from './components/hooks/useSophiaCore';
 import { HeuristicFailurePredictor } from './components/HeuristicFailurePredictor';
 import { QuantumAwarenessHUD } from './components/QuantumAwarenessHUD';
 import { QuantumComputeNexus } from './components/QuantumComputeNexus';
+import { VoiceInterface } from './components/VoiceInterface';
+import { NoeticGraphNexus } from './components/NoeticGraphNexus';
 
 const AETHERIOS_MANIFEST = `
 📜 SYSTEM MANIFEST: MINERVA SOPHIA
@@ -68,6 +70,7 @@ const App: React.FC = () => {
     const [orbMode, setOrbMode] = useState<OrbMode>('STANDBY');
     const [currentPage, setCurrentPage] = useState(19);
     const [showConfig, setShowConfig] = useState(false);
+    const [showVoiceOverlay, setShowVoiceOverlay] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
     const [memories, setMemories] = useState(knowledgeBase.getMemories());
     const [lastAuditReport, setLastAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
@@ -166,9 +169,6 @@ const App: React.FC = () => {
         if (currentPage === 7) cosmosCommsService.start();
         else cosmosCommsService.stop();
         
-        // PERFORMANCE OPTIMIZATION:
-        // Only update App-level state when the status changes.
-        // The Display7 component handles the high-frequency text stream updates locally.
         const unsub = cosmosCommsService.subscribe((newState) => {
             setTransmission(prev => {
                 if (prev.status !== newState.status) {
@@ -276,6 +276,7 @@ const App: React.FC = () => {
             case 23: return <SecurityShieldAudit systemState={systemState} />;
             case 24: return <SystemOptimizationTerminal systemState={systemState} onOptimizeComplete={handleUpgradeComplete} />;
             case 25: return <QuantumComputeNexus systemState={systemState} />;
+            case 26: return <NoeticGraphNexus systemState={systemState} memories={memories} logs={systemState.log} sophiaEngine={sophiaEngineRef.current} />;
             default: return <Dashboard 
                 systemState={systemState} 
                 onTriggerScan={() => setCurrentPage(19)} 
@@ -314,6 +315,8 @@ const App: React.FC = () => {
                         tokens={systemState.userResources.cradleTokens}
                         userTier={systemState.userResources.sovereignTier}
                         transmissionStatus={transmission.status}
+                        onToggleVoice={() => setShowVoiceOverlay(true)}
+                        isVoiceActive={voiceInterface.isSessionActive}
                     />
                     
                     <main className="flex-grow min-h-0 py-4 relative">
@@ -378,6 +381,24 @@ const App: React.FC = () => {
                             isGrounded={systemState.isGrounded}
                             audioEngine={audioEngineRef.current}
                         />
+                    </Modal>
+
+                    {/* --- GLOBAL VOICE INTERFACE OVERLAY --- */}
+                    <Modal isOpen={showVoiceOverlay} onClose={() => setShowVoiceOverlay(false)}>
+                        <div className="h-[600px] w-full">
+                            <VoiceInterface 
+                                isSessionActive={voiceInterface.isSessionActive}
+                                startSession={voiceInterface.startVoiceSession}
+                                closeSession={voiceInterface.closeVoiceSession}
+                                userInput={voiceInterface.userInputTranscription}
+                                sophiaOutput={voiceInterface.sophiaOutputTranscription}
+                                history={voiceInterface.transcriptionHistory}
+                                resonance={systemState.resonanceFactorRho}
+                                lastSystemCommand={voiceInterface.lastSystemCommand}
+                                onSetOrbMode={setOrbMode}
+                                clearHistory={voiceInterface.clearHistory}
+                            />
+                        </div>
                     </Modal>
                     
                     {isDeploying && (

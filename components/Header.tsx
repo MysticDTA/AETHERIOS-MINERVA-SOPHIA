@@ -15,6 +15,8 @@ interface HeaderProps {
     tokens?: number;
     userTier: UserTier;
     transmissionStatus?: CommsStatus;
+    onToggleVoice?: () => void;
+    isVoiceActive?: boolean;
 }
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
@@ -37,7 +39,18 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
     );
 };
 
-export const Header: React.FC<HeaderProps> = React.memo(({ governanceAxiom, lesions, currentPage, onPageChange, audioEngine, tokens = 0, userTier, transmissionStatus }) => {
+export const Header: React.FC<HeaderProps> = React.memo(({ 
+    governanceAxiom, 
+    lesions, 
+    currentPage, 
+    onPageChange, 
+    audioEngine, 
+    tokens = 0, 
+    userTier, 
+    transmissionStatus,
+    onToggleVoice,
+    isVoiceActive
+}) => {
     const activeTier = TIER_REGISTRY[userTier] || TIER_REGISTRY['ACOLYTE'];
 
     const handlePageChange = (pageId: number, requiredTier: UserTier) => {
@@ -102,6 +115,25 @@ export const Header: React.FC<HeaderProps> = React.memo(({ governanceAxiom, lesi
             </div>
             
             <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end shrink-0">
+                 {/* Voice Command Toggle */}
+                 {onToggleVoice && (
+                     <Tooltip text={isVoiceActive ? "Vocal Bridge Active. Click to open interface." : "Initialize Vocal Bridge Protocol."}>
+                         <button 
+                            onClick={onToggleVoice}
+                            className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-500 relative group ${
+                                isVoiceActive 
+                                ? 'border-violet-500 bg-violet-950/40 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.4)]' 
+                                : 'border-white/10 bg-black/40 text-slate-500 hover:border-violet-500/50 hover:text-violet-300'
+                            }`}
+                         >
+                             {isVoiceActive && <div className="absolute inset-0 rounded-full border border-violet-500 animate-ping opacity-50" />}
+                             <svg className="w-4 h-4 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                             </svg>
+                         </button>
+                     </Tooltip>
+                 )}
+
                  <Tooltip text="Cradle Tokens: Specialized computational credits used to fund high-reasoning tasks and VEO synthesis.">
                      <div className="flex items-center gap-4 bg-black/40 border border-white/5 px-4 py-2 rounded-md transition-all hover:border-gold/20 group cursor-help">
                         <div className="flex flex-col items-end">
