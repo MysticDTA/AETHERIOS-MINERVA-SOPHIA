@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dashboard } from './components/Dashboard';
-import { SystemState, OrbMode, OrbModeConfig, TransmissionState, LogType, UserTier } from './types';
+import { SystemState, OrbMode, OrbModeConfig, LogType } from './types';
 import { AudioEngine } from './components/audio/AudioEngine';
 import { Layout } from './components/Layout';
 import { Header } from './components/Header';

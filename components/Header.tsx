@@ -18,7 +18,7 @@ interface HeaderProps {
 }
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
-    const config = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
+    const activeTier = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
     return (
         <button 
             onClick={onClick}
