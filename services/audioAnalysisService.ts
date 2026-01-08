@@ -43,7 +43,9 @@ class AudioAnalysisService {
         if (!this.isActive || !this.analyser || !this.dataArray) {
             return new Uint8Array(0);
         }
-        this.analyser.getByteFrequencyData(this.dataArray);
+        // Cast to unknown then Uint8Array to satisfy strict lib.dom.d.ts type checks 
+        // where ArrayBufferLike (SharedArrayBuffer) is not assignable to ArrayBuffer
+        this.analyser.getByteFrequencyData(this.dataArray as unknown as Uint8Array);
         return this.dataArray;
     }
 

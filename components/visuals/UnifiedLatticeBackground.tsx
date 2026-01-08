@@ -6,6 +6,15 @@ import * as THREE from 'three';
 import { OrbMode } from '../../types';
 import { audioAnalysisService } from '../../services/audioAnalysisService';
 
+// Augment JSX.IntrinsicElements to include R3F primitives to satisfy TS
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+    }
+  }
+}
+
 interface LatticeProps {
     rho: number;
     coherence: number;

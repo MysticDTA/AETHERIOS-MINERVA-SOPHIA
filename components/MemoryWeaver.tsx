@@ -7,6 +7,16 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Augment JSX.IntrinsicElements to include R3F primitives to satisfy TS
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      ambientLight: any;
+    }
+  }
+}
+
 interface MemoryWeaverProps {
   memories: Memory[];
   onMemoryChange: () => void;
