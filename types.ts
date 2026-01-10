@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Global shared types for SOPHIA DV99 / Alliance System
@@ -105,6 +106,8 @@ export interface UserResources {
     ledgerHistory: any[];
     subscriptionActive: boolean;
     menervaLegacyPoints: number;
+    sovereignLiquidity: number; // $22,500,000.00
+    manifestPulse: number; // $10,000,000.00
 }
 
 export interface AuthState {

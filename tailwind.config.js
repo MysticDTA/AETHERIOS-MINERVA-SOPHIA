@@ -15,6 +15,9 @@ export default {
         'warm-grey': 'var(--warm-grey)',
         'aether-blue': 'var(--aether-blue)',
         'aether-violet': 'var(--aether-violet)',
+        'void': '#000000',
+        'sapphire-blue': '#0f52ba',
+        'gold-diamond': '#f8f5ec'
       },
       fontFamily: {
         orbitron: ['Orbitron', 'sans-serif'],

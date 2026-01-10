@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SystemState, OrbMode } from '../types';
 import { MetricDisplay } from './MetricDisplay';
@@ -35,6 +36,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onUpgrade,
     audioEngine
 }) => {
+  const isSovereign = systemState.userResources.sovereignTier === 'SOVEREIGN';
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-4 px-2">
       
@@ -58,6 +61,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             
             <NodeStabilityMatrix resonance={systemState.resonanceFactorRho} decoherence={systemState.quantumHealing.decoherence} />
+
+            {isSovereign && (
+                <div className="bg-black/40 border border-gold/30 p-4 rounded-sm relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-[8px] font-mono text-gold uppercase tracking-widest font-black">Capital_Reserve</span>
+                        <div className="w-1.5 h-1.5 bg-gold rounded-full shadow-[0_0_5px_gold] animate-pulse" />
+                    </div>
+                    <p className="font-orbitron text-xl text-pearl font-black">
+                        ${(systemState.userResources.sovereignLiquidity || 22500000).toLocaleString()}
+                    </p>
+                    <div className="mt-2 flex justify-between text-[7px] font-mono text-slate-500 uppercase">
+                        <span>Manifest Pulse</span>
+                        <span className="text-blue-400">ACTIVE</span>
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-4">
                 <div className="bg-black/40 border border-violet-500/20 p-4 rounded-xl relative overflow-hidden group">

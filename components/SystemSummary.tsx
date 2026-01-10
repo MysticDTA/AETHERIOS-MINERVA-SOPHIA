@@ -10,14 +10,34 @@ interface SystemSummaryProps {
 }
 
 const SovereignSeal: React.FC = () => (
-    <div className="relative w-32 h-32 flex items-center justify-center group pointer-events-none select-none">
+    <div className="relative w-40 h-40 flex items-center justify-center group pointer-events-none select-none">
         <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_40s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity">
+            <defs>
+                <filter id="sealGlow"><feGaussianBlur stdDeviation="2" /><feComposite in="SourceGraphic" operator="over" /></filter>
+            </defs>
             <circle cx="50" cy="50" r="48" fill="none" stroke="var(--gold)" strokeWidth="0.5" strokeDasharray="1 3" />
             <path d="M 50 5 L 95 50 L 50 95 L 5 50 Z" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
-            <circle cx="50" cy="50" r="30" fill="none" stroke="var(--gold)" strokeWidth="1" strokeDasharray="10 5" />
+            <circle cx="50" cy="50" r="30" fill="none" stroke="var(--gold)" strokeWidth="1" strokeDasharray="10 5" filter="url(#sealGlow)" />
         </svg>
-        <div className="absolute font-orbitron text-gold font-black text-xl tracking-tighter opacity-80">S7</div>
-        <div className="absolute top-[110%] w-max text-[7px] font-mono text-gold uppercase tracking-[0.6em] opacity-40">Institutional_Seal_0x88</div>
+        <div className="absolute font-orbitron text-gold font-black text-2xl tracking-tighter opacity-80 drop-shadow-[0_0_10px_gold]">S7</div>
+        <div className="absolute top-[115%] w-max text-[8px] font-mono text-gold uppercase tracking-[0.6em] font-black opacity-60">Sovereign_Validation_0x88</div>
+    </div>
+);
+
+const HybridSecurityMath: React.FC = () => (
+    <div className="bg-black/80 border border-violet-500/30 p-8 rounded-sm font-mono text-[11px] text-violet-300/90 shadow-2xl relative group overflow-hidden">
+        <div className="absolute inset-0 bg-violet-500/[0.02] pointer-events-none" />
+        <p className="mb-4 text-violet-400 uppercase tracking-widest text-[9px] font-black border-b border-violet-500/20 pb-2 flex justify-between">
+            <span>Cryptographic_Verification_Baseline</span>
+            <span className="text-emerald-500">STA_LOCKED</span>
+        </p>
+        <div className="flex flex-col gap-3 italic">
+            <p className="text-lg text-pearl font-black leading-none select-all">E<sub>hybrid</sub>(m) = Enc<sub>PQC</sub>(k<sub>psk</sub>) || Enc<sub>AES</sub>(k<sub>classical</sub>, m)</p>
+            <p className="text-slate-500 not-italic text-[10px] leading-relaxed max-w-xl">
+                The manifest data <span className="text-violet-400">m</span> is encapsulated within a dual-envelope protocol. The post-quantum (PQC) layer isolates the pre-shared key, while classical AES-256-GCM ensures high-throughput integrity.
+            </p>
+        </div>
+        <div className="absolute -bottom-4 -right-4 opacity-5 font-orbitron text-7xl font-black italic">PQH</div>
     </div>
 );
 
@@ -55,14 +75,14 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
             runIntelligentAudit();
         } else if (!sophiaEngine && !intelligentAudit) {
             setIntelligentAudit(`
-                <h3>Production Node Audit v1.4.0</h3>
-                <p>ÆTHERIOS Node 0x88 is operating within nominal institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98%.</p>
+                <h3>Production Node Audit v1.4.1</h3>
+                <p>ÆTHERIOS Node 0x88 is operating within peak institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98%.</p>
                 <ul>
                     <li>Resonance Rho: ${systemState.resonanceFactorRho.toFixed(6)} [STABLE]</li>
                     <li>Causal Drift: ${systemState.temporalCoherenceDrift.toFixed(8)}Ψ [NOMINAL]</li>
                     <li>Biometric Coherence: ${(systemState.biometricSync.coherence * 100).toFixed(2)}% [PHASE_LOCKED]</li>
                 </ul>
-                <p><i>Recommendations: Maintain current resonance baseline to prevent entropic noise in the Noetic Graph.</i></p>
+                <p><i>Recommendations: Maintain current resonance baseline to prevent entropic noise in the Noetic Graph. Security Posture is currently QUANTUM_READY.</i></p>
             `);
         }
     }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing, existingReport]);
@@ -86,16 +106,16 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-gold rounded-full shadow-[0_0_15px_#ffd700]" />
-                        <h2 className="font-orbitron text-5xl md:text-6xl text-pearl text-glow-pearl tracking-tighter leading-none uppercase font-black">System_Audit_Registry</h2>
+                        <h2 className="font-orbitron text-5xl md:text-6xl text-pearl text-glow-pearl tracking-tighter leading-none uppercase font-black">Coherence_Audit_Registry</h2>
                     </div>
                     <div className="flex flex-wrap items-center gap-10">
                         <div className="flex flex-col">
                             <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Audit_Protocol</span>
-                            <p className="font-mono text-xs text-gold font-bold">GOLD_TIER_MINERVA_v4.1</p>
+                            <p className="font-mono text-xs text-gold font-bold">GOLD_TIER_MINERVA_v4.2</p>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Status_Classification</span>
-                            <p className="font-mono text-xs text-emerald-400 font-black">PRODUCTION_STABLE // NO_SPECTRAL_LEAKS</p>
+                            <p className="font-mono text-xs text-emerald-400 font-black">SOVEREIGN_STABLE // E_HYBRID_ACTIVE</p>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Registry_ID</span>
@@ -114,6 +134,14 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                     {auditData.map((metric, i) => (
                         <AuditMetric key={i} {...metric} />
                     ))}
+                </div>
+
+                <div className="space-y-8">
+                    <h4 className="font-orbitron text-[14px] text-pearl uppercase tracking-[0.4em] font-black flex items-center gap-4">
+                        <div className="w-1 h-4 bg-violet-500" />
+                        Hybrid Security Definition
+                    </h4>
+                    <HybridSecurityMath />
                 </div>
 
                 <div className="bg-violet-950/10 border border-violet-500/20 p-12 rounded-sm flex flex-col gap-10 relative group overflow-hidden shadow-2xl border-l-8 border-l-violet-500/40">

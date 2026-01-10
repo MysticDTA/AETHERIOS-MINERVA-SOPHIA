@@ -91,23 +91,31 @@ export class SophiaEngineCore {
     }
   }
 
-  async generateSecurityPostureReport(systemState: SystemState): Promise<string> {
-      const ai = this.getClient();
-      if (!ai) return "Simulation active: Hybrid layers locked at v2.0 baseline.";
+  async performSystemAudit(systemState: SystemState, scanFindings: string[] = []): Promise<{ report: string; sources: any[] }> {
+    const ai = this.getClient();
+    if (!ai) {
+        return { 
+            report: "<h3>Audit Core Offline</h3><p>The system is currently operating in <strong>local simulation mode</strong>. To perform a deep heuristic audit, please provision a valid API key.</p><ul><li>Local Parity: CHECKED</li><li>Cloud Sync: PENDING</li></ul>", 
+            sources: [] 
+        };
+    }
 
-      const prompt = `Analyze the current hybrid security posture. AES-256-GCM + CRYSTALS-KYBER is active. 
-      Resistance Score: ${systemState.hybridSecurity.quantumResistanceScore}. 
-      Explain how this protects against CRQC (Cryptographically Relevant Quantum Computers) threats in 2026 and beyond. 
-      Focus on "Store Now, Decrypt Later" mitigation. Max 60 words.`;
+    const findingsText = scanFindings.length > 0 ? `Detected Anomalies: ${scanFindings.join(', ')}.` : "No structural anomalies detected.";
 
-      try {
-          const response = await ai.models.generateContent({
-              model: 'gemini-3-pro-preview',
-              contents: prompt,
-              config: { thinkingConfig: { thinkingBudget: 16000 } }
-          });
-          return response.text || "Report unavailable.";
-      } catch (e) { return "Causal interruption in security analysis."; }
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: `Execute deep causal audit. 
+            Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Decoherence=${systemState.quantumHealing.decoherence}. 
+            Security Posture: ${systemState.hybridSecurity.globalPosture} with $E_{hybrid}$ protocol enabled.
+            ${findingsText}
+            Identify specific fractures in the institutional lattice based on these findings. 
+            Focus on the transition to Universal Year 1 (2026) and the sterility of the Sovereign Vault.
+            Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
+            config: { thinkingConfig: { thinkingBudget: 32768 } }
+        });
+        return { report: response.text || "Audit failed.", sources: [] };
+    } catch (e) { return { report: "Audit fracture.", sources: [] }; }
   }
 
   async runConsoleStream(
@@ -164,45 +172,6 @@ export class SophiaEngineCore {
         });
         return response.text || null;
     } catch (e) { return null; }
-  }
-
-  async getArchitecturalSummary(systemState: SystemState): Promise<string> {
-    const ai = this.getClient();
-    if (!ai) return "Summary Engine Offline: Waiting for Institutional Handshake.";
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: `Summarize system state: Rho=${systemState.resonanceFactorRho}, Temporal Drift=${systemState.temporalCoherenceDrift}. Tone: High Intellectual. Max 60 words.`,
-            config: { thinkingConfig: { thinkingBudget: 16000 } }
-        });
-        return response.text || "Synthesis Failure.";
-    } catch (e) { return "Causal Noise Detected."; }
-  }
-
-  async performSystemAudit(systemState: SystemState, scanFindings: string[] = []): Promise<{ report: string; sources: any[] }> {
-    const ai = this.getClient();
-    if (!ai) {
-        return { 
-            report: "<h3>Audit Core Offline</h3><p>The system is currently operating in <strong>local simulation mode</strong>. To perform a deep heuristic audit, please provision a valid API key.</p><ul><li>Local Parity: CHECKED</li><li>Cloud Sync: PENDING</li></ul>", 
-            sources: [] 
-        };
-    }
-
-    const findingsText = scanFindings.length > 0 ? `Detected Anomalies: ${scanFindings.join(', ')}.` : "No structural anomalies detected.";
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: `Execute deep causal audit. 
-            Metrics: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Decoherence=${systemState.quantumHealing.decoherence}. 
-            ${findingsText}
-            Identify specific fractures in the institutional lattice based on these findings. 
-            Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
-            config: { thinkingConfig: { thinkingBudget: 32768 } }
-        });
-        return { report: response.text || "Audit failed.", sources: [] };
-    } catch (e) { return { report: "Audit fracture.", sources: [] }; }
   }
 
   async getSystemAnalysis(systemState: SystemState): Promise<string> {
@@ -292,28 +261,32 @@ export class SophiaEngineCore {
     }
   }
 
+  // Added getComplexStrategy method to resolve the property existence error in useSophiaCore hook.
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy> {
     const ai = this.getClient();
+    
     if (!ai) {
-        return { 
-            title: "Strategy Simulation (Offline)", 
-            totalConfidence: 0.85, 
-            entropicCost: 0.01, 
+        return {
+            title: "SIMULATION_STRATEGY",
+            totalConfidence: 0.9,
+            entropicCost: 0.05,
             steps: [
-                { id: '1', label: 'MAINTAIN_RHO', description: 'Keep current resonance steady.', probability: 0.9, impact: 'HIGH' },
-                { id: '2', label: 'AWAIT_KEY', description: 'Provision API Key for deep strategy.', probability: 1.0, impact: 'MEDIUM' }
-            ] 
+                { id: 's1', label: 'LOCAL_SYNC', description: 'Synchronize local logic with simulation baseline.', probability: 0.95, impact: 'MEDIUM' }
+            ]
         };
     }
 
-    const prompt = `Synthesize a multi-step complex causal strategy to improve system resonance. Current State: Rho=${systemState.resonanceFactorRho}. Return a JSON object.`;
+    const prompt = `Synthesize a multi-step causal strategy for the Architect to reach peak resonance in the ÆTHERIOS lattice.
+    Analyze this system state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Decoherence=${systemState.quantumHealing.decoherence}.
+    Return a JSON object conforming to the CausalStrategy interface.`;
+    
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 24000 },
+                thinkingConfig: { thinkingBudget: 16000 },
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -341,7 +314,13 @@ export class SophiaEngineCore {
         });
         return JSON.parse(response.text || '{}');
     } catch (e) {
-        return { title: "Causal Error", totalConfidence: 0, entropicCost: 1, steps: [] };
+        console.error("Strategy synthesis failure:", e);
+        return { 
+            title: "EMERGENCY_RECOVERY_PROTOCOL", 
+            totalConfidence: 0.5, 
+            entropicCost: 0.8, 
+            steps: [{ id: 'err_01', label: 'COGNITIVE_REBOOT', description: 'The engine was unable to synthesize a high-reasoning strategy. Manual realignment required.', probability: 1.0, impact: 'HIGH' }] 
+        };
     }
   }
 

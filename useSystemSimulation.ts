@@ -25,7 +25,10 @@ export const initialSystemState: SystemState = {
     unlockedModules: ['CAUSAL_MATRIX'],
     ledgerHistory: [],
     subscriptionActive: false,
-    menervaLegacyPoints: 0
+    menervaLegacyPoints: 0,
+    // Fix: Added missing properties required by UserResources interface
+    sovereignLiquidity: 0,
+    manifestPulse: 0
   },
   performance: {
     logicalLatency: 0.00012,

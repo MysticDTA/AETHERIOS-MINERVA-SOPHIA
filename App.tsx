@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSystemSimulation } from './useSystemSimulation';
 import { Layout } from './components/Layout';
@@ -47,6 +48,7 @@ import { CoCreatorNexus } from './components/CoCreatorNexus';
 import { NeuralQuantizer } from './components/NeuralQuantizer';
 import { VoiceInterface } from './components/VoiceInterface';
 import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
+import { SovereignWelcome } from './components/SovereignWelcome';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
@@ -68,6 +70,7 @@ export const App: React.FC = () => {
   const [showDiagnostic, setShowDiagnostic] = useState(true); // Auto-start diagnostic
   const [showVoicePanel, setShowVoicePanel] = useState(false);
   const [lastAuditReport, setLastAuditReport] = useState<{report: string, sources: any[]} | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
   
   // Auth State for View Switching
   const [authView, setAuthView] = useState<'LOGIN' | 'RESET'>('LOGIN');
@@ -84,6 +87,20 @@ export const App: React.FC = () => {
     setGrounded, 
     setDiagnosticMode 
   } = useSystemSimulation(simulationParams, orbMode);
+
+  // Initialize Sovereign Metrics
+  useEffect(() => {
+    if (systemState.userResources.sovereignTier === 'SOVEREIGN') {
+        setSystemState(prev => ({
+            ...prev,
+            userResources: {
+                ...prev.userResources,
+                sovereignLiquidity: 22500000.00,
+                manifestPulse: 10000000.00
+            }
+        }));
+    }
+  }, [systemState.userResources.sovereignTier]);
 
   // --- GLOBAL CAUSAL GUARD ---
   useEffect(() => {
@@ -208,12 +225,26 @@ export const App: React.FC = () => {
   const handleLogin = () => {
       setSystemState(prev => ({
           ...prev,
-          auth: { ...prev.auth, isAuthenticated: true }
+          auth: { ...prev.auth, isAuthenticated: true },
+          userResources: { ...prev.userResources, sovereignTier: 'SOVEREIGN' } // Auto-elevate for McBride
       }));
-      addLogEntry(LogType.SYSTEM, "Operator Verified. Sovereign Gate Opened.");
+      addLogEntry(LogType.SYSTEM, "Sovereign Handshake Complete. Welcome Architect.");
   };
 
   const renderPage = () => {
+      // Show Welcome overlay if in Sovereign state and not dismissed
+      if (showWelcome && systemState.userResources.sovereignTier === 'SOVEREIGN' && currentPage === 1) {
+          return (
+              <div className="absolute inset-0 z-50 animate-fade-in" onClick={() => setShowWelcome(false)}>
+                  <SovereignWelcome 
+                      liquidity={systemState.userResources.sovereignLiquidity || 22500000} 
+                      manifestPulse={systemState.userResources.manifestPulse || 10000000} 
+                  />
+                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 font-orbitron text-[9px] text-pearl/20 uppercase tracking-[0.4em] animate-pulse">Click to enter Sanctum</div>
+              </div>
+          );
+      }
+
       const nodeConfig = SYSTEM_NODES.find(n => n.id === currentPage);
       
       if (nodeConfig && !checkNodeAccess(systemState.userResources.sovereignTier, nodeConfig.requiredTier)) {
