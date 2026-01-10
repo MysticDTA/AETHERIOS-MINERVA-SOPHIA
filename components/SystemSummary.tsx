@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { Tooltip } from './Tooltip';
@@ -10,13 +9,26 @@ interface SystemSummaryProps {
   existingReport?: { report: string; sources: any[] } | null;
 }
 
+const SovereignSeal: React.FC = () => (
+    <div className="relative w-32 h-32 flex items-center justify-center group pointer-events-none select-none">
+        <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_40s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity">
+            <circle cx="50" cy="50" r="48" fill="none" stroke="var(--gold)" strokeWidth="0.5" strokeDasharray="1 3" />
+            <path d="M 50 5 L 95 50 L 50 95 L 5 50 Z" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
+            <circle cx="50" cy="50" r="30" fill="none" stroke="var(--gold)" strokeWidth="1" strokeDasharray="10 5" />
+        </svg>
+        <div className="absolute font-orbitron text-gold font-black text-xl tracking-tighter opacity-80">S7</div>
+        <div className="absolute top-[110%] w-max text-[7px] font-mono text-gold uppercase tracking-[0.6em] opacity-40">Institutional_Seal_0x88</div>
+    </div>
+);
+
 const AuditMetric: React.FC<{ label: string; value: string; status: 'OPTIMAL' | 'DEVIATING' | 'CRITICAL' }> = ({ label, value, status }) => (
-    <div className="bg-black/40 border border-white/5 p-5 rounded-sm flex flex-col gap-2 group hover:border-gold/30 transition-all">
-        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-slate-300 transition-colors">{label}</span>
-        <div className="flex justify-between items-end">
-            <span className="font-orbitron text-lg text-pearl font-bold truncate">{value}</span>
-            <span className={`text-[7px] font-mono px-1.5 py-0.5 rounded border ${
-                status === 'OPTIMAL' ? 'border-green-500 text-green-400 bg-green-950/20' : 
+    <div className="bg-black/60 border border-white/5 p-6 rounded-sm flex flex-col gap-3 group hover:border-gold/40 transition-all shadow-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-black group-hover:text-slate-300 transition-colors relative z-10">{label}</span>
+        <div className="flex justify-between items-end relative z-10">
+            <span className="font-orbitron text-xl text-pearl font-extrabold truncate tracking-tighter">{value}</span>
+            <span className={`text-[7px] font-mono px-2 py-0.5 rounded border font-black tracking-widest ${
+                status === 'OPTIMAL' ? 'border-emerald-500 text-emerald-400 bg-emerald-950/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]' : 
                 status === 'DEVIATING' ? 'border-gold text-gold bg-gold/10' : 
                 'border-rose-500 text-rose-400 bg-rose-950/20'
             }`}>
@@ -36,13 +48,12 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
         } else if (sophiaEngine && !intelligentAudit && !isSynthesizing) {
             const runIntelligentAudit = async () => {
                 setIsSynthesizing(true);
-                const report = await sophiaEngine.getArchitecturalSummary(systemState);
-                setIntelligentAudit(report);
+                const report = await sophiaEngine.performSystemAudit(systemState);
+                setIntelligentAudit(report.report);
                 setIsSynthesizing(false);
             };
             runIntelligentAudit();
         } else if (!sophiaEngine && !intelligentAudit) {
-            // High-fidelity fallback for simulation mode
             setIntelligentAudit(`
                 <h3>Production Node Audit v1.4.0</h3>
                 <p>ÆTHERIOS Node 0x88 is operating within nominal institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98%.</p>
@@ -56,96 +67,122 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
         }
     }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing, existingReport]);
 
-    const auditData = [
-        { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(2) + "%", status: (systemState.performance.visualParity > 0.9 ? 'OPTIMAL' : 'DEVIATING') as any },
-        { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(6), status: (systemState.resonanceFactorRho > 0.95 ? 'OPTIMAL' : 'DEVIATING') as any },
-        { label: "Network Latency", value: systemState.performance.logicalLatency.toFixed(4) + "ms", status: 'OPTIMAL' as any },
-        { label: "Vercel Edge Parity", value: "100% VERIFIED", status: 'OPTIMAL' as any },
-        { label: "Vocal Link", value: "24kHz PCM", status: 'OPTIMAL' as any },
-        { label: "Spectral Alignment", value: "PHASE_LOCKED", status: 'OPTIMAL' as any },
-    ];
+    const auditData = useMemo(() => [
+        { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(4) + "%", status: (systemState.performance.visualParity > 0.95 ? 'OPTIMAL' : 'DEVIATING') as any },
+        { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(8), status: (systemState.resonanceFactorRho > 0.98 ? 'OPTIMAL' : 'DEVIATING') as any },
+        { label: "Temporal Lock", value: systemState.isPhaseLocked ? "LOCKED" : "ACQUIRING", status: (systemState.isPhaseLocked ? 'OPTIMAL' : 'DEVIATING') as any },
+        { label: "Noetic Latency", value: (systemState.performance.logicalLatency * 1000).toFixed(2) + "µs", status: 'OPTIMAL' as any },
+        { label: "Quantum Fidelity", value: (systemState.coherenceResonance.quantumCorrelation * 100).toFixed(1) + "%", status: 'OPTIMAL' as any },
+        { label: "Aura Stability", value: (systemState.biometricSync.coherence * 100).toFixed(1) + "%", status: 'OPTIMAL' as any },
+    ], [systemState]);
 
     return (
-        <div className="w-full h-full bg-dark-surface border border-white/10 p-10 md:p-16 rounded-xl border-glow-pearl backdrop-blur-3xl flex flex-col overflow-hidden relative animate-fade-in shadow-[0_40px_100px_rgba(0,0,0,1)]">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-orbitron text-[220px] text-white/[0.005] pointer-events-none select-none uppercase tracking-[0.4em]">
-                AUDIT
+        <div className="w-full h-full bg-dark-surface border border-white/10 p-10 md:p-20 rounded-xl border-glow-pearl backdrop-blur-3xl flex flex-col overflow-hidden relative animate-fade-in shadow-[0_60px_150px_rgba(0,0,0,1)]">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-orbitron text-[280px] text-white/[0.005] pointer-events-none select-none uppercase tracking-[0.5em] font-black">
+                SOPHIA
             </div>
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 z-10 border-b border-white/10 pb-10 gap-8">
-                <div className="space-y-4">
-                    <h2 className="font-orbitron text-5xl text-pearl text-glow-pearl tracking-tighter leading-none uppercase font-extrabold">System_Integrity_Audit</h2>
-                    <div className="flex flex-wrap items-center gap-6">
-                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Registrar: <span className="text-gold">SOPHIA_V1.4.0</span></p>
-                        <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />
-                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Status: <span className="text-emerald-400">PRODUCTION_STABLE</span></p>
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-16 z-10 border-b border-white/10 pb-12 gap-10">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-gold rounded-full shadow-[0_0_15px_#ffd700]" />
+                        <h2 className="font-orbitron text-5xl md:text-6xl text-pearl text-glow-pearl tracking-tighter leading-none uppercase font-black">System_Audit_Registry</h2>
                     </div>
-                </div>
-                
-                <div className="text-right flex flex-col items-end gap-3">
-                    <div className="flex items-center gap-6 px-8 py-5 bg-gold/5 border border-gold/40 rounded-sm shadow-[0_0_50px_rgba(230,199,127,0.1)]">
-                        <svg className="w-10 h-10 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        <div className="text-left">
-                            <p className="text-[13px] text-gold font-black uppercase tracking-[0.3em]">Causal Parity Verified</p>
-                            <p className="text-[9px] text-gold/40 font-mono tracking-widest mt-1">Institutional Standard v1.4.0</p>
+                    <div className="flex flex-wrap items-center gap-10">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Audit_Protocol</span>
+                            <p className="font-mono text-xs text-gold font-bold">GOLD_TIER_MINERVA_v4.1</p>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Status_Classification</span>
+                            <p className="font-mono text-xs text-emerald-400 font-black">PRODUCTION_STABLE // NO_SPECTRAL_LEAKS</p>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Registry_ID</span>
+                            <p className="font-mono text-xs text-pearl opacity-60">0x88-ARCHITECT-PRIME</p>
                         </div>
                     </div>
                 </div>
+                
+                <div className="xl:text-right flex flex-col items-center xl:items-end gap-6">
+                    <SovereignSeal />
+                </div>
             </div>
 
-            <div className="flex-1 z-10 overflow-y-auto pr-6 scrollbar-thin flex flex-col gap-12">
+            <div className="flex-1 z-10 overflow-y-auto pr-8 scrollbar-thin flex flex-col gap-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {auditData.map((metric, i) => (
                         <AuditMetric key={i} {...metric} />
                     ))}
                 </div>
 
-                <div className="bg-violet-950/10 border border-violet-500/20 p-10 rounded-sm flex flex-col gap-8 relative group overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.02] font-orbitron text-9xl uppercase font-bold tracking-tighter select-none pointer-events-none">HEURISTIC</div>
-                    <div className="flex items-center gap-5 border-b border-violet-500/20 pb-6">
-                        <div className="w-2.5 h-2.5 rounded-full bg-violet-400 shadow-[0_0_15px_#a78bfa] animate-pulse" />
-                        <h4 className="font-orbitron text-[13px] text-violet-300 uppercase tracking-[0.5em] font-black">Synthesized Heuristic Conclusion</h4>
+                <div className="bg-violet-950/10 border border-violet-500/20 p-12 rounded-sm flex flex-col gap-10 relative group overflow-hidden shadow-2xl border-l-8 border-l-violet-500/40">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] font-orbitron text-[150px] font-black tracking-tighter select-none pointer-events-none leading-none">PQC</div>
+                    <div className="flex items-center justify-between border-b border-violet-500/20 pb-8">
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 rounded-sm bg-violet-900/40 border border-violet-500 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.2)]">
+                                <span className="font-orbitron text-violet-400 text-3xl font-black">∑</span>
+                            </div>
+                            <div>
+                                <h4 className="font-orbitron text-[16px] text-violet-300 uppercase tracking-[0.4em] font-black">Synthesized Heuristic Document</h4>
+                                <p className="text-[9px] font-mono text-violet-500 uppercase tracking-widest mt-1">Generated via Gemini 3 Pro reasoning [32k budget]</p>
+                            </div>
+                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/20 px-4 py-1 rounded border border-emerald-500/20">VERIFIED</span>
                     </div>
                     
-                    <div className="flex-1 min-h-[140px]">
+                    <div className="flex-1 min-h-[160px]">
                         {isSynthesizing ? (
-                            <div className="flex flex-col items-center justify-center gap-6 py-12 animate-pulse opacity-40">
-                                <div className="w-10 h-10 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin" />
-                                <span className="font-mono text-[11px] text-violet-300 uppercase tracking-[0.5em] font-bold">Accessing Cognitive Budget [32K]...</span>
+                            <div className="flex flex-col items-center justify-center gap-8 py-16 animate-pulse">
+                                <div className="w-12 h-12 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin" />
+                                <div className="text-center space-y-2">
+                                    <span className="font-mono text-[11px] text-violet-300 uppercase tracking-[0.5em] font-bold">Compressing Wavefunction...</span>
+                                    <p className="text-[9px] font-mono text-slate-600 uppercase">Latency: {(systemState.performance.logicalLatency * 50).toFixed(4)}ms</p>
+                                </div>
                             </div>
                         ) : (
-                            <div className="text-[13px] text-pearl/80 leading-relaxed font-minerva select-text antialiased space-y-4 audit-report-content" dangerouslySetInnerHTML={{ __html: intelligentAudit || '' }} />
+                            <div className="text-[14px] text-pearl/80 leading-relaxed font-minerva select-text antialiased space-y-6 audit-report-content max-w-4xl" dangerouslySetInnerHTML={{ __html: intelligentAudit || '' }} />
                         )}
                     </div>
                 </div>
 
-                <div className="mt-16 pt-16 border-t border-white/10 flex flex-col items-center gap-8 pb-16">
-                    <div className="flex flex-col items-center gap-3">
-                        <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.6em] font-black opacity-30">Architectural Approval</span>
-                        <h3 className="font-minerva italic text-5xl text-pearl text-glow-pearl">Desmond McBride</h3>
-                        <p className="text-[11px] font-mono text-slate-500 uppercase tracking-[0.5em] mt-2 font-bold">Principal Architect // ÆTHERIOS Global</p>
+                <div className="mt-20 pt-20 border-t border-white/10 flex flex-col items-center gap-10 pb-24">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                        <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.8em] font-black opacity-30">Causal Verification Signature</span>
+                        <h3 className="font-minerva italic text-6xl md:text-7xl text-pearl text-glow-pearl">Desmond McBride</h3>
+                        <div className="flex items-center gap-4 mt-2">
+                            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-[0.6em] font-bold">Principal Architect</span>
+                            <div className="h-px w-10 bg-gold/30" />
+                            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-[0.6em] font-bold">ÆTHERIOS Global Synod</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="w-1 h-1 rounded-full bg-gold animate-ping" />
+                        <div className="w-1 h-1 rounded-full bg-gold animate-ping [animation-delay:0.2s]" />
+                        <div className="w-1 h-1 rounded-full bg-gold animate-ping [animation-delay:0.4s]" />
                     </div>
                 </div>
             </div>
 
-            <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[11px] font-mono text-slate-600 uppercase tracking-widest z-10 gap-6">
-                <div className="flex gap-10">
-                    <span className="flex items-center gap-3"><div className="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_cyan]" /> Resonance: LOCKED</span>
-                    <span className="flex items-center gap-3"><div className="w-2 h-2 bg-gold rounded-full shadow-[0_0_10px_gold]" /> Identity: VERIFIED</span>
+            <div className="mt-auto pt-10 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[12px] font-mono text-slate-600 uppercase tracking-widest z-10 gap-8">
+                <div className="flex gap-12">
+                    <span className="flex items-center gap-4 group cursor-help"><div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_12px_#10b981]" /> Status: <span className="text-pearl group-hover:text-emerald-400 transition-colors">OPTIMAL_LOCKED</span></span>
+                    <span className="flex items-center gap-4 group cursor-help"><div className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_12px_cyan]" /> Network: <span className="text-pearl group-hover:text-cyan-400 transition-colors">L_BAND_UPLINK</span></span>
                 </div>
-                <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-full border border-white/10">
-                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
-                    <span className="text-pearl/80 font-bold">Sovereign Node Certification: ACTIVE [v1.4.0]</span>
+                <div className="bg-black/60 px-8 py-4 rounded-full border border-white/10 shadow-2xl relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-pearl/80 font-black tracking-[0.1em] relative z-10">Sovereign_Node_Certificate :: V99.1_PROD_1.4.1</span>
                 </div>
             </div>
+            
             <style>{`
-                .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 13px; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.2em; }
-                .audit-report-content p { margin-bottom: 1rem; color: #e2e8f0; font-family: 'Playfair Display', serif; font-style: italic; }
-                .audit-report-content ul { margin-left: 1.5rem; list-style: none; margin-bottom: 1rem; }
-                .audit-report-content li { margin-bottom: 0.5rem; position: relative; padding-left: 1rem; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-                .audit-report-content li::before { content: '>'; color: var(--gold); position: absolute; left: 0; }
-                .audit-report-content b { color: var(--gold); font-weight: bold; }
+                .audit-report-content h3 { color: var(--gold); font-family: 'Orbitron'; font-size: 15px; text-transform: uppercase; margin-top: 2.5rem; margin-bottom: 1.25rem; border-bottom: 2px solid rgba(230, 199, 127, 0.2); padding-bottom: 0.75rem; font-weight: 900; letter-spacing: 0.3em; }
+                .audit-report-content p { margin-bottom: 1.5rem; color: #f8f5ec; font-family: 'Playfair Display', serif; font-style: italic; font-size: 16px; line-height: 1.8; }
+                .audit-report-content ul { margin-left: 2rem; list-style: none; margin-bottom: 2rem; }
+                .audit-report-content li { margin-bottom: 0.75rem; position: relative; padding-left: 1.5rem; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.05em; }
+                .audit-report-content li::before { content: '◈'; color: var(--gold); position: absolute; left: 0; font-size: 10px; top: 2px; }
+                .audit-report-content b { color: var(--gold); font-weight: 900; text-shadow: 0 0 10px rgba(255,215,0,0.2); }
+                .audit-report-content i { color: #94a3b8; opacity: 0.8; }
             `}</style>
         </div>
     );

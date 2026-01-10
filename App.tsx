@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSystemSimulation } from './useSystemSimulation';
 import { Layout } from './components/Layout';
@@ -85,6 +84,27 @@ export const App: React.FC = () => {
     setGrounded, 
     setDiagnosticMode 
   } = useSystemSimulation(simulationParams, orbMode);
+
+  // --- GLOBAL CAUSAL GUARD ---
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+      const message = event.error?.message || event.message || 'Unknown Causal Disruption';
+      addLogEntry(LogType.CRITICAL, `[LATTICE_FRACTURE] Unhandled Exception: ${message}`);
+    };
+
+    const handleGlobalRejection = (event: PromiseRejectionEvent) => {
+      const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      addLogEntry(LogType.CRITICAL, `[SIGNAL_LOSS] Unhandled Promise Rejection: ${message}`);
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleGlobalRejection);
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleGlobalRejection);
+    };
+  }, [addLogEntry]);
 
   const {
     calibrationTargetId,
@@ -180,8 +200,10 @@ export const App: React.FC = () => {
 
   const handleManualReset = () => {
       setSystemState(initialSystemState);
-      addLogEntry(LogType.SYSTEM, 'Manual system reset triggered. Entropy cleared.');
+      setSimulationParams({ decoherenceChance: 0.05, lesionChance: 0.02 });
+      addLogEntry(LogType.SYSTEM, 'Manual system reset triggered. Institutional parity restored.');
       audioEngineRef.current?.playEffect('reset');
+      setShowDiagnostic(true); // Always re-scan on reset
   };
 
   const handleLogin = () => {
@@ -210,7 +232,7 @@ export const App: React.FC = () => {
               return <Dashboard 
                   systemState={systemState} 
                   onTriggerScan={() => setShowDiagnostic(true)} 
-                  scanCompleted={false} 
+                  scanCompleted={!!lastAuditReport} 
                   sophiaEngine={sophiaEngine}
                   setOrbMode={setOrbMode}
                   orbMode={orbMode}
@@ -279,7 +301,7 @@ export const App: React.FC = () => {
           case 13: // NEURON
               return <div className="h-full bg-black/20 rounded-xl overflow-hidden relative">
                   <NeuralQuantizer orbMode={orbMode} systemState={systemState} />
-                  <div className="absolute top-4 left-4 font-orbitron text-pearl">Neural Quantizer Matrix</div>
+                  <div className="absolute top-4 left-4 font-orbitron text-pearl uppercase tracking-widest text-[10px]">Neural Quantizer Matrix</div>
               </div>;
           case 14: // SUMMARY
               return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={lastAuditReport} />;
@@ -321,7 +343,7 @@ export const App: React.FC = () => {
               return <Dashboard 
                   systemState={systemState} 
                   onTriggerScan={() => setShowDiagnostic(true)} 
-                  scanCompleted={false} 
+                  scanCompleted={!!lastAuditReport} 
                   sophiaEngine={sophiaEngine}
                   setOrbMode={setOrbMode}
                   orbMode={orbMode}
@@ -423,19 +445,21 @@ export const App: React.FC = () => {
             </Modal>
 
             {showDiagnostic && (
-                <DeepDiagnosticOverlay 
-                    onClose={() => setShowDiagnostic(false)}
-                    onComplete={() => {
-                        setShowDiagnostic(false);
-                        addLogEntry(LogType.SYSTEM, 'Deep heuristic audit completed. Core stabilized.');
-                        setCurrentPage(19); // Navigate to Full Audit Report
-                    }}
-                    systemState={systemState}
-                    setSystemState={setSystemState}
-                    sophiaEngine={sophiaEngine}
-                    audioEngine={audioEngineRef.current}
-                    onReportGenerated={setLastAuditReport}
-                />
+                <div id="diagnostic-root">
+                    <DeepDiagnosticOverlay 
+                        onClose={() => setShowDiagnostic(false)}
+                        onComplete={() => {
+                            setShowDiagnostic(false);
+                            addLogEntry(LogType.SYSTEM, 'Deep heuristic audit completed. Core stabilized and parity verified.');
+                            setCurrentPage(19); // Navigate to Full Audit Report
+                        }}
+                        systemState={systemState}
+                        setSystemState={setSystemState}
+                        sophiaEngine={sophiaEngine}
+                        audioEngine={audioEngineRef.current}
+                        onReportGenerated={setLastAuditReport}
+                    />
+                </div>
             )}
 
             {/* Voice Interface Global Overlay */}

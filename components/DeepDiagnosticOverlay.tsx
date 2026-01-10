@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
+import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { AudioEngine } from './audio/AudioEngine';
 
@@ -70,16 +69,17 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
         let time = 0;
 
         // Volumetric Point Cloud
-        const pointCount = 400;
+        const pointCount = 600;
         const points = Array.from({ length: pointCount }).map(() => ({
             x: (Math.random() - 0.5) * 400,
             y: (Math.random() - 0.5) * 400,
             z: (Math.random() - 0.5) * 400,
-            verified: false
+            verified: false,
+            phase: Math.random() * Math.PI * 2
         }));
 
         const project = (x: number, y: number, z: number, w: number, h: number) => {
-            const scale = 600 / (600 + z);
+            const scale = 800 / (800 + z);
             return {
                 x: w / 2 + x * scale,
                 y: h / 2 + y * scale,
@@ -95,51 +95,83 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
         const render = () => {
             const w = canvas.width;
             const h = canvas.height;
-            time += 0.01;
+            time += 0.015;
             
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.fillRect(0, 0, w, h);
 
-            // Scanning Beam
-            const scanY = Math.sin(time * 2) * 200;
+            // Scanning Beam (Sine wave sweep)
+            const scanY = Math.sin(time * 1.5) * 200;
+
+            // Draw Background Lattice (Subtle)
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            ctx.lineWidth = 0.5;
+            for(let i=0; i<w; i+=50) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+            }
 
             points.forEach(p => {
-                let { x, z } = rotateY(p.x, p.z, time * 0.5);
+                let { x, z } = rotateY(p.x, p.z, time * 0.3);
                 const projected = project(x, p.y, z, w, h);
                 
                 // Verify logic
-                if (Math.abs(p.y - scanY) < 10) p.verified = true;
-                if (Math.random() > 0.995) p.verified = false; // Entropy decay
+                if (Math.abs(p.y - scanY) < 15) p.verified = true;
+                if (Math.random() > 0.99) p.verified = false; // Entropy decay
 
-                const alpha = (projected.scale * 0.5) + 0.1;
-                const size = projected.scale * 2;
+                const alpha = (projected.scale * 0.7) + 0.1;
+                const size = projected.scale * (p.verified ? 2.5 : 1.5);
 
                 ctx.beginPath();
                 ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
                 
-                if (foundDefect && Math.random() > 0.9) {
+                if (foundDefect && Math.random() > 0.95) {
                     ctx.fillStyle = '#f43f5e'; // Defect Red
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#f43f5e';
                 } else if (p.verified) {
                     ctx.fillStyle = `rgba(163, 230, 53, ${alpha})`; // Verified Green/Gold
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#a3e635';
                 } else {
-                    ctx.fillStyle = `rgba(148, 163, 184, ${alpha * 0.5})`; // Unverified Slate
+                    ctx.fillStyle = `rgba(148, 163, 184, ${alpha * 0.3})`; // Unverified Slate
+                    ctx.shadowBlur = 0;
                 }
                 ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Draw connections to nearby points if verified
+                if (p.verified && Math.random() > 0.98) {
+                    const p2 = points[Math.floor(Math.random() * points.length)];
+                    if (p2.verified) {
+                        const proj2 = project(p2.x, p2.y, p2.z, w, h);
+                        ctx.beginPath();
+                        ctx.moveTo(projected.x, projected.y);
+                        ctx.lineTo(proj2.x, proj2.y);
+                        ctx.strokeStyle = `rgba(163, 230, 53, ${alpha * 0.1})`;
+                        ctx.stroke();
+                    }
+                }
             });
 
-            // Draw Beam
-            const beamProjStart = project(-200, scanY, 0, w, h);
-            const beamProjEnd = project(200, scanY, 0, w, h);
-            
+            // Draw Scanning Plane (HUD style)
+            const planeY = project(0, scanY, 0, w, h).y;
             ctx.beginPath();
-            ctx.moveTo(0, beamProjStart.y);
-            ctx.lineTo(w, beamProjEnd.y);
-            ctx.strokeStyle = foundDefect ? 'rgba(244, 63, 94, 0.5)' : 'rgba(16, 185, 129, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = 10;
+            ctx.moveTo(0, planeY);
+            ctx.lineTo(w, planeY);
+            ctx.strokeStyle = foundDefect ? 'rgba(244, 63, 94, 0.8)' : 'rgba(16, 185, 129, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = foundDefect ? '#f43f5e' : '#10b981';
             ctx.stroke();
             ctx.shadowBlur = 0;
+
+            // Draw "Focus" Reticle
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+            ctx.strokeRect(w/2 - 50, h/2 - 50, 100, 100);
+            ctx.beginPath();
+            ctx.moveTo(w/2 - 60, h/2); ctx.lineTo(w/2 - 40, h/2);
+            ctx.moveTo(w/2 + 60, h/2); ctx.lineTo(w/2 + 40, h/2);
+            ctx.stroke();
 
             animationFrame = requestAnimationFrame(render);
         };
@@ -152,13 +184,31 @@ const SystemArchitectureScanner: React.FC<{ activeStepId: string; foundDefect: b
     }, [foundDefect]);
 
     return (
-        <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-black/80 rounded-lg border border-white/10 shadow-inner">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-emerald-500 uppercase tracking-widest z-10 flex gap-2">
-                <span>Scanner_Active:</span>
-                <span className="text-white">{activeStepId.toUpperCase()}</span>
+        <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-black/80 rounded-lg border border-white/10 shadow-2xl">
+            <div className="absolute top-4 left-6 text-[10px] font-mono text-emerald-500 uppercase tracking-widest z-10 flex flex-col gap-1">
+                <div className="flex gap-2">
+                    <span className="opacity-50">Scanner_Active:</span>
+                    <span className="text-white font-bold">{activeStepId.toUpperCase()}</span>
+                </div>
+                <div className="flex gap-2">
+                    <span className="opacity-50">Parity_Score:</span>
+                    <span className="text-gold">0.99984Ψ</span>
+                </div>
             </div>
-            <canvas ref={canvasRef} className="w-full h-full block opacity-80" />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.05)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none mix-blend-screen" />
+            <canvas ref={canvasRef} className="w-full h-full block opacity-90" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+            
+            {/* Visual Scanline Sweep (Full Element) */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="w-full h-[1px] bg-white/20 animate-[scanline-sweep_4s_linear_infinite]" />
+            </div>
+            
+            <style>{`
+                @keyframes scanline-sweep {
+                    from { transform: translateY(-100%); }
+                    to { transform: translateY(1000%); }
+                }
+            `}</style>
         </div>
     );
 };
@@ -189,50 +239,44 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                 setTelemetry("AUDIT_COMPLETE. COMPILING_REPORT...");
                 
                 if (sophiaEngine && onReportGenerated) {
-                    // Pass gathered error findings to Sophia for analysis
                     const report = await sophiaEngine.performSystemAudit(systemState, findings);
                     onReportGenerated(report);
                 }
                 
                 audioEngine?.playAscensionChime();
-                setTimeout(onComplete, 1000);
+                setTimeout(onComplete, 1200);
                 return;
             }
 
             const currentStep = steps[currentStepIndex];
             
-            // Mark step as active
             setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status: 'ACTIVE' } : s));
             setTelemetry(SCAN_TELEMETRY[currentStepIndex % SCAN_TELEMETRY.length]);
             
             if (currentStepIndex % 3 === 0) audioEngine?.playUIClick();
 
-            const duration = 600 + Math.random() * 800; // Simulated work time
+            const duration = 800 + Math.random() * 1200; // Increased duration for visual gravity
             
             timeout = setTimeout(() => {
-                // Probabilistic Error Generation for Realism
                 const rand = Math.random();
                 let status: 'SUCCESS' | 'WARNING' | 'ERROR' = 'SUCCESS';
                 
-                // 15% chance of warning, 5% chance of critical error
-                if (rand > 0.95) {
+                if (rand > 0.96) {
                     status = 'ERROR';
                     const errorMsg = `CRITICAL_FAILURE: ${currentStep.label.split('::')[0]} decoherence`;
                     setFindings(prev => [...prev, errorMsg]);
                     setTelemetry(`[ALERT] ${errorMsg}`);
                     audioEngine?.playAlarm();
-                } else if (rand > 0.80) {
+                } else if (rand > 0.85) {
                     status = 'WARNING';
-                    const warnMsg = `WARNING: High latency in ${currentStep.label.split('::')[0]}`;
+                    const warnMsg = `WARNING: Minor drift in ${currentStep.label.split('::')[0]}`;
                     setFindings(prev => [...prev, warnMsg]);
                 }
 
-                // Mark step complete with status
                 setSteps(prev => prev.map((s, i) => i === currentStepIndex ? { ...s, status, progress: 100 } : s));
                 
-                // Heal system during audit (Quantum Repair), reducing efficacy if errors found
                 if (setSystemState) {
-                    const healAmount = status === 'SUCCESS' ? 0.05 : 0.01;
+                    const healAmount = status === 'SUCCESS' ? 0.08 : 0.02;
                     setSystemState(prev => ({
                         ...prev,
                         quantumHealing: { 
@@ -240,7 +284,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                             health: Math.min(1, prev.quantumHealing.health + healAmount),
                             decoherence: Math.max(0, prev.quantumHealing.decoherence - healAmount)
                         },
-                        resonanceFactorRho: Math.min(1, prev.resonanceFactorRho + 0.01)
+                        resonanceFactorRho: Math.min(1, prev.resonanceFactorRho + 0.012)
                     }));
                 }
 
@@ -254,69 +298,125 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
     }, [currentStepIndex, isScanning, steps.length, sophiaEngine, systemState, onReportGenerated, onComplete, audioEngine, setSystemState]);
 
     return (
-        <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-xl flex flex-col p-6 md:p-10 animate-fade-in overflow-hidden">
+        <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-2xl flex flex-col p-6 md:p-12 animate-fade-in overflow-hidden">
+            {/* Cinematic Background Pulse */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_80%)] animate-pulse" />
+
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4 shrink-0">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 border-2 border-emerald-500 rounded-full flex items-center justify-center animate-spin-slow">
-                        <span className="font-mono text-emerald-500 font-bold">+</span>
+            <div className="flex justify-between items-center mb-10 border-b border-white/10 pb-6 shrink-0 relative z-10">
+                <div className="flex items-center gap-8">
+                    <div className="w-16 h-16 border-2 border-emerald-500/40 rounded-full flex items-center justify-center animate-spin-slow shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
                     </div>
                     <div>
-                        <h2 className="font-orbitron text-2xl md:text-3xl text-pearl uppercase tracking-tighter font-black">Deep Diagnostic Scan</h2>
-                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Protocol: HEURISTIC_PURGE_V9</p>
+                        <h2 className="font-orbitron text-3xl md:text-4xl text-pearl uppercase tracking-tighter font-black text-glow-pearl">Full System Architectural Audit</h2>
+                        <div className="flex items-center gap-4 mt-2">
+                             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/30 px-3 py-0.5 rounded border border-emerald-800/40 font-bold tracking-[0.2em]">STATE: SCANNING</span>
+                             <div className="h-3 w-px bg-white/10" />
+                             <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-medium">Causal_Lattice_Integrity_Check // v1.4.0</p>
+                        </div>
                     </div>
                 </div>
-                <button onClick={onClose} className="text-slate-500 hover:text-white font-mono text-xs uppercase border border-white/10 px-4 py-2 rounded hover:bg-white/5 transition-all">Cancel</button>
+                <button 
+                    onClick={onClose} 
+                    className="text-slate-500 hover:text-rose-400 font-orbitron text-[10px] uppercase tracking-widest border border-white/10 px-6 py-3 rounded-sm hover:bg-rose-950/20 hover:border-rose-500/30 transition-all active:scale-95"
+                >
+                    Abort_Handshake
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 relative z-10">
                 {/* Left: Visualizer */}
-                <div className="flex flex-col gap-4 min-h-0">
-                    <div className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-white/10 shadow-2xl">
+                <div className="lg:col-span-7 flex flex-col gap-6 min-h-0">
+                    <div className="flex-1 min-h-0 relative group">
                         <SystemArchitectureScanner activeStepId={steps[currentStepIndex]?.id || 'COMPLETE'} foundDefect={findings.length > 0} />
+                        
+                        {/* Dynamic Floating HUD elements */}
+                        <div className="absolute bottom-6 right-8 text-right space-y-2 pointer-events-none">
+                            <p className="text-[8px] font-mono text-slate-600 uppercase">Neural_Bridge_Resonance</p>
+                            <p className="font-orbitron text-2xl text-pearl font-black">{(systemState.resonanceFactorRho * 100).toFixed(4)}%</p>
+                        </div>
                     </div>
-                    <div className="bg-black/60 border border-white/10 p-4 rounded font-mono text-[10px] text-emerald-400 h-40 overflow-y-auto scrollbar-thin shadow-inner">
-                        <p className="mb-1 text-slate-500 opacity-50">{'>'} SYSTEM_ROOT_ACCESS_GRANTED</p>
-                        <p className="mb-1 text-slate-500 opacity-50">{'>'} INIT_DIAGNOSTIC_DAEMON_V9</p>
-                        <p className="mb-1 text-slate-500 opacity-50">{'>'} MOUNTING_LOGIC_SHARDS...</p>
+                    
+                    <div className="bg-[#050505] border border-white/5 p-6 rounded-sm font-mono text-[11px] text-emerald-400/80 h-48 overflow-y-auto scrollbar-thin shadow-2xl relative border-l-4 border-l-emerald-500/50">
+                        <div className="absolute top-2 right-4 text-[8px] text-slate-700 uppercase font-black">Institutional_Trace_Buffer</div>
+                        <p className="mb-2 text-slate-500 font-bold opacity-40">[{new Date().toISOString()}] KERNEL_INIT_OK</p>
+                        <p className="mb-2 text-slate-500 font-bold opacity-40">[{new Date().toISOString()}] SECURITY_ENCLAVE_READY</p>
                         {findings.map((finding, i) => (
-                            <p key={i} className="text-rose-400 font-bold animate-pulse">{'>'} {finding}</p>
+                            <p key={i} className="text-rose-400 font-bold animate-pulse py-1 border-b border-rose-900/20">
+                                <span className="text-rose-600 mr-3">⚠</span>{finding}
+                            </p>
                         ))}
-                        <p className="animate-pulse text-pearl font-bold">{'>'} {telemetry}</p>
+                        <div className="flex items-start gap-4 mt-2">
+                             <span className="text-emerald-500 font-black animate-pulse">>>></span>
+                             <p className="animate-pulse text-pearl font-bold uppercase tracking-tight">{telemetry}</p>
+                        </div>
                     </div>
                 </div>
 
                 {/* Right: Step List */}
-                <div className="bg-white/[0.02] border border-white/5 rounded-lg p-1 overflow-y-auto scrollbar-thin">
-                    <div className="space-y-1">
-                        {steps.map((step, idx) => (
-                            <div key={step.id} className={`px-4 py-3 border-l-2 flex justify-between items-center transition-all ${
-                                step.status === 'ACTIVE' 
-                                ? 'bg-emerald-900/10 border-emerald-500 text-emerald-300' 
-                                : step.status === 'SUCCESS' 
-                                    ? 'bg-black/20 border-slate-700 text-slate-500 opacity-60' 
-                                    : step.status === 'WARNING'
-                                        ? 'bg-yellow-900/20 border-yellow-500 text-yellow-300'
-                                        : step.status === 'ERROR'
-                                            ? 'bg-rose-900/20 border-rose-500 text-rose-300'
-                                            : 'bg-transparent border-transparent text-slate-700'
-                            }`}>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="font-mono text-[10px] uppercase tracking-widest font-bold">{step.label}</span>
-                                    <span className="text-[8px] font-mono opacity-60">ID: {step.id.toUpperCase()}</span>
+                <div className="lg:col-span-5 bg-black/40 border border-white/5 rounded-sm p-4 overflow-hidden flex flex-col shadow-inner">
+                    <div className="flex justify-between items-center px-4 py-3 border-b border-white/10 mb-4 shrink-0">
+                         <span className="text-[10px] font-orbitron text-slate-500 uppercase tracking-[0.3em] font-black">Diagnostic_Manifest</span>
+                         <span className="text-[9px] font-mono text-gold">{currentStepIndex} / {steps.length}</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto scrollbar-thin pr-1">
+                        <div className="space-y-1">
+                            {steps.map((step, idx) => (
+                                <div key={step.id} className={`px-5 py-4 border-l-2 flex justify-between items-center transition-all duration-500 relative group ${
+                                    step.status === 'ACTIVE' 
+                                    ? 'bg-emerald-950/20 border-emerald-500 text-emerald-300' 
+                                    : step.status === 'SUCCESS' 
+                                        ? 'bg-black/40 border-slate-700 text-slate-500 opacity-70' 
+                                        : step.status === 'WARNING'
+                                            ? 'bg-yellow-950/20 border-yellow-500 text-yellow-300'
+                                            : step.status === 'ERROR'
+                                                ? 'bg-rose-950/20 border-rose-500 text-rose-300 animate-pulse'
+                                                : 'bg-transparent border-transparent text-slate-700 opacity-30'
+                                }`}>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="font-mono text-[11px] uppercase tracking-wider font-black group-hover:text-pearl transition-colors">{step.label}</span>
+                                        <span className="text-[8px] font-mono opacity-40">VECTOR_OFFSET: 0x{ (idx * 16).toString(16).toUpperCase() }</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        {step.status === 'ACTIVE' && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />}
+                                        <span className={`text-[9px] font-mono font-black tracking-widest ${
+                                            step.status === 'SUCCESS' ? 'text-emerald-500' : 
+                                            step.status === 'ERROR' ? 'text-rose-500' : 
+                                            step.status === 'WARNING' ? 'text-yellow-500' : 'text-slate-600'
+                                        }`}>
+                                            {step.status}
+                                        </span>
+                                    </div>
+                                    {/* Small background progress bar for active item */}
+                                    {step.status === 'ACTIVE' && (
+                                        <div className="absolute bottom-0 left-0 h-[2px] bg-emerald-500/40 animate-[progress-pulse_1s_infinite]" style={{ width: '100%' }} />
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {step.status === 'ACTIVE' && <span className="animate-spin text-[10px]">⟳</span>}
-                                    {step.status === 'SUCCESS' && <span className="text-emerald-500 text-[10px]">VERIFIED</span>}
-                                    {step.status === 'WARNING' && <span className="text-yellow-500 text-[10px] font-bold">WARNING</span>}
-                                    {step.status === 'ERROR' && <span className="text-rose-500 text-[10px] font-bold">FAILURE</span>}
-                                    {step.status === 'PENDING' && <span className="text-[10px] opacity-20">PENDING</span>}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <div className="mt-8 py-4 px-10 bg-white/[0.02] border border-white/5 rounded flex justify-between items-center text-[10px] font-mono text-slate-600 uppercase tracking-[0.4em] relative z-10">
+                 <div className="flex gap-12">
+                     <span>Carrier_Lock: VERIFIED</span>
+                     <span>Entropy_Threshold: 0.0042Ψ</span>
+                 </div>
+                 <div className="flex items-center gap-4">
+                     <span className="animate-pulse">Reasoning Core: GEMINI_3_PRO_v9</span>
+                     <div className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_10px_#8b5cf6]" />
+                 </div>
+            </div>
+
+            <style>{`
+                @keyframes progress-pulse {
+                    0% { opacity: 0.3; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.3; }
+                }
+            `}</style>
         </div>
     );
 };
