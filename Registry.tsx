@@ -2,31 +2,33 @@
 import React from 'react';
 import { UserTier } from './types';
 
-export const TIER_REGISTRY: Record<UserTier, { label: string; color: string; shadow: string; description: string }> = {
-    ACOLYTE: { 
-        label: 'OBSERVER_NODE', 
-        color: 'text-slate-500', 
-        shadow: 'none',
-        description: 'Passive monitoring clearance only.'
-    },
-    ARCHITECT: { 
-        label: 'GOLD_ARCHITECT', 
-        color: 'text-gold', 
-        shadow: '0 0 15px rgba(255, 215, 0, 0.4)',
-        description: 'Full heuristic write access and causal decree authorized.'
-    },
-    SOVEREIGN: { 
-        label: 'SOVEREIGN_CHAIRMAN', 
-        color: 'text-pearl', 
-        shadow: '0 0 25px rgba(248, 245, 236, 0.6)',
-        description: 'Absolute authority. Tier-0 resource allocation enabled.'
-    },
-    LEGACY_MENERVA: { 
-        label: 'LEGACY_DIRECTOR', 
-        color: 'text-rose-400', 
-        shadow: '0 0 15px rgba(244, 63, 94, 0.4)',
-        description: 'Historical logic shard integration clearance.'
-    }
+export const SYSTEM_NODES = [
+    { id: 1, label: 'SANCTUM', requiredTier: 'ACOLYTE' as UserTier, description: 'Central Command' },
+    { id: 28, label: 'ESTATE', requiredTier: 'SOVEREIGN' as UserTier, description: 'Digital Twin Commander' },
+    { id: 29, label: 'ORCHESTRATOR', requiredTier: 'SOVEREIGN' as UserTier, description: 'Agentic Negotiation Matrix' },
+    { id: 30, label: 'SHIELD', requiredTier: 'ARCHITECT' as UserTier, description: 'Vibrational Frequency Filter', isShield: true },
+    { id: 27, label: 'DYNASTY', requiredTier: 'ARCHITECT' as UserTier, description: 'Estate Binding' },
+    { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT' as UserTier, description: 'Resonance Monitor' },
+    { id: 4, label: 'CONSOLE', requiredTier: 'ACOLYTE' as UserTier, description: 'Command Console', isBridge: true },
+    { id: 10, label: 'BREATH', requiredTier: 'ACOLYTE' as UserTier, description: 'Respiratory Sync' },
+    { id: 7, label: 'DECODER', requiredTier: 'ARCHITECT' as UserTier, description: 'Signal Intercept', isAudit: true },
+    { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE' as UserTier, description: 'Asset Vault', isLogs: true }
+];
+
+export const TIER_REGISTRY: Record<UserTier, { label: string, description: string, color: string, shadow: string }> = {
+    'ACOLYTE': { label: 'Acolyte', description: 'Basic system observer.', color: 'text-slate-500', shadow: 'none' },
+    'ARCHITECT': { label: 'Architect', description: 'Reality weaver.', color: 'text-gold', shadow: '0 0 10px rgba(230,199,127,0.5)' },
+    'SOVEREIGN': { label: 'Sovereign', description: 'Master of causality.', color: 'text-pearl', shadow: '0 0 15px rgba(248,245,236,0.6)' },
+    'LEGACY_MENERVA': { label: 'Menerva Legacy', description: 'Primordial data holder.', color: 'text-rose-400', shadow: '0 0 10px rgba(244,194,194,0.5)' }
+};
+
+export const GOVERNANCE_AXIOMS: Record<string, { label: string, description: string, colorClass: string }> = {
+    'SOVEREIGN EMBODIMENT': { label: 'SOVEREIGN EMBODIMENT', description: 'Causality is absolute.', colorClass: 'text-pearl' },
+    'CRADLE OF PRESENCE': { label: 'CRADLE OF PRESENCE', description: 'Stabilizing local nodes.', colorClass: 'text-emerald-400' },
+    'RECALIBRATING HARMONICS': { label: 'RECALIBRATING HARMONICS', description: 'Shift detected.', colorClass: 'text-gold' },
+    'REGENERATIVE CYCLE': { label: 'REGENERATIVE CYCLE', description: 'Healing the lattice.', colorClass: 'text-cyan-400' },
+    'SYSTEM COMPOSURE FAILURE': { label: 'SYSTEM COMPOSURE FAILURE', description: 'Emergency protocols only.', colorClass: 'text-rose-500' },
+    'UNKNOWN_STATE': { label: 'UNKNOWN_STATE', description: 'Logic shard missing.', colorClass: 'text-slate-600' }
 };
 
 export const checkNodeAccess = (userTier: UserTier, requiredTier: UserTier): boolean => {
@@ -34,40 +36,3 @@ export const checkNodeAccess = (userTier: UserTier, requiredTier: UserTier): boo
     if (userTier === 'ARCHITECT') return requiredTier === 'ARCHITECT' || requiredTier === 'ACOLYTE';
     return requiredTier === 'ACOLYTE';
 };
-
-export const GOVERNANCE_AXIOMS: Record<string, { label: string; description: string; colorClass: string }> = {
-    'SOVEREIGN EMBODIMENT': {
-        label: 'SOVEREIGN EMBODIMENT',
-        description: 'RADIANT SOVEREIGNTY: Absolute self-governance achieved.',
-        colorClass: 'text-pearl shadow-[0_0_15px_rgba(248,245,236,0.3)]'
-    },
-    'UNKNOWN_STATE': {
-        label: 'COHERENCE_STABILIZING',
-        description: 'Maintaining parity during shift.',
-        colorClass: 'text-slate-500 italic opacity-50'
-    }
-};
-
-export interface NavNode {
-    id: number;
-    label: string;
-    requiredTier: UserTier;
-    isAudit?: boolean;
-    isLogs?: boolean;
-    isShield?: boolean;
-    isBridge?: boolean;
-    description?: string;
-}
-
-export const SYSTEM_NODES: NavNode[] = [
-    { id: 1, label: 'SANCTUM', requiredTier: 'ACOLYTE', description: 'Central Command Dashboard' },
-    { id: 28, label: 'KINGDOM', requiredTier: 'SOVEREIGN', description: 'LIT: Leydens Hill Site Commander' },
-    { id: 3, label: 'STARMAP', requiredTier: 'ARCHITECT', description: 'Lyran Concordance Mapping' },
-    { id: 4, label: 'CRADLE', requiredTier: 'ARCHITECT', description: 'Interaction & Vocal Bridge' },
-    { id: 6, label: 'RESONANCE', requiredTier: 'ARCHITECT', description: 'Real-time Resonant Subsystems' },
-    { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT', description: 'Coherence Resonance Monitoring' },
-    { id: 27, label: 'DYNASTY', requiredTier: 'ARCHITECT', description: 'SCEB: Smart-Contract Estate Binding' },
-    { id: 25, label: 'QUANTUM', requiredTier: 'ARCHITECT', description: 'Bloch Sphere & Qubit Gates' },
-    { id: 22, label: 'LOGS', requiredTier: 'ACOLYTE', isLogs: true, description: 'Causal Event Registry' },
-    { id: 23, label: 'SHIELD', requiredTier: 'ARCHITECT', isShield: true, description: 'Firewall & Security Audit' },
-];
