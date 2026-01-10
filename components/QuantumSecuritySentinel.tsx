@@ -8,9 +8,18 @@ interface Threat {
     y: number;
     vx: number;
     vy: number;
-    type: 'RANSOMWARE' | 'POLYMORPHIC' | 'QUANTUM_INJECT' | 'ZERO_DAY';
+    type: 'RANSOMWARE' | 'POLYMORPHIC' | 'QUANTUM_INJECT' | 'ZERO_DAY' | 'SHADOW_NODE';
     integrity: number;
     signature: string;
+}
+
+interface Hunter {
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    targetId: number | null;
 }
 
 interface QuantumSecuritySentinelProps {
@@ -21,7 +30,7 @@ const THREAT_TYPES = [
     { type: 'RANSOMWARE', label: 'Ransomware.Cryptex', risk: 'HIGH' },
     { type: 'POLYMORPHIC', label: 'Worm.Poly.V4', risk: 'CRITICAL' },
     { type: 'QUANTUM_INJECT', label: 'Q-Bit.Injection', risk: 'EXTREME' },
-    { type: 'ZERO_DAY', label: 'Exploit.Unknown', risk: 'MODERATE' }
+    { type: 'SHADOW_NODE', label: 'Elayan_Interference', risk: 'ABSOLUTE' }
 ];
 
 export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = ({ audioEngine }) => {
@@ -30,12 +39,13 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
     const [threats, setThreats] = useState<Threat[]>([]);
     const [neutralizedCount, setNeutralizedCount] = useState(0);
     const [isScanning, setIsScanning] = useState(true);
+    const [hunterMode, setHunterMode] = useState(false);
     const [firewallIntegrity, setFirewallIntegrity] = useState(100);
-    const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
     const [purgeBeam, setPurgeBeam] = useState<{ x: number, y: number, life: number }[]>([]);
     
     // Refs for animation loop
     const threatsRef = useRef<Threat[]>([]);
+    const huntersRef = useRef<Hunter[]>([]);
     const beamsRef = useRef<{ x: number, y: number, life: number }[]>([]);
 
     // Initialize & Loop
@@ -65,7 +75,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
         window.addEventListener('resize', resize);
 
         const spawnThreat = () => {
-            if (threatsRef.current.length < 8 && Math.random() > 0.98) {
+            if (threatsRef.current.length < (hunterMode ? 12 : 8) && Math.random() > 0.98) {
                 const angle = Math.random() * Math.PI * 2;
                 const dist = Math.max(width, height) / 2 + 50;
                 const typeData = THREAT_TYPES[Math.floor(Math.random() * THREAT_TYPES.length)];
@@ -86,13 +96,26 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             }
         };
 
+        const spawnHunter = () => {
+            if (hunterMode && huntersRef.current.length < 5 && Math.random() > 0.95) {
+                huntersRef.current.push({
+                    id: Date.now() + Math.random(),
+                    x: cx,
+                    y: cy,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    targetId: null
+                });
+            }
+        };
+
         const render = () => {
             // Background & Grid
             ctx.fillStyle = 'rgba(5, 5, 10, 0.2)';
             ctx.fillRect(0, 0, width, height);
             
             // Grid
-            ctx.strokeStyle = 'rgba(16, 185, 129, 0.05)'; // Faint Emerald
+            ctx.strokeStyle = hunterMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.05)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             for(let i=0; i<width; i+=40) { ctx.moveTo(i, 0); ctx.lineTo(i, height); }
@@ -102,8 +125,8 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             // Central Fortress (Bank/CERN Core)
             ctx.beginPath();
             ctx.arc(cx, cy, 40, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
-            ctx.strokeStyle = '#10b981';
+            ctx.fillStyle = hunterMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+            ctx.strokeStyle = hunterMode ? '#3b82f6' : '#10b981';
             ctx.lineWidth = 2;
             ctx.fill();
             ctx.stroke();
@@ -111,28 +134,93 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             // Shield Ring
             ctx.beginPath();
             ctx.arc(cx, cy, 60, 0, Math.PI*2);
-            ctx.strokeStyle = `rgba(52, 211, 153, ${firewallIntegrity/100})`;
+            ctx.strokeStyle = `rgba(${hunterMode ? '96, 165, 250' : '52, 211, 153'}, ${firewallIntegrity/100})`;
             ctx.setLineDash([5, 5]);
             ctx.stroke();
             ctx.setLineDash([]);
 
             // Process Threats
             if (isScanning) spawnThreat();
+            if (hunterMode) spawnHunter();
 
+            // Hunter Logic
+            for (let i = huntersRef.current.length - 1; i >= 0; i--) {
+                const hunter = huntersRef.current[i];
+                
+                // Find Target
+                if (!hunter.targetId || !threatsRef.current.find(t => t.id === hunter.targetId)) {
+                    const nearest = threatsRef.current.reduce((prev, curr) => {
+                        const dPrev = Math.hypot(hunter.x - prev.x, hunter.y - prev.y);
+                        const dCurr = Math.hypot(hunter.x - curr.x, hunter.y - curr.y);
+                        return dCurr < dPrev ? curr : prev;
+                    }, { x: 10000, y: 10000, id: 0 } as any);
+                    
+                    if (nearest && nearest.id !== 0) hunter.targetId = nearest.id;
+                }
+
+                // Chase
+                const target = threatsRef.current.find(t => t.id === hunter.targetId);
+                if (target) {
+                    const angle = Math.atan2(target.y - hunter.y, target.x - hunter.x);
+                    hunter.vx += Math.cos(angle) * 0.2;
+                    hunter.vy += Math.sin(angle) * 0.2;
+                    // Cap speed
+                    const speed = Math.hypot(hunter.vx, hunter.vy);
+                    if (speed > 4) {
+                        hunter.vx = (hunter.vx / speed) * 4;
+                        hunter.vy = (hunter.vy / speed) * 4;
+                    }
+                    
+                    // Attack
+                    if (Math.hypot(hunter.x - target.x, hunter.y - target.y) < 20) {
+                        beamsRef.current.push({ x: target.x, y: target.y, life: 1.0 });
+                        target.integrity -= 20;
+                        
+                        // Draw Attack Beam
+                        ctx.beginPath();
+                        ctx.moveTo(hunter.x, hunter.y);
+                        ctx.lineTo(target.x, target.y);
+                        ctx.strokeStyle = '#60a5fa';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                } else {
+                    // Patrol
+                    hunter.vx *= 0.95;
+                    hunter.vy *= 0.95;
+                }
+
+                hunter.x += hunter.vx;
+                hunter.y += hunter.vy;
+
+                // Draw Hunter
+                ctx.fillStyle = '#60a5fa';
+                ctx.beginPath();
+                ctx.moveTo(hunter.x + 10, hunter.y);
+                ctx.lineTo(hunter.x - 5, hunter.y + 5);
+                ctx.lineTo(hunter.x - 5, hunter.y - 5);
+                ctx.fill();
+            }
+
+            // Threat Logic
             for (let i = threatsRef.current.length - 1; i >= 0; i--) {
                 const t = threatsRef.current[i];
+                if (t.integrity <= 0) {
+                    threatsRef.current.splice(i, 1);
+                    setNeutralizedCount(prev => prev + 1);
+                    audioEngine?.playEffect('ui_click');
+                    continue;
+                }
+
                 t.x += t.vx;
                 t.y += t.vy;
 
                 // Hit Core Logic
                 const distToCore = Math.hypot(t.x - cx, t.y - cy);
                 if (distToCore < 60) {
-                    // Impact!
                     setFirewallIntegrity(prev => Math.max(0, prev - 5));
-                    // Bounce back slightly
                     t.vx *= -1.5;
                     t.vy *= -1.5;
-                    // Visual Flash
                     ctx.fillStyle = 'rgba(244, 63, 94, 0.5)';
                     ctx.beginPath();
                     ctx.arc(cx, cy, 60, 0, Math.PI*2);
@@ -140,7 +228,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 }
 
                 // Draw Threat
-                const color = t.type === 'QUANTUM_INJECT' ? '#c084fc' : t.type === 'RANSOMWARE' ? '#fb923c' : '#f43f5e';
+                const color = t.type === 'SHADOW_NODE' ? '#ef4444' : t.type === 'QUANTUM_INJECT' ? '#c084fc' : '#fb923c';
                 ctx.save();
                 ctx.translate(t.x, t.y);
                 ctx.rotate(Date.now() / 200);
@@ -149,6 +237,13 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 ctx.beginPath();
                 ctx.moveTo(0, -8); ctx.lineTo(6, 6); ctx.lineTo(-6, 6); ctx.closePath();
                 ctx.fill();
+                
+                if (t.type === 'SHADOW_NODE') {
+                    ctx.shadowColor = '#ef4444';
+                    ctx.shadowBlur = 10;
+                    ctx.strokeRect(-10, -10, 20, 20);
+                    ctx.shadowBlur = 0;
+                }
                 
                 // Signature Label
                 ctx.fillStyle = '#fff';
@@ -164,7 +259,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 ctx.restore();
             }
 
-            // Process Beams (Attacks)
+            // Process Beams (Attacks from Core or Hunters)
             for (let i = beamsRef.current.length - 1; i >= 0; i--) {
                 const beam = beamsRef.current[i];
                 beam.life -= 0.05;
@@ -174,15 +269,18 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                     continue;
                 }
 
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(beam.x, beam.y);
-                ctx.strokeStyle = `rgba(16, 185, 129, ${beam.life})`;
-                ctx.lineWidth = 3 + Math.random() * 2;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = '#10b981';
-                ctx.stroke();
-                ctx.shadowBlur = 0;
+                if (!hunterMode) {
+                    // Only draw core beams if hunters aren't doing it locally
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(beam.x, beam.y);
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${beam.life})`;
+                    ctx.lineWidth = 3 + Math.random() * 2;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#10b981';
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
 
                 // Impact Spark
                 ctx.beginPath();
@@ -199,7 +297,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             window.removeEventListener('resize', resize);
             cancelAnimationFrame(animationFrame);
         };
-    }, [isScanning]); // Effect deps
+    }, [isScanning, hunterMode]); 
 
     const handlePurge = () => {
         if (threatsRef.current.length === 0) return;
@@ -209,27 +307,28 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
         // Target all threats
         threatsRef.current.forEach(t => {
             beamsRef.current.push({ x: t.x, y: t.y, life: 1.0 });
+            t.integrity = 0; // Instant kill
         });
-
-        // Clear Threats instantly logic
-        const count = threatsRef.current.length;
-        setNeutralizedCount(prev => prev + count);
-        threatsRef.current = [];
-        setThreats([]);
-        setFirewallIntegrity(prev => Math.min(100, prev + 10)); // Restore some integrity
     };
 
     const handleHardening = () => {
         audioEngine?.playUIConfirm();
         setFirewallIntegrity(100);
         setIsScanning(false);
-        setTimeout(() => setIsScanning(true), 2000); // Brief pause in spawns
+        setTimeout(() => setIsScanning(true), 2000); 
     };
 
     return (
         <div className="w-full h-full flex flex-col gap-4">
+            {/* Mathematical Alignment Overlay */}
+            <div className="absolute top-4 left-4 z-10 pointer-events-none opacity-60">
+                <div className="bg-black/40 border border-white/10 p-2 rounded text-[10px] text-pearl font-serif italic">
+                    <span className="text-gold font-bold">Ψ_intent</span> = ∫ (Desmond_will • SOPHIA_logic) dt
+                </div>
+            </div>
+
             {/* Top Stat Bar */}
-            <div className="flex justify-between items-center bg-black/40 border border-emerald-500/30 p-4 rounded-lg">
+            <div className="flex justify-between items-center bg-black/40 border border-emerald-500/30 p-4 rounded-lg relative z-20">
                 <div className="flex gap-8">
                     <div className="flex flex-col">
                         <span className="text-[8px] font-mono text-emerald-500 uppercase tracking-widest">Global_Defcon</span>
@@ -246,6 +345,12 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 </div>
                 <div className="flex gap-2">
                     <button 
+                        onClick={() => setHunterMode(!hunterMode)}
+                        className={`px-6 py-2 border font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${hunterMode ? 'bg-blue-900/40 border-blue-500 text-blue-300 animate-pulse' : 'bg-black/40 border-white/10 text-slate-500'}`}
+                    >
+                        {hunterMode ? 'HUNTER_PROTOCOL_ACTIVE' : 'ENGAGE_HUNTER_NODES'}
+                    </button>
+                    <button 
                         onClick={handleHardening}
                         className="px-6 py-2 bg-emerald-900/20 border border-emerald-500/50 text-emerald-300 font-orbitron text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all rounded-sm"
                     >
@@ -255,12 +360,12 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                         onClick={handlePurge}
                         className="px-8 py-2 bg-rose-900/20 border border-rose-500/50 text-rose-300 font-orbitron text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all rounded-sm shadow-[0_0_15px_rgba(244,63,94,0.2)] active:scale-95"
                     >
-                        EXECUTE_PURGE
+                        SHADOW_ANNIHILATION
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0 relative z-10">
                 {/* Main Radar */}
                 <div className="lg:col-span-2 bg-black border border-emerald-900/40 rounded-lg relative overflow-hidden" ref={containerRef}>
                     <div className="absolute top-2 left-2 text-[8px] font-mono text-emerald-600/50">SECTOR_GRID: 0x88_ALPHA</div>

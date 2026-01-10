@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ThreeElements } from '@react-three/fiber';
 
@@ -404,6 +405,23 @@ export interface VoiceInteraction {
     timestamp: number;
 }
 
+export interface SanctuaryState {
+    lightingZone: 'ZEN' | 'FOCUS' | 'ENTERTAIN' | 'OFF';
+    climate: { temp: number; humidity: number; mode: 'COOL' | 'HEAT' | 'ECO' };
+    security: { status: 'ARMED_STAY' | 'ARMED_AWAY' | 'DISARMED'; perimeter: 'SECURE' | 'BREACH' };
+    activeMedia: string;
+}
+
+export interface VehicleTelemetry {
+    id: string;
+    model: 'ROLLS_ROYCE_CULLINAN';
+    status: 'PARKED' | 'TRANSIT' | 'IDLE';
+    location: { lat: number; lng: number; label: string };
+    cabinTemp: number;
+    fuelLevel: number;
+    securityLink: 'ENCRYPTED' | 'SEARCHING';
+}
+
 export interface SystemState {
   userResources: {
     cradleTokens: number;
@@ -427,6 +445,8 @@ export interface SystemState {
     isAutonomicActive: boolean;
   };
   estateCommander: EstateTelemetry[];
+  sanctuary: SanctuaryState; // New: Sanctuary OS
+  vehicle: VehicleTelemetry; // New: Cullinan
   vibrationalShield: VibrationalShieldState;
   resonanceFactorRho: number;
   temporalCoherenceDrift: number;

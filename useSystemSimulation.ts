@@ -46,14 +46,26 @@ export const initialSystemState: SystemState = {
     operatorId: 'OP_88_ALPHA',
     sessionToken: 'jwt_demo_token_sophia_v2'
   },
-  // Initialize missing Agentic Orchestrator state
   agenticOrchestrator: {
     activeNegotiations: [],
     isAutonomicActive: false
   },
-  // Initialize missing Estate Commander state
   estateCommander: [],
-  // Initialize missing Vibrational Shield state
+  sanctuary: {
+      lightingZone: 'ZEN',
+      climate: { temp: 21.5, humidity: 45, mode: 'ECO' },
+      security: { status: 'ARMED_STAY', perimeter: 'SECURE' },
+      activeMedia: "Silence (432Hz)"
+  },
+  vehicle: {
+      id: "RR_CULLINAN_01",
+      model: "ROLLS_ROYCE_CULLINAN",
+      status: "PARKED",
+      location: { lat: -28.25, lng: 153.57, label: "Kingscliff Estate Garage" },
+      cabinTemp: 20.0,
+      fuelLevel: 0.85,
+      securityLink: "ENCRYPTED"
+  },
   vibrationalShield: {
     globalFrequency: 432,
     blockedShadowAttempts: 0,

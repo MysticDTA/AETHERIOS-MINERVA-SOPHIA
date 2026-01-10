@@ -16,6 +16,7 @@ interface DeepDiagnosticOverlayProps {
 
 const QUANTUM_AUDIT_SEQUENCE: DiagnosticStep[] = [
   { id: 'perf_telemetry', label: 'UPLINK_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'live_mesh', label: 'LIVE_CONNECTION_MESH :: WEBSOCKET_HEARTBEAT', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'quantum_coherence', label: 'QUANTUM_COHERENCE :: SUPERPOSITION', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'agentic_logic', label: 'AGENTIC_ORCHESTRATOR :: NEGOTIATION_MATRIX', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'digital_twin', label: 'ESTATE_COMMANDER :: LIDAR_SYNC', status: 'PENDING', progress: 0, sublogs: [] },
@@ -180,7 +181,18 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                     // Add sublogs
                     if (p % 40 === 0) {
                         const hex = `0x${Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase()}`;
-                        setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, sublogs: [`[READ] ${hex} :: PARITY_CHECK_PASS`, ...s.sublogs].slice(0, 3) } : s));
+                        let logMsg = `[READ] ${hex} :: PARITY_CHECK_PASS`;
+                        
+                        // Context-aware logs based on current step ID
+                        const currentId = QUANTUM_AUDIT_SEQUENCE[i].id;
+                        if (currentId === 'live_mesh') {
+                             if (p === 40) logMsg = `PING: COSMOS_RELAY [${10 + Math.floor(Math.random() * 20)}ms]`;
+                             if (p === 80) logMsg = `PING: VERCEL_EDGE_FUNCTION [${5 + Math.floor(Math.random() * 10)}ms]`;
+                        } else if (currentId === 'perf_telemetry') {
+                             if (p === 80) logMsg = "PERFORMANCE_QUALITY: 99.9% [LOCKED]";
+                        }
+
+                        setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, sublogs: [logMsg, ...s.sublogs].slice(0, 3) } : s));
                     }
                 }
 

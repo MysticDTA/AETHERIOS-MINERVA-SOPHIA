@@ -108,7 +108,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 onClick={onTriggerScan}
                                 className="flex-1 py-2 bg-emerald-600/10 border border-emerald-500/40 text-emerald-400 font-orbitron text-[9px] uppercase font-bold hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
                             >
-                                RUN_PROD_AUDIT
+                                FULL_SYSTEM_AUDIT
                             </button>
                             <button 
                                 onClick={onOptimize}

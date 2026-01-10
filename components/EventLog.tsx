@@ -18,6 +18,15 @@ const getLogTypeColor = (type: LogType) => {
   }
 };
 
+const formatTimestamp = (timestamp: number) => {
+  return new Date(timestamp).toLocaleTimeString('en-GB', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+};
+
 export const EventLog: React.FC<EventLogProps> = ({ log, filter, onFilterChange }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const filters: (LogType | 'ALL')[] = ['ALL', LogType.SYSTEM, LogType.CRITICAL, LogType.WARNING, LogType.INFO];
@@ -60,8 +69,8 @@ export const EventLog: React.FC<EventLogProps> = ({ log, filter, onFilterChange 
                     [{entry.type.substring(0, 4)}]
                 </span>
                 <span className="text-slate-400 group-hover:text-slate-200 transition-colors flex-1">{entry.message}</span>
-                <span className="shrink-0 text-[7px] text-slate-700 group-hover:text-slate-500 opacity-60 font-mono pt-0.5">
-                    {new Date(entry.timestamp).toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                <span className="shrink-0 text-[9px] text-slate-700 group-hover:text-slate-500 opacity-60 font-mono pt-0.5">
+                    {formatTimestamp(entry.timestamp)}
                 </span>
             </div>
             ))}

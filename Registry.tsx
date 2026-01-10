@@ -5,6 +5,7 @@ import { UserTier } from './types';
 export const SYSTEM_NODES = [
     { id: 1, label: 'SANCTUM', requiredTier: 'ACOLYTE' as UserTier, description: 'Central Command' },
     { id: 6, label: 'STATUS', requiredTier: 'ACOLYTE' as UserTier, description: 'System Health & Audit' },
+    { id: 8, label: 'NEXUS', requiredTier: 'ARCHITECT' as UserTier, description: 'Noetic Graph State', isBridge: true },
     { id: 28, label: 'ESTATE', requiredTier: 'SOVEREIGN' as UserTier, description: 'Digital Twin Commander' },
     { id: 29, label: 'ORCHESTRATOR', requiredTier: 'SOVEREIGN' as UserTier, description: 'Agentic Negotiation Matrix' },
     { id: 30, label: 'SHIELD', requiredTier: 'ARCHITECT' as UserTier, description: 'Vibrational Frequency Filter', isShield: true },

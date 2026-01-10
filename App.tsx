@@ -25,6 +25,7 @@ import { KingdomSiteCommander } from './components/KingdomSiteCommander';
 import { AgenticOrchestrator } from './components/AgenticOrchestrator';
 import { VibrationalShield } from './components/VibrationalShield';
 import { SystemSummary } from './components/SystemSummary';
+import { NoeticGraphNexus } from './components/NoeticGraphNexus';
 import { AudioEngine } from './components/audio/AudioEngine';
 import { SophiaEngineCore } from './services/sophiaEngine';
 import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
@@ -102,6 +103,7 @@ export const App: React.FC = () => {
       switch (currentPage) {
           case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
           case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 8: return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
           case 28: return <KingdomSiteCommander />;
           case 29: return <AgenticOrchestrator active={true} />;
           case 30: return <VibrationalShield />;
