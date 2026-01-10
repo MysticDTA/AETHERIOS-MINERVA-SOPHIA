@@ -53,6 +53,24 @@ declare module 'react' {
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
 
+export type CipherSuite = 'AES-256-GCM' | 'CRYSTALS-KYBER' | 'DILITHIUM' | 'FALCON' | 'SPHINCS+';
+
+export interface CryptoLayer {
+    id: string;
+    type: 'CLASSICAL' | 'POST_QUANTUM';
+    algorithm: CipherSuite;
+    status: 'ACTIVE' | 'CALIBRATING' | 'DEGRADED';
+    entropyBitDepth: number;
+}
+
+export interface HybridSecurityState {
+    globalPosture: 'STABLE' | 'QUANTUM_READY' | 'VULNERABLE';
+    activeLayers: CryptoLayer[];
+    quantumResistanceScore: number; // 0.0 - 1.0
+    threatMitigationIndex: number;
+    lastHardenTimestamp: number;
+}
+
 export interface Collaborator {
     id: string;
     name: string;
@@ -445,4 +463,5 @@ export interface SystemState {
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
   dynastyLedger?: DynastyEpoch[];
+  hybridSecurity: HybridSecurityState; // NEW
 }

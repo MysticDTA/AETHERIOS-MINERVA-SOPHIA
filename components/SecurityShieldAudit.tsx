@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SystemState } from '../types';
 import { AudioEngine } from './audio/AudioEngine';
 import { QuantumSecuritySentinel } from './QuantumSecuritySentinel';
 import { QuantumSentinelPulse } from './QuantumSentinelPulse';
+import { HybridCryptoVault } from './HybridCryptoVault';
 
 interface SecurityShieldAuditProps {
     systemState: SystemState;
@@ -35,13 +37,13 @@ const NODE_COUNT = 32;
 export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ systemState, setSystemState, audioEngine }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [viewMode, setViewMode] = useState<'SHIELD' | 'SENTINEL'>('SHIELD');
+    const [viewMode, setViewMode] = useState<'SHIELD' | 'SENTINEL' | 'CRYPTO'>('CRYPTO');
     const [shieldIntegrity, setShieldIntegrity] = useState(1.0);
     const [zenoMode, setZenoMode] = useState(false);
     const [isPulsing, setIsPulsing] = useState(false);
     const [terminalLogs, setTerminalLogs] = useState<string[]>([
-        "Initializing Quantum Zeno Protocol...",
-        "Lattice Topology: ICOSAHEDRON_SPIN_1/2",
+        "Initializing Hybrid Cryptographic Handshake...",
+        "Lattice Topology: CRYSTALS-KYBER_1024_ACTIVE",
         "Waiting for causal intercept..."
     ]);
 
@@ -241,6 +243,49 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
         setTimeout(() => setIsPulsing(false), 2000);
     };
 
+    const handleHardenCrypto = () => {
+        setTerminalLogs(prev => ["RE-SEEDING_POST_QUANTUM_LATTICE...", ...prev]);
+        if (setSystemState) {
+            setSystemState(prev => ({
+                ...prev,
+                hybridSecurity: {
+                    ...prev.hybridSecurity,
+                    lastHardenTimestamp: Date.now(),
+                    quantumResistanceScore: Math.min(1.0, prev.hybridSecurity.quantumResistanceScore + 0.005)
+                }
+            }));
+        }
+    };
+
+    const handleCycleAlgorithm = (id: string) => {
+        setTerminalLogs(prev => [`AGILITY_TRIGGERED: SHIFTING_LAYER_${id}_CIPHER...`, ...prev]);
+        if (setSystemState) {
+            setSystemState(prev => {
+                const layerIdx = prev.hybridSecurity.activeLayers.findIndex(l => l.id === id);
+                if (layerIdx === -1) return prev;
+                
+                const nextAlg: Record<string, string> = {
+                    'CRYSTALS-KYBER': 'DILITHIUM',
+                    'DILITHIUM': 'FALCON',
+                    'FALCON': 'SPHINCS+',
+                    'SPHINCS+': 'CRYSTALS-KYBER',
+                    'AES-256-GCM': 'AES-256-GCM'
+                };
+
+                const newLayers = [...prev.hybridSecurity.activeLayers];
+                newLayers[layerIdx] = {
+                    ...newLayers[layerIdx],
+                    algorithm: (nextAlg[newLayers[layerIdx].algorithm] || 'CRYSTALS-KYBER') as any
+                };
+
+                return {
+                    ...prev,
+                    hybridSecurity: { ...prev.hybridSecurity, activeLayers: newLayers }
+                };
+            });
+        }
+    };
+
     return (
         <div className="w-full h-full flex flex-col gap-6 animate-fade-in relative pb-10">
             <div className="flex justify-between items-end border-b border-white/10 pb-6 shrink-0">
@@ -250,11 +295,12 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                     </div>
                     <div>
                         <h2 className="font-orbitron text-3xl text-pearl tracking-tighter uppercase font-extrabold text-glow-pearl">Quantum Shield Integrated</h2>
-                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Active Lattice Defense // Grade_S++</p>
+                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Active Lattice Defense // Hybrid_Crypto_Ready</p>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4 bg-black/40 p-1 rounded-lg border border-white/10">
+                    <button onClick={() => setViewMode('CRYPTO')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'CRYPTO' ? 'bg-violet-900/40 text-violet-300 border border-violet-500/30' : 'text-slate-500 hover:text-white'}`}>Crypto_Vault</button>
                     <button onClick={() => setViewMode('SHIELD')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SHIELD' ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-500/30' : 'text-slate-500 hover:text-white'}`}>3D_Lattice</button>
                     <button onClick={() => setViewMode('SENTINEL')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SENTINEL' ? 'bg-rose-900/40 text-rose-300 border border-rose-500/30' : 'text-slate-500 hover:text-white'}`}>Sentinel_Ops</button>
                 </div>
@@ -262,6 +308,29 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
 
             {viewMode === 'SENTINEL' ? (
                 <QuantumSecuritySentinel audioEngine={audioEngine} />
+            ) : viewMode === 'CRYPTO' ? (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
+                    <div className="lg:col-span-8">
+                        <HybridCryptoVault 
+                            data={systemState.hybridSecurity} 
+                            onHarden={handleHardenCrypto}
+                            onCycleAlgorithm={handleCycleAlgorithm}
+                        />
+                    </div>
+                    <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
+                        <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
+                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Vault Audit Log</h4>
+                            <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
+                                {terminalLogs.map((log, i) => (
+                                    <div key={i} className="flex gap-3 animate-fade-in">
+                                        <span className="text-slate-700 font-bold opacity-50">{(Date.now() - i*1000).toString().slice(-6)}</span>
+                                        <span className={log.includes('AGILITY') ? 'text-violet-400' : log.includes('ALERT') ? 'text-rose-400' : 'text-slate-400'}>{log}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
                     <div className="lg:col-span-8 bg-black/80 border border-white/5 rounded-xl relative overflow-hidden shadow-2xl flex flex-col group" ref={containerRef}>

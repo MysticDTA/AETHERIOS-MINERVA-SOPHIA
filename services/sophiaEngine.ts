@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
 import { SystemState, FailurePrediction, CausalStrategy } from '../types';
 import { knowledgeBase } from './knowledgeBase';
@@ -89,6 +90,25 @@ export class SophiaEngineCore {
     } finally {
         this.isConnecting = false;
     }
+  }
+
+  async generateSecurityPostureReport(systemState: SystemState): Promise<string> {
+      const ai = this.getClient();
+      if (!ai) return "Simulation active: Hybrid layers locked at v2.0 baseline.";
+
+      const prompt = `Analyze the current hybrid security posture. AES-256-GCM + CRYSTALS-KYBER is active. 
+      Resistance Score: ${systemState.hybridSecurity.quantumResistanceScore}. 
+      Explain how this protects against CRQC (Cryptographically Relevant Quantum Computers) threats in 2026 and beyond. 
+      Focus on "Store Now, Decrypt Later" mitigation. Max 60 words.`;
+
+      try {
+          const response = await ai.models.generateContent({
+              model: 'gemini-3-pro-preview',
+              contents: prompt,
+              config: { thinkingConfig: { thinkingBudget: 16000 } }
+          });
+          return response.text || "Report unavailable.";
+      } catch (e) { return "Causal interruption in security analysis."; }
   }
 
   async runConsoleStream(

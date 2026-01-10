@@ -10,7 +10,8 @@ import {
   PerformanceTelemetry,
   IngestedModule,
   GlobalResonanceState,
-  HarmonicInterferenceData
+  HarmonicInterferenceData,
+  HybridSecurityState
 } from './types';
 import { ApiService } from './services/api';
 import { collectiveResonanceService } from './services/collectiveResonanceService';
@@ -47,6 +48,16 @@ export const initialSystemState: SystemState = {
     status: "OPTIMAL",
     decoherence: 0.04,
     stabilizationShield: 0.95,
+  },
+  hybridSecurity: {
+    globalPosture: 'QUANTUM_READY',
+    activeLayers: [
+        { id: 'l1', type: 'CLASSICAL', algorithm: 'AES-256-GCM', status: 'ACTIVE', entropyBitDepth: 256 },
+        { id: 'l2', type: 'POST_QUANTUM', algorithm: 'CRYSTALS-KYBER', status: 'ACTIVE', entropyBitDepth: 1024 }
+    ],
+    quantumResistanceScore: 0.98,
+    threatMitigationIndex: 0.999,
+    lastHardenTimestamp: Date.now()
   },
   holisticAlignmentScore: 1.0,
   resonanceFactorRho: 0.98,
@@ -332,6 +343,14 @@ export const useSystemSimulation = (
 
         const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0001);
 
+        // HYBRID CRYPTO SIMULATION
+        const cryptoJitter = (Math.random() - 0.5) * 0.001;
+        const newHybridSecurity: HybridSecurityState = {
+            ...prev.hybridSecurity,
+            quantumResistanceScore: Math.min(1, Math.max(0.95, prev.hybridSecurity.quantumResistanceScore + cryptoJitter)),
+            threatMitigationIndex: Math.min(1.0, 1.0 - newDecoherence * 0.1)
+        };
+
         return {
           ...prev,
           isGrounded,
@@ -357,7 +376,8 @@ export const useSystemSimulation = (
               phaseSync: resonanceModifier,
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
-          }
+          },
+          hybridSecurity: newHybridSecurity
         };
       });
     }, 1000);
