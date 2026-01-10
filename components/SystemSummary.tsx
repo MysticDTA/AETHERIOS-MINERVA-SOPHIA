@@ -30,12 +30,10 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
     const [intelligentAudit, setIntelligentAudit] = useState<string | null>(null);
     const [isSynthesizing, setIsSynthesizing] = useState(false);
     
-    // Use existing report immediately if provided
     useEffect(() => {
         if (existingReport) {
             setIntelligentAudit(existingReport.report);
         } else if (sophiaEngine && !intelligentAudit && !isSynthesizing) {
-            // Fallback: Generate a fresh short summary if no detailed report was passed
             const runIntelligentAudit = async () => {
                 setIsSynthesizing(true);
                 const report = await sophiaEngine.getArchitecturalSummary(systemState);
@@ -43,6 +41,18 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                 setIsSynthesizing(false);
             };
             runIntelligentAudit();
+        } else if (!sophiaEngine && !intelligentAudit) {
+            // High-fidelity fallback for simulation mode
+            setIntelligentAudit(`
+                <h3>Production Node Audit v1.4.0</h3>
+                <p>ÆTHERIOS Node 0x88 is operating within nominal institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98%.</p>
+                <ul>
+                    <li>Resonance Rho: ${systemState.resonanceFactorRho.toFixed(6)} [STABLE]</li>
+                    <li>Causal Drift: ${systemState.temporalCoherenceDrift.toFixed(8)}Ψ [NOMINAL]</li>
+                    <li>Biometric Coherence: ${(systemState.biometricSync.coherence * 100).toFixed(2)}% [PHASE_LOCKED]</li>
+                </ul>
+                <p><i>Recommendations: Maintain current resonance baseline to prevent entropic noise in the Noetic Graph.</i></p>
+            `);
         }
     }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing, existingReport]);
 
@@ -50,9 +60,9 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
         { label: "Causal Parity", value: (systemState.performance.visualParity * 100).toFixed(2) + "%", status: (systemState.performance.visualParity > 0.9 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Resonance Rho", value: systemState.resonanceFactorRho.toFixed(6), status: (systemState.resonanceFactorRho > 0.95 ? 'OPTIMAL' : 'DEVIATING') as any },
         { label: "Network Latency", value: systemState.performance.logicalLatency.toFixed(4) + "ms", status: 'OPTIMAL' as any },
-        { label: "File Integrity", value: "100% VERIFIED", status: 'OPTIMAL' as any },
+        { label: "Vercel Edge Parity", value: "100% VERIFIED", status: 'OPTIMAL' as any },
         { label: "Vocal Link", value: "24kHz PCM", status: 'OPTIMAL' as any },
-        { label: "Memory Depth", value: "100 Blocks", status: 'OPTIMAL' as any },
+        { label: "Spectral Alignment", value: "PHASE_LOCKED", status: 'OPTIMAL' as any },
     ];
 
     return (
@@ -65,9 +75,9 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                 <div className="space-y-4">
                     <h2 className="font-orbitron text-5xl text-pearl text-glow-pearl tracking-tighter leading-none uppercase font-extrabold">System_Integrity_Audit</h2>
                     <div className="flex flex-wrap items-center gap-6">
-                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Registrar: <span className="text-gold">SOPHIA_V1.3.1</span></p>
+                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Registrar: <span className="text-gold">SOPHIA_V1.4.0</span></p>
                         <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />
-                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Hash_ID: 0x{Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase()}</p>
+                        <p className="font-mono text-[11px] text-slate-500 tracking-[0.5em] uppercase">Status: <span className="text-emerald-400">PRODUCTION_STABLE</span></p>
                     </div>
                 </div>
                 
@@ -78,7 +88,7 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                         </svg>
                         <div className="text-left">
                             <p className="text-[13px] text-gold font-black uppercase tracking-[0.3em]">Causal Parity Verified</p>
-                            <p className="text-[9px] text-gold/40 font-mono tracking-widest mt-1">Institutional Standard v1.3.1</p>
+                            <p className="text-[9px] text-gold/40 font-mono tracking-widest mt-1">Institutional Standard v1.4.0</p>
                         </div>
                     </div>
                 </div>
@@ -105,42 +115,8 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                                 <span className="font-mono text-[11px] text-violet-300 uppercase tracking-[0.5em] font-bold">Accessing Cognitive Budget [32K]...</span>
                             </div>
                         ) : (
-                            existingReport ? (
-                                <div className="text-[13px] text-pearl/80 leading-relaxed font-minerva select-text antialiased space-y-4 audit-report-content" dangerouslySetInnerHTML={{ __html: intelligentAudit || '' }} />
-                            ) : (
-                                <p className="text-xl italic text-pearl/90 leading-relaxed font-minerva select-text antialiased indent-10">
-                                    "{intelligentAudit || 'Awaiting synchronization of the reasoning lattice...'}"
-                                </p>
-                            )
+                            <div className="text-[13px] text-pearl/80 leading-relaxed font-minerva select-text antialiased space-y-4 audit-report-content" dangerouslySetInnerHTML={{ __html: intelligentAudit || '' }} />
                         )}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-6">
-                    <div className="space-y-6">
-                         <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-[0.6em] font-black border-b border-gold/10 pb-4">Logic Shard Registry</h4>
-                         <div className="space-y-4">
-                            {['services/sophiaEngine.ts', 'services/cosmosCommsService.ts', 'hooks/useVoiceInterface.ts'].map(file => (
-                                <div key={file} className="flex justify-between items-center bg-white/[0.02] p-4 border border-white/5 rounded-sm group hover:border-gold/20 transition-all">
-                                    <span className="font-mono text-[11px] text-slate-400 group-hover:text-pearl transition-colors">{file}</span>
-                                    <span className="text-[9px] font-mono text-emerald-400 font-bold">INTEGRITY_OK</span>
-                                </div>
-                            ))}
-                         </div>
-                    </div>
-                    <div className="space-y-6">
-                         <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-[0.6em] font-black border-b border-gold/10 pb-4">Security Parameter Audit</h4>
-                         <div className="space-y-4">
-                            {['Secret Isolation', 'CORS Edge Parity', 'Fraud Shield v4.1'].map(param => (
-                                <div key={param} className="flex justify-between items-center bg-white/[0.02] p-4 border border-white/5 rounded-sm group hover:border-gold/20 transition-all">
-                                    <span className="font-mono text-[11px] text-slate-400 group-hover:text-pearl transition-colors">{param}</span>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-[9px] font-mono text-gold font-bold">LOCKED</span>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-gold shadow-[0_0_8px_#ffd700]" />
-                                    </div>
-                                </div>
-                            ))}
-                         </div>
                     </div>
                 </div>
 
@@ -160,7 +136,7 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                 </div>
                 <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-full border border-white/10">
                     <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
-                    <span className="text-pearl/80 font-bold">Sovereign Node Certification: ACTIVE</span>
+                    <span className="text-pearl/80 font-bold">Sovereign Node Certification: ACTIVE [v1.4.0]</span>
                 </div>
             </div>
             <style>{`

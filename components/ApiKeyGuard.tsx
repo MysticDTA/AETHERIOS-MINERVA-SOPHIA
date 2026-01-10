@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import '../types'; // Ensure global window types are loaded
+import { emitSophiaEvent } from '../services/sophiaEvents';
 
 interface ApiKeyGuardProps {
   children: React.ReactNode;
@@ -11,16 +11,32 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
-    const checkKey = async () => {
+    const checkConfiguration = async () => {
+      // 1. Primary Vector: check for build-time injected process.env.API_KEY
+      const envKey = process.env.API_KEY;
+      const isValidEnvKey = envKey && envKey !== 'undefined' && envKey !== 'null' && envKey.length > 0;
+
+      if (isValidEnvKey) {
+          setHasKey(true);
+          return;
+      }
+
+      // 2. Secondary Vector: AI Studio Selected Key (Mandatory for Veo/G3P Handshake)
       if (typeof window !== 'undefined' && window.aistudio) {
-        const selected = await window.aistudio.hasSelectedApiKey();
-        setHasKey(selected);
+        try {
+          const selected = await window.aistudio.hasSelectedApiKey();
+          setHasKey(selected);
+        } catch (e) {
+          console.error("Lattice Handshake Error:", e);
+          setHasKey(false);
+        }
       } else {
-        // Fallback for environments where aistudio object isn't present
-        setHasKey(true);
+        // Node is unconfigured and disconnected from institutional selector
+        setHasKey(false);
       }
     };
-    checkKey();
+
+    checkConfiguration();
   }, []);
 
   const handleSelectKey = async () => {
@@ -28,16 +44,21 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
     setIsVerifying(true);
     try {
       await window.aistudio.openSelectKey();
-      // Assume success as per guidelines to mitigate race conditions
+      // Assume success to mitigate race conditions as per architectural guidelines
       setHasKey(true);
+      emitSophiaEvent('HANDSHAKE_COMPLETE', { method: 'AI_STUDIO_HUB' });
     } catch (e) {
-      console.error("Key selection failed", e);
+      console.error("Handshake Protocol Failed:", e);
     } finally {
       setIsVerifying(false);
     }
   };
 
-  if (hasKey === null) return null; // Initial check loading
+  if (hasKey === null) return (
+      <div className="fixed inset-0 bg-[#020202] flex items-center justify-center z-[3000]">
+          <div className="w-12 h-12 border-2 border-gold/10 border-t-gold rounded-full animate-spin shadow-[0_0_20px_rgba(255,215,0,0.1)]" />
+      </div>
+  );
 
   if (!hasKey) {
     return (
@@ -46,46 +67,62 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
         
         <div className="max-w-xl space-y-12 animate-fade-in relative z-10">
           <div className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center font-bold text-[#635bff] text-2xl mb-8 shadow-2xl animate-pulse">S</div>
-            <h2 id="guard-title" className="font-orbitron text-3xl text-pearl font-bold tracking-tighter uppercase">AI Studio Handshake</h2>
-            <p className="font-mono text-[10px] text-gold uppercase tracking-[0.4em] mt-4 font-bold opacity-60">Authentication Required for Pro-Tier Intelligence</p>
+            <div className="w-16 h-16 rounded-xl bg-gold/5 border border-gold/30 flex items-center justify-center font-bold text-gold text-3xl mb-8 shadow-2xl animate-pulse">!</div>
+            <h2 id="guard-title" className="font-orbitron text-4xl text-pearl font-extrabold tracking-tighter uppercase leading-tight">Handshake_Incomplete</h2>
+            <p className="font-mono text-[10px] text-gold uppercase tracking-[0.5em] mt-4 font-black opacity-60">Architectural Key Provisioning Required</p>
           </div>
 
-          <div className="bg-dark-surface border border-white/10 p-8 rounded-sm shadow-2xl space-y-6">
-            <p className="font-minerva italic text-lg text-warm-grey leading-relaxed">
-              "To access the Sovereign Matrix and high-reasoning modules, you must select an API key from your AI Studio account."
+          <div className="bg-dark-surface/80 border border-white/5 p-10 rounded-sm shadow-2xl space-y-8 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <p className="font-minerva italic text-xl text-warm-grey leading-relaxed relative z-10">
+              "The Sovereign Matrix requires a valid API key to initialize the reasoning shards. Please ensure your environment is configured or execute the handshake protocol."
             </p>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 text-left">
-                <span className="text-gold mt-1 text-[10px]">▶</span>
-                <p className="text-[11px] text-slate-400 font-mono leading-relaxed">
-                  Requires a key from a paid GCP project. <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-gold underline hover:text-white transition-colors">Review billing documentation</a>.
-                </p>
+            <div className="space-y-6 relative z-10">
+              <div className="flex items-start gap-4 text-left border-l-2 border-gold/30 pl-4 py-1">
+                <div>
+                  <span className="text-[10px] font-mono text-gold uppercase font-black block">Vector_Alpha</span>
+                  <p className="text-[12px] text-slate-400 font-mono leading-relaxed mt-1">
+                    Provision <code>API_KEY</code> via the host environment variables. Access is strictly server-side.
+                  </p>
+                </div>
               </div>
-              <div className="flex items-start gap-3 text-left">
-                <span className="text-gold mt-1 text-[10px]">▶</span>
-                <p className="text-[11px] text-slate-400 font-mono leading-relaxed">
-                  Unlocks Gemini 3 Pro (32k tokens) & Pro Image synthesis.
-                </p>
+              <div className="flex items-start gap-4 text-left border-l-2 border-violet-500/30 pl-4 py-1">
+                <div>
+                  <span className="text-[10px] font-mono text-violet-400 uppercase font-black block">Vector_Beta</span>
+                  <p className="text-[12px] text-slate-400 font-mono leading-relaxed mt-1">
+                    Select a paid key via the AI Studio selector to unlock Gemini 3 Pro reasoning [32k].
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <button 
-            id="api-key-select-btn"
-            onClick={handleSelectKey}
-            disabled={isVerifying}
-            className="group relative px-16 py-5 overflow-hidden border border-gold/40 hover:border-gold transition-all rounded-sm bg-gold/5 active:scale-95"
-          >
-            <div className="absolute inset-0 bg-gold/10 group-hover:bg-gold/20 transition-all duration-1000" />
-            <span className="relative z-10 font-orbitron text-[11px] tracking-[0.5em] text-gold uppercase font-bold">
-              {isVerifying ? 'Establishing Link...' : 'Select AI Studio Key'}
-            </span>
-          </button>
+          {typeof window !== 'undefined' && window.aistudio ? (
+            <button 
+              id="api-key-select-btn"
+              onClick={handleSelectKey}
+              disabled={isVerifying}
+              className="group relative px-20 py-6 overflow-hidden border-2 border-gold/40 hover:border-gold transition-all rounded-sm bg-gold/5 active:scale-95 shadow-[0_0_50px_rgba(255,215,0,0.1)]"
+            >
+              <div className="absolute inset-0 bg-gold/10 group-hover:bg-gold/20 transition-all duration-1000" />
+              <span className="relative z-10 font-orbitron text-[12px] tracking-[0.6em] text-gold uppercase font-black">
+                {isVerifying ? 'CALIBRATING...' : 'Initialize Handshake'}
+              </span>
+            </button>
+          ) : (
+            <div className="p-6 bg-rose-950/20 border border-rose-500/30 rounded flex flex-col gap-3 items-center">
+                <span className="text-rose-400 font-mono text-[10px] uppercase tracking-widest animate-pulse font-bold">
+                    [CRITICAL_ERROR] External Selector Hub Offline
+                </span>
+                <p className="text-slate-500 text-[9px] font-mono leading-relaxed max-w-[300px]">
+                    The local environment lacks an injected API_KEY and is disconnected from the AI Studio selector conduit.
+                </p>
+            </div>
+          )}
         </div>
 
-        <div className="absolute bottom-12 font-mono text-[8px] text-slate-700 uppercase tracking-widest opacity-40">
-          Secure Gateway Protocol: GRS-V2
+        <div className="absolute bottom-12 font-mono text-[9px] text-slate-700 uppercase tracking-[0.4em] opacity-40">
+          Secure Enclave Protocol: ÆTHER_GUARD_v1.4.1
         </div>
       </div>
     );

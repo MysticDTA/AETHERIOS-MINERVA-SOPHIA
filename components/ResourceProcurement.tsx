@@ -57,7 +57,6 @@ const TIER_CARDS = [
     }
 ];
 
-// --- INLINE LOGOS FOR HIGH FIDELITY ---
 const VisaLogo = () => (
     <svg className="h-3 w-auto fill-current" viewBox="0 0 32 10" xmlns="http://www.w3.org/2000/svg">
         <path d="M12.6 0L9.4 8.7L7.8 2.8C7.6 2.1 7.3 1.8 6.4 1.6C4.8 1.3 2.3 1.1 0 1V2.6C1.6 3 3.3 3.5 4.3 4.8L7.1 10H10.6L16 0H12.6ZM20.1 0C19.2 0 18.5 0.5 18.2 1.1L15.6 10H19L19.7 7.7H23.9L24.3 10H27.5L24 0H20.1ZM20.8 2.2L23 6.3H20.6L20.8 2.2ZM32 0H28.6L26.3 10H29.5L32 0ZM10.5 0L7.6 10H4.2L7.1 0H10.5Z" />
@@ -87,7 +86,7 @@ const PaymentRailStatus: React.FC = () => {
                 step++;
             } else {
                 clearInterval(interval);
-                setLatency(Math.floor(Math.random() * 8) + 12); // 12-20ms
+                setLatency(Math.floor(Math.random() * 8) + 12); 
                 setStatus('ONLINE');
             }
         }, 600);
@@ -134,7 +133,6 @@ const PaymentRailStatus: React.FC = () => {
 
 export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [procuringId, setProcuringId] = useState<string | null>(null);
-    const [handshakeStep, setHandshakeStep] = useState(0);
     const [gatewayStatus, setGatewayStatus] = useState<'ONLINE' | 'SYNCING'>('SYNCING');
     const [isAuditing, setIsAuditing] = useState(false);
     const [auditLog, setAuditLog] = useState<string>('Initializing Handshake...');
@@ -169,7 +167,6 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
         handleFinalizePayment(id);
     };
 
-    // Simulated ascension for demo purposes
     const handleSimulateAscension = (id: UserTier) => {
         addLogEntry(LogType.SYSTEM, `DEBUG_DIRECTIVE: Manual tier override to ${id} authorized.`);
         setSystemState(prev => ({
@@ -183,7 +180,6 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
     };
 
     const handleFinalizePayment = async (id: string) => {
-        setHandshakeStep(2);
         const tierMatch = TIER_CARDS.find(t => t.id === id);
         const priceId = tierMatch?.priceId || 'demo_gold_price';
 
@@ -192,16 +188,13 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
         try {
             const result = await ApiService.createCheckoutSession(priceId, sessionToken);
             if (result?.url) {
-                setHandshakeStep(3);
                 addLogEntry(LogType.SYSTEM, `ACQUISITION_SUCCESS: Capital Liquidation confirmed. Redirecting to Secure Portal...`);
-                // Slight delay for visual confirmation
                 setTimeout(() => { window.location.href = result.url; }, 1000);
             } else {
                 throw new Error("Conduit Error");
             }
         } catch (e: any) {
             addLogEntry(LogType.CRITICAL, `STRIPE_ERR: ${e.message || "Vault connection timed out."} Retrying link...`);
-            setHandshakeStep(1);
             setProcuringId(null);
         }
     };
@@ -233,19 +226,15 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                 </div>
             )}
 
-            {/* Sovereign Acquisition Banner - Upgraded */}
             <div className="relative p-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/10 via-black to-black border-y border-gold/30 rounded-sm overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,1)] shrink-0 z-10 group isolate">
-                {/* Secure Grid Background */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none" 
                      style={{ backgroundImage: 'linear-gradient(rgba(255,215,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
                 />
                 
-                {/* Scanning Beam */}
                 <div className="absolute top-0 bottom-0 w-1 bg-gold/30 blur-md animate-[scanline-sweep_6s_linear_infinite] pointer-events-none z-0 opacity-50" />
 
                 <div className="flex flex-col xl:flex-row justify-between items-center gap-10 relative z-10">
                     <div className="flex items-center gap-8">
-                        {/* High-Tech Logo Container */}
                         <div className="relative">
                             <div className="w-24 h-24 rounded-sm border border-gold/30 flex items-center justify-center font-orbitron text-gold font-black text-5xl shadow-[0_0_60px_rgba(255,215,0,0.15)] bg-black rotate-45 group-hover:rotate-0 transition-transform duration-[1000ms] ease-out z-10 relative">
                                 <span className="-rotate-45 group-hover:rotate-0 transition-transform duration-[1000ms]">G</span>
@@ -321,7 +310,6 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
                                     <div className="h-px bg-white/10 w-full" />
                                     <p className="text-[11px] text-warm-grey leading-relaxed font-minerva italic opacity-90 min-h-[50px]">"{tier.desc}"</p>
                                     
-                                    {/* Capability Matrix Hologram */}
                                     <div className="space-y-2 bg-white/[0.02] p-3 rounded border border-white/5">
                                         {tier.capabilities?.map(cap => (
                                             <div key={cap.label}>

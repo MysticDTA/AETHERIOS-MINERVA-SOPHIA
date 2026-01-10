@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LogEntry, LogType, SystemState, OrbMode } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
+import { emitSophiaEvent } from '../services/sophiaEvents';
 
 interface Message {
   sender: 'user' | 'sophia';
@@ -66,7 +67,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     }
   }, []);
 
-  // Monitor scroll position to determine if we should auto-scroll
   const handleScroll = () => {
       if (!scrollRef.current) return;
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
@@ -85,8 +85,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
   useEffect(() => {
     const container = scrollRef.current;
     if (container && shouldAutoScroll.current) {
-        // Use 'auto' (instant) scrolling during active reply generation to prevent jitter/stutter
-        // Use 'smooth' only when a new message block is added
         container.scrollTo({ 
             top: container.scrollHeight, 
             behavior: isReplying ? 'auto' : 'smooth' 
@@ -107,17 +105,17 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
     const userMsg: Message = { sender: 'user', text: input.trim(), timestamp: Date.now(), isComplete: true, image: attachedImage || undefined };
     setMessages(prev => [...prev, userMsg]);
     setIsReplying(true);
-    shouldAutoScroll.current = true; // Force scroll on user send
+    emitSophiaEvent('THINKING_START', {});
+    shouldAutoScroll.current = true;
     setOrbMode('ANALYSIS');
     const prompt = input;
     const img = attachedImage;
     setInput('');
     setAttachedImage(null);
     
-    // Reset textarea height
     if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = '50px'; // Reset to min height
+        textareaRef.current.style.height = '50px';
     }
 
     currentSophiaMessageId.current = Date.now();
@@ -133,6 +131,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
       (error) => {
         setMessages(prev => prev.map(m => m.timestamp === currentSophiaMessageId.current ? { ...m, text: `[SIGNAL_INTERRUPT] ${error}`, isComplete: true } : m));
         setIsReplying(false);
+        emitSophiaEvent('THINKING_STOP', {});
       },
       (fc) => {
         if (fc.name === 'initiate_system_audit' && onSystemAuditTrigger) {
@@ -143,6 +142,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
 
     setMessages(prev => prev.map(m => m.timestamp === currentSophiaMessageId.current ? { ...m, isComplete: true } : m));
     setIsReplying(false);
+    emitSophiaEvent('THINKING_STOP', {});
     setOrbMode('STANDBY');
     
     setTimeout(() => textareaRef.current?.focus(), 50);
@@ -157,7 +157,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
 
   return (
     <div className="w-full h-full flex flex-col bg-[#030303]/60 border border-white/5 rounded-2xl backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-      {/* Header */}
       <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-black/40 z-30 shrink-0">
         <div className="flex items-center gap-4">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 ${isReplying ? 'border-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'border-emerald-500/50 bg-emerald-500/5'}`}>
@@ -171,11 +170,7 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
         <ResonanceSyncMeter rho={systemState.resonanceFactorRho} isReplying={isReplying} />
       </div>
 
-      {/* Messages Area */}
-      <div 
-        ref={scrollRef} 
-        className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10 scroll-smooth"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin relative z-10 scroll-smooth">
         {messages.map((msg, idx) => {
             const isUser = msg.sender === 'user';
             return (
@@ -229,7 +224,6 @@ export const SophiaConsole: React.FC<SophiaConsoleProps> = ({ systemState, sophi
         })}
       </div>
 
-      {/* Command Cradle Input */}
       <div className="p-6 bg-gradient-to-t from-[#020202] via-[#050505] to-transparent z-20">
         <div className="relative bg-black/90 border border-white/10 rounded-xl p-2 flex items-end gap-3 shadow-2xl backdrop-blur-xl transition-all focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 focus-within:bg-black group/input">
             <button 
