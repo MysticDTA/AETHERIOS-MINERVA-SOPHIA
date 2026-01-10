@@ -11,7 +11,9 @@ import {
   IngestedModule,
   GlobalResonanceState,
   HarmonicInterferenceData,
-  HybridSecurityState
+  HybridSecurityState,
+  SchumannResonanceData,
+  VibrationData
 } from './types';
 import { ApiService } from './services/api';
 import { collectiveResonanceService } from './services/collectiveResonanceService';
@@ -26,7 +28,6 @@ export const initialSystemState: SystemState = {
     ledgerHistory: [],
     subscriptionActive: false,
     menervaLegacyPoints: 0,
-    // Fix: Added missing properties required by UserResources interface
     sovereignLiquidity: 0,
     manifestPulse: 0
   },
@@ -41,6 +42,8 @@ export const initialSystemState: SystemState = {
   },
   auth: {
     isAuthenticated: false,
+    // Fix: satisfy isBioVerified requirement in AuthState
+    isBioVerified: false,
     operatorId: 'OP_88_ALPHA',
     sessionToken: 'jwt_demo_token_sophia_v2'
   },
@@ -121,6 +124,7 @@ export const initialSystemState: SystemState = {
     status: 'STABLE',
     seismicActivity: 0.01,
     telluricCurrent: 0.02,
+    // Fix: satisfy feedbackLoopStatus requirement in earthGrounding
     feedbackLoopStatus: 'IDLE'
   },
   tesseract: {
@@ -184,6 +188,20 @@ export const initialSystemState: SystemState = {
         { id: 'c3', name: 'Arcturian Node', rho: 0.99, coherence: 0.99, stability: 0.99, activeNodes: 36, lastEvent: 'Peak Rho synergy verified.', location: { x: 45, y: 75 } },
         { id: 'c4', name: 'Lemurian Labs', rho: 0.92, coherence: 0.94, stability: 0.94, activeNodes: 16, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
     ]
+  },
+  // Fix: satisfy missing mandatory SystemState members
+  legalEstate: {
+    abnTrustId: 'ABN_TRUST_88_MCBRIDE',
+    wrapperStatus: 'SEALED',
+    inheritanceNodes: [],
+    legalHash: 'SHA512_88_MCBRIDE_SECURE'
+  },
+  lidarTelemetry: {
+    siteId: 'LEYDENS_HILL_0x88',
+    pointCloudStability: 1.0,
+    droneUplinkStatus: 'ACTIVE',
+    lastScanTimestamp: Date.now(),
+    constructionProgress: 0.32
   }
 };
 
@@ -341,7 +359,7 @@ export const useSystemSimulation = (
         };
 
         const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
-        let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
+        let coherenceStatus: 'COHERENT' | 'RESONATING' = 'COHERENT';
         if (coherenceScore < 0.7) coherenceStatus = 'RESONATING';
 
         const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0001);

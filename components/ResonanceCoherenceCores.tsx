@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ResonanceCoherenceData } from '../types';
 import { Tooltip } from './Tooltip';
@@ -33,7 +34,8 @@ const CoreDisplay: React.FC<{ coreKey: keyof ResonanceCoherenceData; value: numb
                         <circle cx="50" cy="50" r="40" fill="none" stroke={config.color} strokeWidth="0.5" opacity="0.3" style={{ animation: `spin-reverse ${18 - normalizedValue * 7}s linear infinite` }} />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center font-orbitron">
-                        <span className="text-2xl" style={{ color: config.color, textShadow: `0 0 8px ${config.color}` }}>{config.symbol}</span>
+                        {/* Wrapped symbol in String() for explicit conversion fixing symbol-to-string failure */}
+                        <span className="text-2xl" style={{ color: config.color, textShadow: `0 0 8px ${config.color}` }}>{String(config.symbol)}</span>
                     </div>
                 </div>
                 <div className="text-center">

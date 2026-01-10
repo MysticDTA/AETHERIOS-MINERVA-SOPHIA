@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ThreeElements } from '@react-three/fiber';
 
 // Global shared types for SOPHIA DV99 / Alliance System
 
@@ -16,37 +17,14 @@ declare global {
     webkitSpeechRecognition: any;
   }
 
+  /* Fix for Three.js JSX intrinsic elements errors by extending both global and React JSX namespaces */
   namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      ambientLight: any;
-      pointLight: any;
-      mesh: any;
-      sphereGeometry: any;
-      meshStandardMaterial: any;
-      meshBasicMaterial: any;
-      primitive: any;
-      directionalLight: any;
-      spotLight: any;
-      planeGeometry: any;
-    }
+    interface IntrinsicElements extends ThreeElements {}
   }
-}
 
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      ambientLight: any;
-      pointLight: any;
-      mesh: any;
-      sphereGeometry: any;
-      meshStandardMaterial: any;
-      meshBasicMaterial: any;
-      primitive: any;
-      directionalLight: any;
-      spotLight: any;
-      planeGeometry: any;
+  namespace React {
+    namespace JSX {
+      interface IntrinsicElements extends ThreeElements {}
     }
   }
 }
@@ -66,37 +44,9 @@ export interface CryptoLayer {
 export interface HybridSecurityState {
     globalPosture: 'STABLE' | 'QUANTUM_READY' | 'VULNERABLE';
     activeLayers: CryptoLayer[];
-    quantumResistanceScore: number; // 0.0 - 1.0
+    quantumResistanceScore: number; 
     threatMitigationIndex: number;
     lastHardenTimestamp: number;
-}
-
-export interface Collaborator {
-    id: string;
-    name: string;
-    role: string;
-    status: string;
-    specialty: string;
-    clearance: UserTier;
-}
-
-export interface PerformanceTelemetry {
-    logicalLatency: number; 
-    visualParity: number; 
-    gpuLoad: number; 
-    frameStability: number; 
-    thermalIndex: number; 
-    throughput: number;
-    memoryUsage: number;
-}
-
-export interface IngestedModule {
-    id: string;
-    name: string;
-    originProject: 'MENERVA' | 'AETHERIOS';
-    status: 'MOUNTED' | 'SYNCING' | 'ERROR';
-    entryPoint: string;
-    dataShard?: Record<string, any>;
 }
 
 export interface UserResources {
@@ -106,177 +56,30 @@ export interface UserResources {
     ledgerHistory: any[];
     subscriptionActive: boolean;
     menervaLegacyPoints: number;
-    sovereignLiquidity: number; // $22,500,000.00
-    manifestPulse: number; // $10,000,000.00
+    sovereignLiquidity: number; 
+    manifestPulse: number; 
 }
 
 export interface AuthState {
     isAuthenticated: boolean;
+    isBioVerified: boolean; 
     operatorId: string;
     sessionToken: string;
 }
 
-export interface QuantumHealingData {
-    health: number;
-    lesions: number;
-    repairRate: number;
-    status: string;
-    decoherence: number;
-    stabilizationShield: number;
+export interface LegalEstateBinding { 
+    abnTrustId: string;
+    wrapperStatus: 'SEALED' | 'EXECUTING' | 'PENDING';
+    inheritanceNodes: { id: string, name: string, maturity: string, status: 'STASIS' | 'LIQUID' }[];
+    legalHash: string;
 }
 
-export interface FrequencyMetric {
-    frequency: number;
-    amplitude: number;
-    phase: number;
-    harmonicIndex: number;
-}
-
-export interface ResonanceCoherenceData {
-    lambda: FrequencyMetric;
-    sigma: FrequencyMetric;
-    tau: FrequencyMetric;
-}
-
-export interface HarmonicInterferenceData {
-    beatFrequency: number;
-    constructiveInterference: number;
-    destructiveInterference: number;
-    standingWaveRatio: number;
-}
-
-export interface LyranConcordanceData {
-    alignmentDrift: number;
-    connectionStability: number;
-}
-
-export interface SatelliteUplinkData {
-    signalStrength: number;
-    lockStatus: SatelliteLockStatus;
-    downlinkBandwidth: number;
-    uplinkBandwidth: number;
-    hevoLatency: number;
-    transmissionProtocol: string;
-    activeSarMode: string;
-    hyperspectralStatus: string;
-}
-
-export type SatelliteLockStatus = 'LOCKED' | 'ACQUIRING' | 'DRIFTING' | 'OFFLINE';
-
-export interface GalacticRelay {
-    id: string;
-    name: string;
-    status: 'ONLINE' | 'DEGRADED' | 'OFFLINE';
-    latency: number;
-}
-
-export interface BiometricSyncData {
-    hrv: number;
-    coherence: number;
-    status: SyncStatus;
-}
-
-export type SyncStatus = 'SYNCHRONIZED' | 'CALIBRATING' | 'UNSTABLE' | 'DECOUPLED';
-
-export interface VibrationData {
-    amplitude: number;
-    frequency: number;
-    resonanceStatus: VibrationStatus;
-}
-
-export type VibrationStatus = 'HARMONIC' | 'DISCORDANT' | 'CRITICAL';
-
-export interface AethericTransferData {
-    efficiency: number;
-    particleDensity: number;
-    fluxStatus: AethericTransferStatus;
-    entropy: number;
-}
-
-export type AethericTransferStatus = 'STABLE' | 'TURBULENT' | 'STAGNANT';
-
-export interface SchumannResonanceData {
-    liveFrequency: number;
-    intensity: number;
-    status: SchumannResonanceStatus;
-}
-
-export type SchumannResonanceStatus = 'NOMINAL' | 'ELEVATED' | 'SUPPRESSED';
-
-export interface EarthGroundingData {
-    charge: number;
-    conductivity: number;
-    status: 'STABLE' | 'CHARGING' | 'DISCHARGING' | 'WEAK';
-    seismicActivity: number;
-    telluricCurrent: number;
-    feedbackLoopStatus: 'IDLE' | 'CORRECTING';
-}
-
-export interface TesseractData {
-    flux: number;
-    stability: number;
-    activeVector: string;
-    integrity: number;
-}
-
-export interface BohrEinsteinCorrelatorData {
-    correlation: number;
-}
-
-export interface CoherenceResonanceData {
-    score: number;
-    entropyFlux: number;
-    phaseSync: number;
-    quantumCorrelation: number;
-    status: 'COHERENT' | 'RESONATING' | 'DECOHERING' | 'CRITICAL';
-    intelligenceLog: ResonanceIntelligenceEntry[];
-}
-
-export interface ResonanceIntelligenceEntry {
-    id: string;
-    timestamp: number;
-    interpretation: string;
-    directive: string;
-    metricsAtTime: { rho: number; coherence: number; entropy: number };
-}
-
-export interface AbundanceCoreData {
-    flow: number;
-    generosity: number;
-    status: 'EXPANDING' | 'STABLE' | 'CONTRACTING';
-}
-
-export interface DilutionRefrigeratorData {
-    temperature: number;
-    status: DilutionRefrigeratorStatus;
-    coolingPower: number;
-}
-
-export type DilutionRefrigeratorStatus = 'STABLE' | 'UNSTABLE' | 'BOOSTED' | 'OFFLINE';
-
-export interface SupernovaTriforceData {
-    phiEnergy: number;
-    psiEnergy: number;
-    omegaEnergy: number;
-    output: number;
-    stability: number;
-    state: SupernovaTriforceState;
-}
-
-export enum SupernovaTriforceState {
-    IDLE = 'IDLE',
-    CHARGING = 'CHARGING',
-    SUPERNOVA = 'SUPERNOVA',
-    STABLE = 'STABLE'
-}
-
-export type PillarId = 'ARCTURIAN' | 'LEMURIAN' | 'ATLANTEAN';
-
-export interface PillarData {
-    id: PillarId;
-    name: string;
-    activation: number;
-    description: string;
+export interface LidarTelemetry { 
+    siteId: string;
+    pointCloudStability: number;
+    droneUplinkStatus: 'ACTIVE' | 'OFFLINE';
+    lastScanTimestamp: number;
+    constructionProgress: number;
 }
 
 export interface LogEntry {
@@ -285,34 +88,6 @@ export interface LogEntry {
     message: string;
     timestamp: number;
 }
-
-export enum LogType {
-    INFO = 'INFO',
-    WARNING = 'WARNING',
-    CRITICAL = 'CRITICAL',
-    SYSTEM = 'SYSTEM'
-}
-
-export type OrbMode = 'STANDBY' | 'ANALYSIS' | 'SYNTHESIS' | 'REPAIR' | 'GROUNDING' | 'CONCORDANCE' | 'OFFLINE';
-
-export interface OrbModeConfig {
-    id: OrbMode;
-    name: string;
-    description: string;
-}
-
-export interface TransmissionState {
-    id: string;
-    source: string;
-    message: string;
-    decodedCharacters: number;
-    status: CommsStatus;
-    frequency: number;
-    bandwidth: number;
-    realWorldMetric?: string;
-}
-
-export type CommsStatus = 'AWAITING SIGNAL' | 'RECEIVING...' | 'DECODING...' | 'TRANSMISSION COMPLETE' | 'SIGNAL LOST';
 
 export interface Memory {
     id: string;
@@ -334,44 +109,149 @@ export interface FailurePrediction {
     forecastTrend: 'ASCENDING' | 'DESCENDING' | 'STABLE';
 }
 
+export interface CausalStrategyStep {
+    id: string;
+    label: string;
+    description: string;
+    probability: number;
+    impact: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
 export interface CausalStrategy {
     title: string;
     totalConfidence: number;
     entropicCost: number;
-    steps: {
-        id: string;
-        label: string;
-        description: string;
-        probability: number;
-        impact: 'LOW' | 'MEDIUM' | 'HIGH';
-    }[];
+    steps: CausalStrategyStep[];
 }
 
-export interface DiagnosticStep {
-    id: string;
-    label: string;
-    status: 'PENDING' | 'ACTIVE' | 'SUCCESS' | 'ERROR' | 'WARNING';
-    progress: number;
-    sublogs: string[];
+export interface TesseractData {
+    flux: number;
+    stability: number;
+    activeVector: string;
+    integrity: number;
 }
 
-export type DiagnosticStatus = 'IDLE' | 'SCANNING' | 'PARITY_CHECK' | 'COMPLETED';
+export type CommsStatus = 'AWAITING SIGNAL' | 'RECEIVING...' | 'DECODING...' | 'TRANSMISSION COMPLETE' | 'SIGNAL LOST';
 
-export interface Scenario {
+export interface PillarData {
+    id: PillarId;
     name: string;
+    activation: number;
     description: string;
-    params: {
-        decoherenceChance: number;
-        lesionChance: number;
-    };
 }
 
-export interface GlobalResonanceState {
-    aggregateRho: number;
-    activeArchitects: number;
-    fieldStatus: 'STABLE' | 'RESONATING' | 'DECOHERING';
-    globalCarrierFrequency: number;
-    communities: CommunityData[];
+export type PillarId = 'ARCTURIAN' | 'LEMURIAN' | 'ATLANTEAN';
+
+export interface HarmonicMetric {
+    frequency: number;
+    amplitude: number;
+    phase: number;
+    harmonicIndex: number;
+}
+
+export interface ResonanceCoherenceData {
+    lambda: HarmonicMetric;
+    sigma: HarmonicMetric;
+    tau: HarmonicMetric;
+}
+
+export interface LyranConcordanceData {
+    alignmentDrift: number;
+    connectionStability: number;
+}
+
+export type SyncStatus = 'SYNCHRONIZED' | 'CALIBRATING' | 'UNSTABLE' | 'DECOUPLED';
+
+export interface BiometricSyncData {
+    hrv: number;
+    coherence: number;
+    status: SyncStatus;
+}
+
+export type AethericTransferStatus = 'STABLE' | 'TURBULENT' | 'STAGNANT';
+
+export interface AethericTransferData {
+    efficiency: number;
+    particleDensity: number;
+    fluxStatus: AethericTransferStatus;
+    entropy: number;
+}
+
+export type SchumannResonanceStatus = 'NOMINAL' | 'ELEVATED' | 'SUPPRESSED';
+
+export interface SchumannResonanceData {
+    liveFrequency: number;
+    intensity: number;
+    status: SchumannResonanceStatus;
+}
+
+export interface BohrEinsteinCorrelatorData {
+    correlation: number;
+}
+
+export interface TransmissionState {
+    id: string;
+    source: string;
+    message: string;
+    decodedCharacters: number;
+    status: CommsStatus;
+    frequency: number;
+    bandwidth: number;
+    realWorldMetric?: string;
+}
+
+export type SatelliteLockStatus = 'LOCKED' | 'ACQUIRING' | 'DRIFTING' | 'OFFLINE';
+
+export interface SatelliteUplinkData {
+    signalStrength: number;
+    lockStatus: SatelliteLockStatus;
+    downlinkBandwidth: number;
+    uplinkBandwidth: number;
+    hevoLatency: number;
+    transmissionProtocol: string;
+    activeSarMode: string;
+    hyperspectralStatus: string;
+}
+
+export interface GalacticRelay {
+    id: string;
+    name: string;
+    status: 'ONLINE' | 'DEGRADED' | 'OFFLINE';
+    latency: number;
+}
+
+export enum SupernovaTriforceState {
+    IDLE = 'IDLE',
+    CHARGING = 'CHARGING',
+    STABLE = 'STABLE',
+    SUPERNOVA = 'SUPERNOVA'
+}
+
+export interface SupernovaTriforceData {
+    phiEnergy: number;
+    psiEnergy: number;
+    omegaEnergy: number;
+    output: number;
+    stability: number;
+    state: SupernovaTriforceState;
+}
+
+export interface PerformanceTelemetry {
+    logicalLatency: number;
+    visualParity: number;
+    gpuLoad: number;
+    frameStability: number;
+    thermalIndex: number;
+    throughput: number;
+    memoryUsage: number;
+}
+
+export interface IngestedModule {
+    id: string;
+    name: string;
+    originProject: 'MENERVA' | 'AETHERIOS';
+    status: 'MOUNTED' | 'SYNCING' | 'OFFLINE';
+    entryPoint: string;
 }
 
 export interface CommunityData {
@@ -385,20 +265,27 @@ export interface CommunityData {
     location: { x: number, y: number };
 }
 
-export interface InstitutionalEntity {
-    id: string;
-    name: string;
-    type: 'BANK' | 'GOVERNMENT' | 'RESEARCH';
-    observing: boolean;
-    trustScore: number;
+export interface GlobalResonanceState {
+    aggregateRho: number;
+    activeArchitects: number;
+    globalCarrierFrequency: number;
+    fieldStatus: 'STABLE' | 'RESONATING' | 'DECOHERING';
+    communities: CommunityData[];
 }
 
-export interface SchematicNode {
+export interface HarmonicInterferenceData {
+    beatFrequency: number;
+    constructiveInterference: number;
+    destructiveInterference: number;
+    standingWaveRatio: number;
+}
+
+export interface ResonanceIntelligenceEntry {
     id: string;
-    label: string;
-    type: 'CORE' | 'BRIDGE' | 'SENSOR' | 'GATEWAY';
-    status: 'OPTIMAL' | 'LOCKED' | 'OFFLINE';
-    dependencies: string[];
+    timestamp: number;
+    interpretation: string;
+    directive: string;
+    metricsAtTime: { rho: number, coherence: number, entropy: number };
 }
 
 export interface VoiceInteraction {
@@ -408,14 +295,41 @@ export interface VoiceInteraction {
     timestamp: number;
 }
 
+export interface QuantumHealingData {
+    health: number;
+    lesions: number;
+    repairRate: number;
+    status: string;
+    decoherence: number;
+    stabilizationShield: number;
+}
+
+export interface DiagnosticStep {
+    id: string;
+    label: string;
+    status: 'PENDING' | 'ACTIVE' | 'SUCCESS' | 'ERROR';
+    progress: number;
+    sublogs: string[];
+}
+
+export type DiagnosticStatus = 'SCANNING' | 'PARITY_CHECK' | 'COMPLETED';
+
+export interface SchematicNode {
+    id: string;
+    label: string;
+    type: 'CORE' | 'BRIDGE' | 'SENSOR' | 'GATEWAY';
+    status: 'OPTIMAL' | 'LOCKED' | 'DEGRADED';
+    dependencies: string[];
+}
+
 export interface LedgerTransaction {
     id: string;
     hash: string;
-    type: 'CAPITAL_INJECTION' | 'ASSET_TRANSFER' | 'RESONANCE_MINT' | 'SYSTEM_UPGRADE';
+    type: 'SYSTEM_UPGRADE' | 'RESOURCE_TRANSFER' | 'CREDENTIAL_LOCK';
     amount: number;
-    currency: 'Ω' | 'USD' | 'RHO';
+    currency: string;
     timestamp: number;
-    status: 'VERIFIED' | 'PENDING' | 'FAILED';
+    status: 'VERIFIED' | 'PENDING' | 'REJECTED';
     counterparty: string;
 }
 
@@ -427,20 +341,88 @@ export interface DynastyEpoch {
     sovereignId: string;
     totalVolume: number;
     resonanceAvg: number;
+    status: 'SEALED' | 'ACTIVE';
     transactions: LedgerTransaction[];
-    status: 'SEALED' | 'ACTIVE' | 'ARCHIVED';
+}
+
+export type VibrationStatus = 'HARMONIC' | 'DISCORDANT' | 'CRITICAL';
+
+export interface VibrationData {
+    amplitude: number;
+    frequency: number;
+    resonanceStatus: VibrationStatus;
+}
+
+/* Added missing exported members to fix import errors across components */
+
+export interface Scenario {
+    name: string;
+    description: string;
+    params: {
+        decoherenceChance: number;
+        lesionChance: number;
+    };
+}
+
+export interface CoherenceResonanceData {
+    score: number;
+    status: string;
+    intelligenceLog: ResonanceIntelligenceEntry[];
+    entropyFlux: number;
+    phaseSync: number;
+    quantumCorrelation: number;
+}
+
+export interface EarthGroundingData {
+    charge: number;
+    conductivity: number;
+    status: string;
+    seismicActivity: number;
+    telluricCurrent: number;
+    feedbackLoopStatus: string;
+}
+
+export interface AbundanceCoreData {
+    flow: number;
+    generosity: number;
+    status: string;
+}
+
+export type DilutionRefrigeratorStatus = 'STABLE' | 'UNSTABLE' | 'BOOSTED' | 'OFFLINE';
+
+export interface DilutionRefrigeratorData {
+    temperature: number;
+    status: DilutionRefrigeratorStatus;
+    coolingPower: number;
+}
+
+export interface Collaborator {
+    id: string;
+    name: string;
+    role: string;
+    status: string;
+    specialty: string;
+    clearance: UserTier;
+}
+
+export interface InstitutionalEntity {
+    id: string;
+    name: string;
+    type: 'BANK' | 'GOVERNMENT' | 'RESEARCH';
+    observing: boolean;
+    trustScore: number;
 }
 
 export interface SystemState {
   userResources: UserResources;
   auth: AuthState;
+  legalEstate: LegalEstateBinding;
+  lidarTelemetry: LidarTelemetry;
   quantumHealing: QuantumHealingData;
   performance: PerformanceTelemetry;
-  holisticAlignmentScore: number;
   resonanceFactorRho: number;
-  selfCorrectionField: number;
+  temporalCoherenceDrift: number;
   resonanceCoherence: ResonanceCoherenceData;
-  harmonicInterference: HarmonicInterferenceData;
   lyranConcordance: LyranConcordanceData;
   satelliteUplink: SatelliteUplinkData;
   galacticRelayNetwork: Record<string, GalacticRelay>;
@@ -457,13 +439,29 @@ export interface SystemState {
   governanceAxiom: string;
   supernovaTriforce: SupernovaTriforceData;
   pillars: Record<PillarId, PillarData>;
-  temporalCoherenceDrift: number;
   log: LogEntry[];
   breathCycle: 'INHALE' | 'EXHALE';
   isGrounded: boolean;
   isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
-  dynastyLedger?: DynastyEpoch[];
   hybridSecurity: HybridSecurityState;
+  harmonicInterference: HarmonicInterferenceData;
+  holisticAlignmentScore: number;
+  selfCorrectionField: number;
+}
+
+export interface OrbModeConfig {
+    id: string;
+    name: string;
+    description: string;
+}
+
+export type OrbMode = 'STANDBY' | 'ANALYSIS' | 'SYNTHESIS' | 'REPAIR' | 'GROUNDING' | 'CONCORDANCE' | 'OFFLINE';
+
+export enum LogType {
+    INFO = 'INFO',
+    WARNING = 'WARNING',
+    CRITICAL = 'CRITICAL',
+    SYSTEM = 'SYSTEM'
 }

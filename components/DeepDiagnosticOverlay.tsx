@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
@@ -140,6 +141,22 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
     const [anomalies, setAnomalies] = useState<string[]>([]);
     
     const isCompleted = status === 'COMPLETED';
+
+    const handleRepairAndComplete = () => {
+        if (setSystemState) {
+            setSystemState(prev => ({
+                ...prev,
+                quantumHealing: {
+                    ...prev.quantumHealing,
+                    decoherence: 0.02,
+                    health: 0.98,
+                    status: 'OPTIMAL'
+                },
+                isPhaseLocked: true
+            }));
+        }
+        onComplete();
+    };
 
     useEffect(() => {
         audioEngine?.playUIScanStart();
@@ -285,7 +302,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                             </p>
                         </div>
                         <button 
-                            onClick={isCompleted ? onComplete : undefined}
+                            onClick={isCompleted ? handleRepairAndComplete : undefined}
                             disabled={!isCompleted}
                             className={`px-16 py-6 font-orbitron text-[11px] font-black uppercase tracking-[0.8em] transition-all border-2 shadow-2xl active:scale-95 group relative overflow-hidden ${
                                 isCompleted 

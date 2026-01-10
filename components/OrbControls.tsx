@@ -127,7 +127,8 @@ export const OrbControls: React.FC<OrbControlsProps> = ({ modes, currentMode, se
                     ? "bg-pearl text-dark-bg border-pearl shadow-[0_0_8px_rgba(248,245,236,0.3)] scale-105 z-10 font-black"
                     : "bg-transparent text-slate-500 border-transparent hover:bg-white/5 hover:text-white hover:border-white/10"
                 }`}
-                onClick={() => setMode(modeConfig.id)}
+                // Fix: explicit cast to OrbMode for setMode call
+                onClick={() => setMode(modeConfig.id as OrbMode)}
                 aria-label={`Activate ${modeConfig.name} Mode`}
                 aria-pressed={currentMode === modeConfig.id}
               >

@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from '@google/genai';
 import { TransmissionState, CommsStatus } from '../types';
 
@@ -32,7 +33,8 @@ class CosmosCommsService {
         bandwidth: 50
     };
 
-    private currentState: CosmosTransmission = { ...this.initialState };
+    // Fix: Make public to allow App.tsx access via cosmosCommsService['currentState']
+    public currentState: CosmosTransmission = { ...this.initialState };
 
     subscribe(listener: CommsListener): () => void {
         this.listeners.add(listener);
