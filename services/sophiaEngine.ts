@@ -1,7 +1,6 @@
-
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
-import { SystemState, FailurePrediction, CausalStrategy } from '../types.ts';
-import { knowledgeBase } from './knowledgeBase.ts';
+import { SystemState, FailurePrediction, CausalStrategy } from '../types';
+import { knowledgeBase } from './knowledgeBase';
 
 const handleApiError = (error: any): string => {
   console.error("Sophia Engine Error:", error);

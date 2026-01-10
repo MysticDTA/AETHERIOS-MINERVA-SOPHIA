@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types.ts';
-import { SophiaEngineCore } from '../services/sophiaEngine.ts';
-import { AudioEngine } from './audio/AudioEngine.ts';
+import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types';
+import { SophiaEngineCore } from '../services/sophiaEngine';
+import { AudioEngine } from './audio/AudioEngine';
 
 interface DeepDiagnosticOverlayProps {
   onClose: () => void;

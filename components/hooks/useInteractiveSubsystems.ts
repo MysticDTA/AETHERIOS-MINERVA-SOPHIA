@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
-import { SystemState, LogType, PillarId } from '../../types.ts';
-import { AudioEngine } from '../audio/AudioEngine.ts';
+import { SystemState, LogType, PillarId } from '../../types';
+import { AudioEngine } from '../audio/AudioEngine';
 
 const STAR_COUNT = 7;
 
