@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { SystemStatus } from './SystemStatus';
-import { AudioEngine } from './audio/AudioEngine';
-import { UserTier, CommsStatus } from '../types';
-import { SYSTEM_NODES, TIER_REGISTRY, checkNodeAccess } from '../Registry';
-import { Tooltip } from './Tooltip';
+import { SystemStatus } from './SystemStatus.tsx';
+import { AudioEngine } from './audio/AudioEngine.ts';
+import { UserTier, CommsStatus } from '../types.ts';
+import { SYSTEM_NODES, TIER_REGISTRY, checkNodeAccess } from '../Registry.tsx';
+import { Tooltip } from './Tooltip.tsx';
 
 interface HeaderProps {
     governanceAxiom: string;

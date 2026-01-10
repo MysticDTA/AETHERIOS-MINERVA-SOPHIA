@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
-import { SystemState, LogType, PillarId } from '../../types';
-import { AudioEngine } from '../audio/AudioEngine';
+import { SystemState, LogType, PillarId } from '../../types.ts';
+import { AudioEngine } from '../audio/AudioEngine.ts';
 
 const STAR_COUNT = 7;
 
@@ -124,7 +124,6 @@ export const useInteractiveSubsystems = ({ addLogEntry, setSystemState, systemSt
         audioEngine?.playGroundingDischarge();
         
         // ADJUSTMENT: Entropy Damping scaling with Schumann Intensity
-        // nominal efficacy is 0.5. Scaling by intensityFactor * 2 makes it up to 1.0 (2x)
         const intensityFactor = systemState.schumannResonance.intensity;
         const reduction = 0.5 * (intensityFactor * 2);
         

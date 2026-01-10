@@ -1,18 +1,17 @@
-
 import React from 'react';
-import { SystemState, OrbMode } from '../types';
-import { MetricDisplay } from './MetricDisplay';
-import { WombCoreStability } from './WombCoreStability';
-import { CoreVisual } from './CoreVisual';
-import { SystemAnalysis } from './SystemAnalysis';
-import { SophiaCognitiveCore } from './SophiaCognitiveCore';
-import { SophiaEngineCore } from '../services/sophiaEngine';
-import { SystemIntegrityCore } from './SystemIntegrityCore';
-import { PerformanceMetricsChart } from './PerformanceMetricsChart';
-import { NodeStabilityMatrix } from './NodeStabilityMatrix';
-import { Tooltip } from './Tooltip';
-import { AudioEngine } from './audio/AudioEngine';
-import { CoherenceResonancePulse } from './CoherenceResonancePulse';
+import { SystemState, OrbMode } from '../types.ts';
+import { MetricDisplay } from './MetricDisplay.tsx';
+import { WombCoreStability } from './WombCoreStability.tsx';
+import { CoreVisual } from './CoreVisual.tsx';
+import { SystemAnalysis } from './SystemAnalysis.tsx';
+import { SophiaCognitiveCore } from './SophiaCognitiveCore.tsx';
+import { SophiaEngineCore } from '../services/sophiaEngine.ts';
+import { SystemIntegrityCore } from './SystemIntegrityCore.tsx';
+import { PerformanceMetricsChart } from './PerformanceMetricsChart.tsx';
+import { NodeStabilityMatrix } from './NodeStabilityMatrix.tsx';
+import { Tooltip } from './Tooltip.tsx';
+import { AudioEngine } from './audio/AudioEngine.ts';
+import { CoherenceResonancePulse } from './CoherenceResonancePulse.tsx';
 
 interface DashboardProps {
   systemState: SystemState;

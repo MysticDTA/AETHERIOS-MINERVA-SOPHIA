@@ -1,10 +1,10 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from '@google/genai';
-import { LogType, OrbMode, VoiceInteraction } from '../../types';
-import { encode, decode, decodeAudioData } from '../audio/liveUtils';
-import { knowledgeBase } from '../../services/knowledgeBase';
-import { audioAnalysisService } from '../../services/audioAnalysisService';
+import { LogType, OrbMode, VoiceInteraction } from '../../types.ts';
+import { encode, decode, decodeAudioData } from '../audio/liveUtils.ts';
+import { knowledgeBase } from '../../services/knowledgeBase.ts';
+import { audioAnalysisService } from '../../services/audioAnalysisService.ts';
 
 interface UseVoiceInterfaceProps {
     addLogEntry: (type: LogType, message: string) => void;
@@ -109,10 +109,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
 
         try {
             mediaStream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // Connect to Analysis Service immediately for visual feedback
             audioAnalysisService.connectSource(mediaStream.current);
-
         } catch (error) {
             console.error("Microphone access denied:", error);
             addLogEntry(LogType.CRITICAL, "Vocal sensor acquisition failure.");

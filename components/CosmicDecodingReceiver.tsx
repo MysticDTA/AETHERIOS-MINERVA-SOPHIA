@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
-import { SystemState } from '../types';
-import { decode, decodeAudioData } from './audio/liveUtils';
+import { SystemState } from '../types.ts';
+import { decode, decodeAudioData } from './audio/liveUtils.ts';
 
 interface CosmicDecodingReceiverProps {
   transmission: any; 

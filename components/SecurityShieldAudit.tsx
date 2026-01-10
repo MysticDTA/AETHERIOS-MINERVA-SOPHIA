@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { SystemState } from '../types';
-import { AudioEngine } from './audio/AudioEngine';
-import { QuantumSecuritySentinel } from './QuantumSecuritySentinel';
-import { QuantumSentinelPulse } from './QuantumSentinelPulse';
+import { SystemState } from '../types.ts';
+import { AudioEngine } from './audio/AudioEngine.ts';
+import { QuantumSecuritySentinel } from './QuantumSecuritySentinel.tsx';
+import { QuantumSentinelPulse } from './QuantumSentinelPulse.tsx';
 
 interface SecurityShieldAuditProps {
     systemState: SystemState;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types';
-import { SophiaEngineCore } from '../services/sophiaEngine';
-import { AudioEngine } from './audio/AudioEngine';
+import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types.ts';
+import { SophiaEngineCore } from '../services/sophiaEngine.ts';
+import { AudioEngine } from './audio/AudioEngine.ts';
 
 interface DeepDiagnosticOverlayProps {
   onClose: () => void;
@@ -348,7 +348,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                             </p>
                         ))}
                         <div className="flex items-start gap-4 mt-2">
-                             <span className="text-emerald-500 font-black animate-pulse">>>></span>
+                             <span className="text-emerald-500 font-black animate-pulse">{">>>"}</span>
                              <p className="animate-pulse text-pearl font-bold uppercase tracking-tight">{telemetry}</p>
                         </div>
                     </div>

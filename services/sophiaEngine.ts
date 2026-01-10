@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
-import { SystemState, FailurePrediction, CausalStrategy } from '../types';
-import { knowledgeBase } from './knowledgeBase';
+import { SystemState, FailurePrediction, CausalStrategy } from '../types.ts';
+import { knowledgeBase } from './knowledgeBase.ts';
 
 const handleApiError = (error: any): string => {
   console.error("Sophia Engine Error:", error);
@@ -227,7 +227,6 @@ export class SophiaEngineCore {
   async getFailurePrediction(systemState: SystemState): Promise<FailurePrediction> {
     const ai = this.getClient();
     
-    // Robust fallback if no key or client failure
     if (!ai) {
         return {
             probability: 0.05,

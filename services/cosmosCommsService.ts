@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from '@google/genai';
-import { TransmissionState, CommsStatus } from '../types';
+import { TransmissionState, CommsStatus } from '../types.ts';
 
 export interface CosmosTransmission extends TransmissionState {
     frequency: number; // in GHz (Radio Astronomy Spectrum)
@@ -79,7 +79,6 @@ class CosmosCommsService {
     private async beginTransmission() {
         if (this.isFetching || !this.isRunning) return;
         
-        // Muted warning check to prevent console spam
         if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
             this.scheduleNextTransmission(true);
             return;

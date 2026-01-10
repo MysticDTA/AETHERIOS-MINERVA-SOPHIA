@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Scenario } from '../types';
-import { performanceService, PerformanceTier } from '../services/performanceService';
-import { AudioEngine } from './audio/AudioEngine';
-import { Tooltip } from './Tooltip';
-import { useTheme, ThemeMode } from './ThemeProvider';
+import { Scenario } from '../types.ts';
+import { performanceService, PerformanceTier } from '../services/performanceService.ts';
+import { AudioEngine } from './audio/AudioEngine.ts';
+import { Tooltip } from './Tooltip.tsx';
+import { useTheme, ThemeMode } from './ThemeProvider.tsx';
 
 interface SimulationControlsProps {
   params: {

@@ -1,54 +1,55 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSystemSimulation } from './useSystemSimulation';
-import { Layout } from './components/Layout';
-import { Header } from './components/Header';
-import { SystemFooter } from './components/SystemFooter';
-import { Dashboard } from './components/Dashboard';
-import { Display3 } from './components/Display3';
-import { Display4 } from './components/Display4';
-import { Display5 } from './components/Display5';
-import { Display6 } from './components/Display6';
-import { Display7 } from './components/Display7';
-import { Display8 } from './components/Display8';
-import { Display10 } from './components/Display10';
-import { Display11 } from './components/Display11';
-import { Display12 } from './components/Display12';
-import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
-import { SubsystemsDisplay } from './components/SubsystemsDisplay';
-import { SystemSummary } from './components/SystemSummary';
-import { ResourceProcurement } from './components/ResourceProcurement';
-import { SatelliteUplink } from './components/SatelliteUplink';
-import { DeploymentManifest } from './components/DeploymentManifest';
-import { VeoFluxSynthesizer } from './components/VeoFluxSynthesizer';
-import { ModuleManager } from './components/ModuleManager';
-import { MenervaBridge } from './components/MenervaBridge';
-import { EventLog } from './components/EventLog';
-import { SecurityShieldAudit } from './components/SecurityShieldAudit';
-import { QuantumComputeNexus } from './components/QuantumComputeNexus';
-import { NoeticGraphNexus } from './components/NoeticGraphNexus';
-import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal';
-import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
-import { EventHorizonScreen } from './components/EventHorizonScreen';
-import { AccessDeniedScreen } from './components/AccessDeniedScreen';
-import { Modal } from './components/Modal';
-import { SimulationControls } from './components/SimulationControls';
-import { ThemeProvider } from './components/ThemeProvider';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { ApiKeyGuard } from './components/ApiKeyGuard';
-import { Login } from './components/Login';
-import { PasswordReset } from './components/PasswordReset';
-import { AudioEngine } from './components/audio/AudioEngine';
-import { SophiaEngineCore } from './services/sophiaEngine';
-import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
-import { useVoiceInterface } from './components/hooks/useVoiceInterface';
-import { cosmosCommsService } from './services/cosmosCommsService';
-import { knowledgeBase } from './services/knowledgeBase';
-import { CoCreatorNexus } from './components/CoCreatorNexus';
-import { NeuralQuantizer } from './components/NeuralQuantizer';
-import { VoiceInterface } from './components/VoiceInterface';
-import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
-import { OrbMode, OrbModeConfig, LogType } from './types';
-import { SYSTEM_NODES, checkNodeAccess } from './Registry';
+import { useSystemSimulation } from './useSystemSimulation.ts';
+import { Layout } from './components/Layout.tsx';
+import { Header } from './components/Header.tsx';
+import { SystemFooter } from './components/SystemFooter.tsx';
+import { Dashboard } from './components/Dashboard.tsx';
+import { Display3 } from './components/Display3.tsx';
+import { Display4 } from './components/Display4.tsx';
+import { Display5 } from './components/Display5.tsx';
+import { Display6 } from './components/Display6.tsx';
+import { Display7 } from './components/Display7.tsx';
+import { Display8 } from './components/Display8.tsx';
+import { Display10 } from './components/Display10.tsx';
+import { Display11 } from './components/Display11.tsx';
+import { Display12 } from './components/Display12.tsx';
+import { CollectiveCoherenceView } from './components/CollectiveCoherenceView.tsx';
+import { SubsystemsDisplay } from './components/SubsystemsDisplay.tsx';
+import { SystemSummary } from './components/SystemSummary.tsx';
+import { ResourceProcurement } from './components/ResourceProcurement.tsx';
+import { SatelliteUplink } from './components/SatelliteUplink.tsx';
+import { DeploymentManifest } from './components/DeploymentManifest.tsx';
+import { VeoFluxSynthesizer } from './components/VeoFluxSynthesizer.tsx';
+import { ModuleManager } from './components/ModuleManager.tsx';
+import { MenervaBridge } from './components/MenervaBridge.tsx';
+import { EventLog } from './components/EventLog.tsx';
+import { SecurityShieldAudit } from './components/SecurityShieldAudit.tsx';
+import { QuantumComputeNexus } from './components/QuantumComputeNexus.tsx';
+import { NoeticGraphNexus } from './components/NoeticGraphNexus.tsx';
+import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal.tsx';
+import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay.tsx';
+import { EventHorizonScreen } from './components/EventHorizonScreen.tsx';
+import { AccessDeniedScreen } from './components/AccessDeniedScreen.tsx';
+import { Modal } from './components/Modal.tsx';
+import { SimulationControls } from './components/SimulationControls.tsx';
+import { ThemeProvider } from './components/ThemeProvider.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
+import { ApiKeyGuard } from './components/ApiKeyGuard.tsx';
+import { Login } from './components/Login.tsx';
+import { PasswordReset } from './components/PasswordReset.tsx';
+import { AudioEngine } from './components/audio/AudioEngine.ts';
+import { SophiaEngineCore } from './services/sophiaEngine.ts';
+import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems.ts';
+import { useVoiceInterface } from './components/hooks/useVoiceInterface.ts';
+import { cosmosCommsService } from './services/cosmosCommsService.ts';
+import { knowledgeBase } from './services/knowledgeBase.ts';
+import { CoCreatorNexus } from './components/CoCreatorNexus.tsx';
+import { NeuralQuantizer } from './components/NeuralQuantizer.tsx';
+import { VoiceInterface } from './components/VoiceInterface.tsx';
+import { QuantumDynastyLedger } from './components/QuantumDynastyLedger.tsx';
+import { OrbMode, OrbModeConfig, LogType } from './types.ts';
+import { SYSTEM_NODES, checkNodeAccess } from './Registry.tsx';
 
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring state.' },
@@ -113,7 +114,6 @@ export const App: React.FC = () => {
     isDischargingGround,
     isFlushingHelium,
     isCalibratingDilution,
-    handlePillarBoost,
     handleRelayCalibration,
     handleStarCalibration,
     handlePurgeAethericFlow,

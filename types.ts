@@ -3,12 +3,6 @@ import React from 'react';
 
 // Global shared types for SOPHIA DV99 / Alliance System
 
-// Ensure 3D modules are recognized even if types are missing in CI
-// We comment these out to prevent augmentation errors if packages are missing or misconfigured in the environment.
-// declare module 'three';
-// declare module '@react-three/fiber';
-// declare module '@react-three/drei';
-
 declare global {
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
@@ -22,8 +16,6 @@ declare global {
     webkitSpeechRecognition: any;
   }
 
-  // Manually augment JSX.IntrinsicElements to include React Three Fiber elements
-  // This resolves TypeScript errors where 'group', 'ambientLight', etc. are not recognized.
   namespace JSX {
     interface IntrinsicElements {
       group: any;
@@ -41,7 +33,6 @@ declare global {
   }
 }
 
-// Augment React's JSX namespace directly for compatibility with newer React types
 declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
@@ -115,10 +106,10 @@ export interface QuantumHealingData {
 }
 
 export interface FrequencyMetric {
-    frequency: number;      // in zHz
-    amplitude: number;      // 0.0 - 1.0
-    phase: number;          // 0 - 360 degrees
-    harmonicIndex: number;  // 1 = Fundamental, 2 = 1st Harmonic, etc.
+    frequency: number;
+    amplitude: number;
+    phase: number;
+    harmonicIndex: number;
 }
 
 export interface ResonanceCoherenceData {
@@ -128,10 +119,10 @@ export interface ResonanceCoherenceData {
 }
 
 export interface HarmonicInterferenceData {
-    beatFrequency: number;          // Hz difference between local/global
-    constructiveInterference: number; // 0.0 - 1.0
-    destructiveInterference: number;  // 0.0 - 1.0
-    standingWaveRatio: number;        // SWR (1.0 is perfect match)
+    beatFrequency: number;
+    constructiveInterference: number;
+    destructiveInterference: number;
+    standingWaveRatio: number;
 }
 
 export interface LyranConcordanceData {
@@ -397,7 +388,6 @@ export interface VoiceInteraction {
     timestamp: number;
 }
 
-// --- DYNASTY LEDGER TYPES ---
 export interface LedgerTransaction {
     id: string;
     hash: string;
@@ -411,7 +401,7 @@ export interface LedgerTransaction {
 
 export interface DynastyEpoch {
     id: number;
-    label: string; // e.g., "Epoch of Awakening"
+    label: string;
     startBlock: number;
     endBlock: number;
     sovereignId: string;
@@ -454,5 +444,5 @@ export interface SystemState {
   isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
-  dynastyLedger?: DynastyEpoch[]; // Optional until fully integrated
+  dynastyLedger?: DynastyEpoch[];
 }
