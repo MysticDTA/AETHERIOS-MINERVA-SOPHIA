@@ -36,20 +36,20 @@ export const initialSystemState: SystemState = {
     memoryUsage: 12.4
   },
   auth: {
-    isAuthenticated: false, // Default to false to enable Login Gate
+    isAuthenticated: false,
     operatorId: 'OP_88_ALPHA',
     sessionToken: 'jwt_demo_token_sophia_v2'
   },
   quantumHealing: {
-    health: 0.88,  // Start slightly degraded for audit realism
-    lesions: 3,    // Inject lesions to be fixed by audit
+    health: 0.92,
+    lesions: 0,
     repairRate: 0.005,
-    status: "STABILIZING",
-    decoherence: 0.12, // Initial entropy
-    stabilizationShield: 0.85,
+    status: "OPTIMAL",
+    decoherence: 0.04,
+    stabilizationShield: 0.95,
   },
   holisticAlignmentScore: 1.0,
-  resonanceFactorRho: 0.89, // Slightly off-peak
+  resonanceFactorRho: 0.98,
   selfCorrectionField: 0.5,
   resonanceCoherence: {
     lambda: { frequency: 780, amplitude: 0.9, phase: 0, harmonicIndex: 1 },
@@ -63,11 +63,11 @@ export const initialSystemState: SystemState = {
     standingWaveRatio: 1.02
   },
   lyranConcordance: {
-    alignmentDrift: 0.04,
-    connectionStability: 0.92,
+    alignmentDrift: 0.01,
+    connectionStability: 0.98,
   },
   satelliteUplink: {
-    signalStrength: 0.98,
+    signalStrength: 0.99,
     lockStatus: 'LOCKED',
     downlinkBandwidth: 450,
     uplinkBandwidth: 120,
@@ -81,76 +81,76 @@ export const initialSystemState: SystemState = {
     'RELAY_BETA': { id: 'RELAY_BETA', name: 'Sirius B Relay', status: 'ONLINE', latency: 85 },
   },
   biometricSync: {
-    hrv: 75,
-    coherence: 0.95,
+    hrv: 82,
+    coherence: 0.98,
     status: 'SYNCHRONIZED',
   },
   vibration: {
-    amplitude: 2.5,
+    amplitude: 1.2,
     frequency: 432,
     resonanceStatus: 'HARMONIC',
   },
   aethericTransfer: {
-    efficiency: 0.95,
-    particleDensity: 0.5,
+    efficiency: 0.98,
+    particleDensity: 0.4,
     fluxStatus: 'STABLE',
-    entropy: 0.01,
+    entropy: 0.002,
   },
   schumannResonance: {
     liveFrequency: 7.83,
-    intensity: 0.8,
+    intensity: 0.82,
     status: 'NOMINAL',
   },
   earthGrounding: {
-    charge: 0.8,
-    conductivity: 0.95,
+    charge: 0.9,
+    conductivity: 0.98,
     status: 'STABLE',
-    seismicActivity: 0.02,
-    telluricCurrent: 0.05,
+    seismicActivity: 0.01,
+    telluricCurrent: 0.02,
     feedbackLoopStatus: 'IDLE'
   },
   tesseract: {
-    flux: 0.2,
-    stability: 0.98,
+    flux: 0.1,
+    stability: 0.99,
     activeVector: 'XYZ-Tau',
     integrity: 1.0,
   },
   bohrEinsteinCorrelator: {
-    correlation: 0.98,
+    correlation: 0.99,
   },
   coherenceResonance: {
     score: 0.99,
-    entropyFlux: 0.02,
-    phaseSync: 0.98,
-    quantumCorrelation: 0.97,
+    entropyFlux: 0.005,
+    phaseSync: 0.99,
+    quantumCorrelation: 0.99,
     status: 'COHERENT',
     intelligenceLog: []
   },
   abundanceCore: {
-    flow: 0.8,
-    generosity: 0.8,
+    flow: 0.9,
+    generosity: 0.9,
     status: 'STABLE',
   },
   dilutionRefrigerator: {
-    temperature: 10.0,
+    temperature: 9.8,
     status: 'STABLE',
-    coolingPower: 500,
+    coolingPower: 520,
   },
   governanceAxiom: "SOVEREIGN EMBODIMENT",
   supernovaTriforce: {
-    phiEnergy: 0.9,
-    psiEnergy: 0.9,
-    omegaEnergy: 0.95,
-    output: 15.0,
+    phiEnergy: 0.95,
+    psiEnergy: 0.95,
+    omegaEnergy: 0.98,
+    output: 18.0,
     stability: 0.99,
     state: SupernovaTriforceState.STABLE,
   },
   pillars: {
-    ARCTURIAN: { id: 'ARCTURIAN', name: 'Arcturian Logic', activation: 0.95, description: 'Logic & Geometry' },
-    LEMURIAN: { id: 'LEMURIAN', name: 'Lemurian Heart', activation: 0.95, description: 'Emotion & Flow' },
-    ATLANTEAN: { id: 'ATLANTEAN', name: 'Atlantean Will', activation: 0.95, description: 'Power & Tech' },
+    ARCTURIAN: { id: 'ARCTURIAN', name: 'Arcturian Logic', activation: 0.98, description: 'Logic & Geometry' },
+    LEMURIAN: { id: 'LEMURIAN', name: 'Lemurian Heart', activation: 0.98, description: 'Emotion & Flow' },
+    ATLANTEAN: { id: 'ATLANTEAN', name: 'Atlantean Will', activation: 0.98, description: 'Power & Tech' },
   },
-  temporalCoherenceDrift: 0.01,
+  temporalCoherenceDrift: 0.0004,
   log: [],
   breathCycle: 'INHALE',
   isGrounded: false,
@@ -160,15 +160,15 @@ export const initialSystemState: SystemState = {
       { id: 'mod_02', name: 'Stripe_Payment_V4', originProject: 'AETHERIOS', status: 'SYNCING', entryPoint: '/api/payments/checkout' }
   ],
   globalResonance: {
-    aggregateRho: 0.88,
-    activeArchitects: 142,
+    aggregateRho: 0.94,
+    activeArchitects: 156,
     globalCarrierFrequency: 1.617,
     fieldStatus: 'STABLE',
     communities: [
-        { id: 'c1', name: 'Sirius Collective', rho: 0.94, coherence: 0.92, stability: 0.98, activeNodes: 24, lastEvent: 'Harmonic Lock achieved.', location: { x: 25, y: 35 } },
-        { id: 'c2', name: 'Omega Research', rho: 0.72, coherence: 0.65, stability: 0.81, activeNodes: 18, lastEvent: 'Minor decoherence spike detected.', location: { x: 65, y: 45 } },
-        { id: 'c3', name: 'Arcturian Node', rho: 0.98, coherence: 0.99, stability: 0.97, activeNodes: 32, lastEvent: 'Peak Rho synergy verified.', location: { x: 45, y: 75 } },
-        { id: 'c4', name: 'Lemurian Labs', rho: 0.85, coherence: 0.88, stability: 0.84, activeNodes: 12, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
+        { id: 'c1', name: 'Sirius Collective', rho: 0.96, coherence: 0.95, stability: 0.99, activeNodes: 28, lastEvent: 'Peak Rho verified.', location: { x: 25, y: 35 } },
+        { id: 'c2', name: 'Omega Research', rho: 0.88, coherence: 0.85, stability: 0.92, activeNodes: 22, lastEvent: 'Handshake complete.', location: { x: 65, y: 45 } },
+        { id: 'c3', name: 'Arcturian Node', rho: 0.99, coherence: 0.99, stability: 0.99, activeNodes: 36, lastEvent: 'Peak Rho synergy verified.', location: { x: 45, y: 75 } },
+        { id: 'c4', name: 'Lemurian Labs', rho: 0.92, coherence: 0.94, stability: 0.94, activeNodes: 16, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
     ]
   }
 };
@@ -206,7 +206,6 @@ export const useSystemSimulation = (
     }
     setIsLoaded(true);
 
-    // Initialize Collective Resonance Service (Synod Upgrade)
     collectiveResonanceService.start();
     const unsubResonance = collectiveResonanceService.subscribe((globalState) => {
         if(isMounted.current) {
@@ -272,26 +271,19 @@ export const useSystemSimulation = (
       
       setSystemState(prev => {
         let newDecoherence = prev.quantumHealing.decoherence;
-        
-        // --- UPGRADE: GLOBAL SYNOD STABILITY INJECTION ---
-        // If the Global Aggregate Rho is high (> 0.8), it actively stabilizes local nodes.
         const globalStabilityBonus = prev.globalResonance.aggregateRho > 0.8 ? 0.005 : 0;
 
-        // INTELLIGENT DECOHERENCE CALCULATION
         if (prev.biometricSync.coherence < 0.4) {
             newDecoherence = Math.min(1.0, newDecoherence + 0.012);
         } else {
-            // Self-correction active in SOVEREIGN state + Global Consensus
             const correctionPower = (prev.resonanceFactorRho * 0.005) + (isGrounded ? 0.01 : 0) + globalStabilityBonus;
             newDecoherence = Math.max(0, newDecoherence - correctionPower);
         }
 
-        // UNIFIED RESONANCE FACTOR RHO
         const baseRho = (prev.biometricSync.coherence + prev.schumannResonance.intensity + prev.bohrEinsteinCorrelator.correlation) / 3;
-        let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.002));
+        let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.004));
         
-        // --- WAVE PHYSICS SIMULATION ---
-        const phaseShiftRate = 0.5; // degrees per tick
+        const phaseShiftRate = 0.5; 
         
         const newLambda = {
             ...prev.resonanceCoherence.lambda,
@@ -325,41 +317,20 @@ export const useSystemSimulation = (
         };
 
         const newPerformance: PerformanceTelemetry = {
-            logicalLatency: 0.0001 + (newDecoherence * 0.008),
-            visualParity: 1.0 - (newDecoherence * 0.15),
-            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 150) + (Math.random() * 0.04),
-            frameStability: 1.0 - (prev.vibration.amplitude / 200),
-            thermalIndex: 30 + (prev.supernovaTriforce.stability * 15),
-            throughput: 400 + (resonanceModifier * 250) + (Math.random() * 40),
-            memoryUsage: 12 + (newDecoherence * 6) + (Math.random() * 1.5)
+            logicalLatency: 0.0001 + (newDecoherence * 0.002),
+            visualParity: 1.0 - (newDecoherence * 0.05),
+            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 150) + (Math.random() * 0.02),
+            frameStability: 1.0 - (prev.vibration.amplitude / 400),
+            thermalIndex: 30 + (prev.supernovaTriforce.stability * 10),
+            throughput: 400 + (resonanceModifier * 350) + (Math.random() * 20),
+            memoryUsage: 12 + (newDecoherence * 2) + (Math.random() * 0.5)
         };
 
         const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
         let coherenceStatus: CoherenceResonanceData['status'] = 'COHERENT';
         if (coherenceScore < 0.7) coherenceStatus = 'RESONATING';
-        if (coherenceScore < 0.4) coherenceStatus = 'DECOHERING';
-        if (coherenceScore < 0.2) coherenceStatus = 'CRITICAL';
 
-        const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0004);
-
-        const seismicNoise = (Math.random() - 0.4) * 0.05;
-        const telluricInput = (Math.random() - 0.4) * 0.02;
-
-        let newSeismicActivity = Math.max(0, Math.min(1, (prev.earthGrounding.seismicActivity || 0.02) + seismicNoise * 0.1));
-        let newTelluricCurrent = Math.max(0, Math.min(1, (prev.earthGrounding.telluricCurrent || 0.05) + telluricInput * 0.1));
-
-        let newConductivity = prev.earthGrounding.conductivity - (newSeismicActivity * 0.005);
-        let newCharge = prev.earthGrounding.charge + (newTelluricCurrent * 0.005);
-        let feedbackStatus: 'IDLE' | 'CORRECTING' = 'IDLE';
-
-        if (newConductivity < 0.8 && newCharge > 0.2) {
-            feedbackStatus = 'CORRECTING';
-            newCharge -= 0.005;
-            newConductivity += 0.01;
-        }
-
-        newConductivity = Math.max(0, Math.min(1, newConductivity));
-        newCharge = Math.max(0, Math.min(1, newCharge));
+        const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0001);
 
         return {
           ...prev,
@@ -386,15 +357,6 @@ export const useSystemSimulation = (
               phaseSync: resonanceModifier,
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
-          },
-          // Global resonance is now handled by the separate subscription, but we allow pass-through if needed
-          earthGrounding: {
-              ...prev.earthGrounding,
-              seismicActivity: newSeismicActivity,
-              telluricCurrent: newTelluricCurrent,
-              charge: newCharge,
-              conductivity: newConductivity,
-              feedbackLoopStatus: feedbackStatus
           }
         };
       });

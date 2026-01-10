@@ -1,28 +1,32 @@
 
-import React, { useState } from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 import { SystemState, LogType } from '../types';
+import { QuantumSentinelPulse } from './QuantumSentinelPulse';
 
 interface ModuleManagerProps {
   systemState: SystemState;
-  setSystemState: React.Dispatch<React.SetStateAction<SystemState>>;
+  setSystemState: Dispatch<SetStateAction<SystemState>>;
   addLogEntry: (type: LogType, message: string) => void;
 }
 
-const RuntimeVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
+const RuntimeVisualizer: React.FC<{ active: boolean; resonance: number }> = ({ active, resonance }) => {
     return (
         <div className="relative w-full h-48 bg-black/40 border border-white/5 rounded-md overflow-hidden font-mono text-[10px] p-4">
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#4c1d95 1px, transparent 0)', backgroundSize: '10px 10px' }}></div>
+            
+            {active && <QuantumSentinelPulse active={true} resonance={resonance} color="#60a5fa" className="opacity-30" />}
+
             {active ? (
-                <div className="flex flex-col gap-1 text-green-400/80 animate-fade-in">
-                    <span>{'>'} INIT_RUNTIME_ENV... OK</span>
-                    <span>{'>'} MOUNTING_SHARD_0x88... OK</span>
-                    <span>{'>'} ESTABLISHING_CAUSAL_LINK...</span>
-                    <span className="text-pearl">{'>'} HEURISTIC_PARITY_CHECK: PASSED</span>
-                    <span className="animate-pulse">{'>'} STREAMING_TELEMETRY...</span>
+                <div className="flex flex-col gap-1 text-blue-400/80 animate-fade-in relative z-10">
+                    <span>STATUS: RUNTIME_ENV_ACTIVE</span>
+                    <span>MOUNT: SHARD_0x88_VERIFIED</span>
+                    <span>LINK: CAUSAL_PARITY_ESTABLISHED</span>
+                    <span className="text-pearl">PARITY: {(resonance * 100).toFixed(4)}%</span>
+                    <span className="animate-pulse text-gold">STREAMING_REALTIME_TELEMETRY...</span>
                 </div>
             ) : (
-                <div className="flex items-center justify-center h-full text-slate-600">
-                    MODULE_IDLE
+                <div className="flex items-center justify-center h-full text-slate-600 relative z-10">
+                    MODULE_IDLE_AWAITING_HANDSHAKE
                 </div>
             )}
         </div>
@@ -32,7 +36,6 @@ const RuntimeVisualizer: React.FC<{ active: boolean }> = ({ active }) => {
 export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const modules = systemState.ingestedModules || [];
-
     const selectedModule = modules.find(m => m.id === selectedId);
 
     const handleUnmount = (id: string) => {
@@ -60,13 +63,13 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
                     m.id === id ? { ...m, status: 'MOUNTED' } : m
                 )
             }));
-            addLogEntry(LogType.INFO, `Module ${id} synced and mounted.`);
+            addLogEntry(LogType.INFO, `Module ${id} synced and mounted successfully.`);
         }, 3000);
     };
 
     return (
-        <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20">
-            <div className="flex justify-between items-end border-b border-white/10 pb-6">
+        <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20 overflow-hidden">
+            <div className="flex justify-between items-end border-b border-white/10 pb-6 shrink-0">
                 <div className="flex items-center gap-6">
                     <div className="w-14 h-14 bg-blue-900/10 border border-blue-500/30 flex items-center justify-center font-orbitron text-blue-400 text-3xl shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                         ⚯
@@ -85,12 +88,11 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
-                {/* Sidebar List */}
                 <div className="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-thin">
                     <h3 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-[0.4em] font-black mb-2">Ingested Registry</h3>
                     {modules.length === 0 && (
-                        <div className="p-4 border border-dashed border-white/10 rounded text-[10px] text-slate-600 text-center uppercase tracking-widest">
-                            No Modules Ingested
+                        <div className="p-10 border border-dashed border-white/10 rounded text-[10px] text-slate-600 text-center uppercase tracking-widest">
+                            No Active Logic Shards Detected
                         </div>
                     )}
                     {modules.map(mod => (
@@ -117,11 +119,10 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
                     ))}
                 </div>
 
-                {/* Detail View */}
                 <div className="lg:col-span-8 flex flex-col gap-6 bg-black/40 border border-white/5 rounded-xl p-8 relative overflow-hidden">
                     {selectedModule ? (
                         <>
-                            <div className="flex justify-between items-start border-b border-white/10 pb-6">
+                            <div className="flex justify-between items-start border-b border-white/10 pb-6 relative z-10">
                                 <div className="space-y-2">
                                     <h3 className="font-minerva italic text-2xl text-pearl">{selectedModule.name}</h3>
                                     <div className="flex gap-4 text-[9px] font-mono uppercase tracking-widest text-slate-400">
@@ -137,7 +138,7 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-2 gap-6 relative z-10">
                                 <div className="space-y-2">
                                     <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Runtime Telemetry</span>
                                     <div className="grid grid-cols-2 gap-2">
@@ -154,19 +155,19 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
                                 <div className="space-y-2">
                                     <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Permissions</span>
                                     <div className="flex flex-wrap gap-2">
-                                        <span className="text-[8px] border border-white/10 px-2 py-1 rounded text-slate-400">READ_STATE</span>
-                                        <span className="text-[8px] border border-white/10 px-2 py-1 rounded text-slate-400">WRITE_LOGS</span>
-                                        <span className="text-[8px] border border-gold/20 text-gold/80 px-2 py-1 rounded">EXECUTE_CAUSAL</span>
+                                        <span className="text-[8px] border border-white/10 px-2 py-1 rounded text-slate-400 font-mono">READ_STATE</span>
+                                        <span className="text-[8px] border border-white/10 px-2 py-1 rounded text-slate-400 font-mono">WRITE_LOGS</span>
+                                        <span className="text-[8px] border border-gold/20 text-gold/80 px-2 py-1 rounded font-mono">EXECUTE_CAUSAL</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1 min-h-0 flex flex-col gap-2">
+                            <div className="flex-1 min-h-0 flex flex-col gap-2 relative z-10">
                                 <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Visual Output Stream</span>
-                                <RuntimeVisualizer active={selectedModule.status === 'MOUNTED'} />
+                                <RuntimeVisualizer active={selectedModule.status === 'MOUNTED'} resonance={systemState.resonanceFactorRho} />
                             </div>
 
-                            <div className="flex gap-4 pt-4 border-t border-white/10">
+                            <div className="flex gap-4 pt-4 border-t border-white/10 relative z-10">
                                 <button 
                                     onClick={() => handleUnmount(selectedModule.id)}
                                     className="px-6 py-2 bg-red-900/20 border border-red-500/30 text-red-400 text-[10px] font-orbitron uppercase tracking-widest hover:bg-red-900/40 transition-all rounded-sm"

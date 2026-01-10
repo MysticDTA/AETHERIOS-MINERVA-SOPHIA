@@ -12,6 +12,7 @@ import { PerformanceMetricsChart } from './PerformanceMetricsChart';
 import { NodeStabilityMatrix } from './NodeStabilityMatrix';
 import { Tooltip } from './Tooltip';
 import { AudioEngine } from './audio/AudioEngine';
+import { CoherenceResonancePulse } from './CoherenceResonancePulse';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -48,8 +49,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </Tooltip>
                     <span className="text-[7px] font-mono text-slate-600 uppercase tracking-widest mt-1">Node_Registry: 0x88_ALPHA</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-mono text-emerald-400 font-bold tracking-tighter">PHASE_LOCK</span>
+                <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-end">
+                        <span className="text-[6px] font-mono text-emerald-400 font-bold uppercase">Audit_Locked</span>
+                        <span className="text-[8px] font-mono text-pearl">v1.4.0_PROD</span>
+                    </div>
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
                 </div>
             </div>
@@ -65,28 +69,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="bg-black/40 border border-white/5 p-5 rounded-xl flex flex-col gap-4 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-3 opacity-[0.03] font-orbitron text-4xl font-black">AUDIT</div>
                     <div className="flex flex-col gap-3 relative z-10">
-                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-gold transition-colors">Maintenance_Protocol</span>
+                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-gold transition-colors">Production_Oversight</span>
                         
                         <div className="flex gap-2">
                             <button 
                                 onClick={onTriggerScan}
+                                className="flex-1 py-2 bg-emerald-600/10 border border-emerald-500/40 text-emerald-400 font-orbitron text-[9px] uppercase font-bold hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
+                            >
+                                RUN_PROD_AUDIT
+                            </button>
+                            <button 
+                                onClick={onOptimize}
                                 className="flex-1 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
                             >
-                                SYSTEM_DIAGNOSTIC
+                                OPTIMIZE_NODE
                             </button>
-                            {onUpgrade && (
-                                <button 
-                                    onClick={onUpgrade}
-                                    className="flex-1 py-2 bg-violet-600/10 border border-violet-500/40 text-violet-300 font-orbitron text-[9px] uppercase font-bold hover:bg-violet-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
-                                >
-                                    SYSTEM_UPGRADE
-                                </button>
-                            )}
                         </div>
                     </div>
-                    <p className="text-[11px] font-minerva italic text-pearl/50 leading-relaxed relative z-10 group-hover:text-pearl/80 transition-colors">
-                        "Execute causal sweep or upgrade core logic to rectify fractures."
-                    </p>
+                    <div className="flex items-center gap-4 mt-2 p-3 bg-white/[0.02] border border-white/5 rounded">
+                        <CoherenceResonancePulse 
+                            rho={systemState.resonanceFactorRho} 
+                            coherence={systemState.biometricSync.coherence} 
+                            active={true}
+                        />
+                        <div className="flex-1">
+                             <p className="text-[10px] font-mono text-slate-400 uppercase leading-tight">Real-Time_Coherence_Pulse</p>
+                             <p className="text-[9px] font-minerva italic text-slate-500 mt-1">Monitoring the causal heartbeat of the production lattice.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,7 +107,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="w-full flex flex-col items-center justify-center min-h-[440px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
             
-            <Tooltip text="Causal Health Visualization: Represents the structural integrity of the local reality shard. A stable, coherent core indicates optimal logic flow (1.0), while fragmentation or red-shifting warns of decoherence and potential causal fractures.">
+            <Tooltip text="Causal Health Visualization: Represents the structural integrity of the local reality shard. A stable, coherent core indicates optimal logic flow (1.0).">
                 <div className="cursor-help">
                     <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
                 </div>
@@ -111,7 +121,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     formatAs="decimal" 
                     className="hover:border-gold/30"
                     secondaryValue={`Δ+${(systemState.resonanceFactorRho * 0.04).toFixed(6)}Ψ`}
-                    tooltip="The primary coefficient of systemic harmony. A value of 1.0 represents perfect causal alignment between the local node and the universal lattice."
+                    tooltip="The primary coefficient of systemic harmony."
                 />
             </div>
         </div>
