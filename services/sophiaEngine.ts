@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
 import { SystemState, FailurePrediction, CausalStrategy } from '../types';
 import { knowledgeBase } from './knowledgeBase';

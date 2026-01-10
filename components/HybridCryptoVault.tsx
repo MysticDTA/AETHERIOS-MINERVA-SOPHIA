@@ -1,7 +1,7 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { HybridSecurityState, CipherSuite, CryptoLayer } from '../types';
+import React, { useState, useEffect } from 'react';
+import { HybridSecurityState, CipherSuite } from '../types';
 import { Tooltip } from './Tooltip';
+import { sovereignVault, SealedPayload } from '../services/AetheriosVault';
 
 interface HybridCryptoVaultProps {
     data: HybridSecurityState;
@@ -16,6 +16,16 @@ const ALGORITHM_METADATA: Record<CipherSuite, { bits: number, safety: string, co
     'FALCON': { bits: 1024, safety: 'QUANTUM_IMMUNE', color: '#2dd4bf' },
     'SPHINCS+': { bits: 4096, safety: 'QUANTUM_IMMUNE', color: '#fb923c' }
 };
+
+const MathDefinition: React.FC = () => (
+    <div className="bg-black/60 border border-violet-500/20 p-4 rounded-sm font-mono text-[10px] text-violet-300/80 mb-6">
+        <p className="mb-2 text-slate-500 uppercase tracking-widest text-[8px] font-black">Mathematical_Post_Quantum_Baseline</p>
+        <div className="flex flex-col gap-1.5 italic">
+            <p>E<sub>hybrid</sub>(m) = Enc<sub>PQC</sub>(k<sub>psk</sub>) || Enc<sub>AES</sub>(k<sub>classical</sub>, m)</p>
+            <p className="text-slate-600 not-italic">Where k<sub>psk</sub> is pre-shared quantum key and k<sub>classical</sub> is session key.</p>
+        </div>
+    </div>
+);
 
 const EntropyCanvas: React.FC<{ score: number }> = ({ score }) => {
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -57,16 +67,19 @@ const EntropyCanvas: React.FC<{ score: number }> = ({ score }) => {
 
 export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHarden, onCycleAlgorithm }) => {
     const [isHardening, setIsHardening] = useState(false);
+    const [lastSeal, setLastSeal] = useState<SealedPayload | null>(null);
 
-    const handleHardenClick = () => {
+    const handleHardenClick = async () => {
         setIsHardening(true);
+        const payload = await sovereignVault.sealAbundance("MANIFEST_DATA_0x88");
+        setLastSeal(payload);
         onHarden();
         setTimeout(() => setIsHardening(false), 2000);
     };
 
     return (
         <div className="w-full bg-[#0a0a0c] border border-violet-500/30 p-6 rounded-xl shadow-2xl relative overflow-hidden group transition-all duration-700 hover:border-violet-500/60">
-            <div className="absolute top-0 right-0 p-3 opacity-[0.03] font-orbitron text-6xl font-black italic pointer-events-none select-none">PQC_VAULT</div>
+            <div className="absolute top-0 right-0 p-3 opacity-[0.03] font-orbitron text-6xl font-black italic pointer-events-none select-none uppercase">PQC_VAULT</div>
             
             <div className="flex justify-between items-center mb-6 z-10 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-4">
@@ -77,7 +90,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                     </div>
                     <div>
                         <h3 className="font-orbitron text-sm text-pearl uppercase tracking-[0.3em] font-black">Hybrid Crypto Vault</h3>
-                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-1">Post-Quantum Lattice Standard v2.0</p>
+                        <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-1">NIST Post-Quantum Standard v2.0</p>
                     </div>
                 </div>
                 <div className="text-right">
@@ -86,6 +99,8 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                     </span>
                 </div>
             </div>
+
+            <MathDefinition />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-4">
@@ -125,6 +140,12 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                         <span className="text-slate-500 uppercase tracking-tighter">Source: TRAPPED_ION_GENERATOR</span>
                         <span className="text-cyan-400 font-bold">PARITY_LOCKED</span>
                     </div>
+                    {lastSeal && (
+                        <div className="mt-2 p-2 bg-emerald-950/20 border border-emerald-500/20 rounded animate-fade-in">
+                            <span className="text-[7px] font-mono text-emerald-400 block uppercase mb-1">Last_Manifest_Seal: SECURE</span>
+                            <code className="text-[8px] text-emerald-300 block truncate">{lastSeal.pq_envelope}</code>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -134,12 +155,12 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                     <p className="font-orbitron text-xl text-pearl font-black">{(data.quantumResistanceScore * 100).toFixed(2)}%</p>
                 </div>
                 <div className="bg-white/5 border border-white/5 p-4 rounded text-center group/metric hover:border-gold/30 transition-all">
-                    <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1 group-hover/metric:text-gold">Threat Mitigation</p>
-                    <p className="font-orbitron text-xl text-gold font-black">{(data.threatMitigationIndex * 100).toFixed(3)}%</p>
+                    <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1 group-hover/metric:text-gold">CRQC Mitigation</p>
+                    <p className="font-orbitron text-xl text-gold font-black">ACTIVE</p>
                 </div>
                 <div className="bg-white/5 border border-white/5 p-4 rounded text-center group/metric hover:border-emerald-500/30 transition-all">
                     <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1 group-hover/metric:text-emerald-400">Cipher Agility</p>
-                    <p className="font-orbitron text-xl text-emerald-400 font-black">ACTIVE</p>
+                    <p className="font-orbitron text-xl text-emerald-400 font-black">v2.1</p>
                 </div>
             </div>
 
@@ -159,7 +180,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
             </div>
 
             <div className="mt-6 p-4 bg-black/40 border border-white/5 rounded italic text-[11px] text-slate-500 leading-relaxed font-minerva">
-                "The 2026 Sovereign standard requires hybrid-lattice signatures. Your data shards are wrapped in a dual-envelope, ensuring absolute sterility against future CRQC interference."
+                "The 2026 Sovereign standard requires hybrid-lattice signatures. Your data shards are wrapped in a dual-envelope, ensuring absolute sterility against future CRQC interference. Captured data remains undecipherable even by a million-qubit system in 2030."
             </div>
         </div>
     );

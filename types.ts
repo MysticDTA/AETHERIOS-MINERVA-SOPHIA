@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // Global shared types for SOPHIA DV99 / Alliance System
@@ -463,5 +462,5 @@ export interface SystemState {
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
   dynastyLedger?: DynastyEpoch[];
-  hybridSecurity: HybridSecurityState; // NEW
+  hybridSecurity: HybridSecurityState;
 }

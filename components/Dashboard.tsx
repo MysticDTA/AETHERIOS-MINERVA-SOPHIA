@@ -60,6 +60,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <NodeStabilityMatrix resonance={systemState.resonanceFactorRho} decoherence={systemState.quantumHealing.decoherence} />
 
             <div className="space-y-4">
+                <div className="bg-black/40 border border-violet-500/20 p-4 rounded-xl relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest font-black">Quantum_Posture</span>
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_5px_#10b981] animate-pulse" />
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <p className="font-orbitron text-xl text-pearl font-black">READY</p>
+                        <span className="text-[9px] font-mono text-slate-500">Hybrid_Cipher</span>
+                    </div>
+                    <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-violet-500 w-[98%]" />
+                    </div>
+                </div>
+
                 <SystemIntegrityCore 
                     data={systemState.quantumHealing} 
                     resonance={systemState.resonanceFactorRho} 

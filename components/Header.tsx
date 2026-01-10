@@ -19,6 +19,7 @@ interface HeaderProps {
 }
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
+    // FIX: use correctly named prop 'tier' instead of 'userTier'
     const activeTier = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
     return (
         <button 
@@ -94,7 +95,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                                 title={hasAccess ? node.description : `Restricted: Requires ${node.requiredTier} Clearance`}
                                 className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === node.id
-                                    ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)] scale-105'
+                                    ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)] scale-105'
                                     : !hasAccess 
                                         ? 'bg-black/40 text-slate-600 border-white/5 hover:border-red-500/30 hover:text-red-400'
                                         : commsAlert

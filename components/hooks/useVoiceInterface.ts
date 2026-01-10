@@ -220,6 +220,7 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                     setIsSessionActive(false);
                 },
             },
+            // FIX: Changed 'notes' to 'config' as per @google/genai SDK specs
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } },

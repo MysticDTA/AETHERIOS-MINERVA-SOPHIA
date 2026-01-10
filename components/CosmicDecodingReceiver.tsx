@@ -153,7 +153,6 @@ export const CosmicDecodingReceiver: React.FC<CosmicDecodingReceiverProps> = ({ 
                                 <span className="text-pearl font-bold">+0.0024</span>
                              </div>
                              <div className="flex justify-between text-[10px] font-mono">
-                                <span className="text-slate-500">Packet Loss:</span>
                                 <span className="text-green-500 font-bold">0.00%</span>
                              </div>
                         </div>
