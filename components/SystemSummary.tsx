@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
@@ -24,20 +25,16 @@ const SovereignSeal: React.FC = () => (
     </div>
 );
 
-const HybridSecurityMath: React.FC = () => (
-    <div className="bg-black/80 border border-violet-500/30 p-8 rounded-sm font-mono text-[11px] text-violet-300/90 shadow-2xl relative group overflow-hidden">
-        <div className="absolute inset-0 bg-violet-500/[0.02] pointer-events-none" />
-        <p className="mb-4 text-violet-400 uppercase tracking-widest text-[9px] font-black border-b border-violet-500/20 pb-2 flex justify-between">
-            <span>Cryptographic_Verification_Baseline</span>
-            <span className="text-emerald-500">STA_LOCKED</span>
-        </p>
-        <div className="flex flex-col gap-3 italic">
-            <p className="text-lg text-pearl font-black leading-none select-all">E<sub>hybrid</sub>(m) = Enc<sub>PQC</sub>(k<sub>psk</sub>) || Enc<sub>AES</sub>(k<sub>classical</sub>, m)</p>
-            <p className="text-slate-500 not-italic text-[10px] leading-relaxed max-w-xl">
-                The manifest data <span className="text-violet-400">m</span> is encapsulated within a dual-envelope protocol. The post-quantum (PQC) layer isolates the pre-shared key, while classical AES-256-GCM ensures high-throughput integrity.
-            </p>
+const SubsystemStatus: React.FC<{ label: string; active: boolean; detail: string }> = ({ label, active, detail }) => (
+    <div className="bg-black/60 border border-white/5 p-4 rounded-sm flex flex-col gap-2 group hover:border-violet-500/30 transition-all">
+        <div className="flex justify-between items-center">
+            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold group-hover:text-violet-300 transition-colors">{label}</span>
+            <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-green-500 shadow-[0_0_5px_#10b981]' : 'bg-slate-700'}`} />
         </div>
-        <div className="absolute -bottom-4 -right-4 opacity-5 font-orbitron text-7xl font-black italic">PQH</div>
+        <div className="flex justify-between items-end">
+            <span className="text-[10px] font-mono text-pearl">{active ? 'ONLINE' : 'OFFLINE'}</span>
+            <span className="text-[8px] text-slate-600 font-mono tracking-tight">{detail}</span>
+        </div>
     </div>
 );
 
@@ -129,19 +126,35 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                 </div>
             </div>
 
-            <div className="flex-1 z-10 overflow-y-auto pr-8 scrollbar-thin flex flex-col gap-16">
+            <div className="flex-1 z-10 overflow-y-auto pr-8 scrollbar-thin flex flex-col gap-10">
+                
+                {/* Metrics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {auditData.map((metric, i) => (
                         <AuditMetric key={i} {...metric} />
                     ))}
                 </div>
 
-                <div className="space-y-8">
-                    <h4 className="font-orbitron text-[14px] text-pearl uppercase tracking-[0.4em] font-black flex items-center gap-4">
-                        <div className="w-1 h-4 bg-violet-500" />
-                        Hybrid Security Definition
-                    </h4>
-                    <HybridSecurityMath />
+                {/* Subsystem Audit */}
+                <div className="space-y-4">
+                    <h4 className="font-orbitron text-[12px] text-pearl uppercase tracking-[0.4em] font-black border-l-2 border-violet-500 pl-4">Subsystem Lattice Status</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <SubsystemStatus 
+                            label="Agentic Orchestrator" 
+                            active={!!systemState.agenticOrchestrator} 
+                            detail={systemState.agenticOrchestrator ? "Negotiation Matrix Active" : "Module Not Found"} 
+                        />
+                        <SubsystemStatus 
+                            label="Estate Commander" 
+                            active={Array.isArray(systemState.estateCommander)} 
+                            detail={`${systemState.estateCommander.length} Twin Sites Linked`} 
+                        />
+                        <SubsystemStatus 
+                            label="Vibrational Shield" 
+                            active={!!systemState.vibrationalShield} 
+                            detail={`Frequency Filter: ${systemState.vibrationalShield?.globalFrequency || 0} Hz`} 
+                        />
+                    </div>
                 </div>
 
                 <div className="bg-violet-950/10 border border-violet-500/20 p-12 rounded-sm flex flex-col gap-10 relative group overflow-hidden shadow-2xl border-l-8 border-l-violet-500/40">

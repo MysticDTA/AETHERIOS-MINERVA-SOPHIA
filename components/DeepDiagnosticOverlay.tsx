@@ -17,6 +17,9 @@ interface DeepDiagnosticOverlayProps {
 const QUANTUM_AUDIT_SEQUENCE: DiagnosticStep[] = [
   { id: 'perf_telemetry', label: 'UPLINK_TELEMETRY :: LATENCY_CHECK', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'quantum_coherence', label: 'QUANTUM_COHERENCE :: SUPERPOSITION', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'agentic_logic', label: 'AGENTIC_ORCHESTRATOR :: NEGOTIATION_MATRIX', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'digital_twin', label: 'ESTATE_COMMANDER :: LIDAR_SYNC', status: 'PENDING', progress: 0, sublogs: [] },
+  { id: 'vibra_shield', label: 'VIBRATIONAL_SHIELD :: 432Hz_FILTER', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'file_integrity', label: 'FILE_SYSTEM_INTEGRITY :: MODULE_SHA256', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'crypto_handshake', label: 'HYBRID_CRYPTO_VAULT :: E_HYBRID_AUDIT', status: 'PENDING', progress: 0, sublogs: [] },
   { id: 'resonance_sync', label: 'RESONANCE_RHO :: SPECTRAL_PARITY', status: 'PENDING', progress: 0, sublogs: [] },
@@ -169,20 +172,20 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                 setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
                 
                 // Simulate progress
-                for (let p = 0; p <= 100; p += 5) {
-                    await new Promise(r => setTimeout(r, 60 + Math.random() * 100));
+                for (let p = 0; p <= 100; p += 10) {
+                    await new Promise(r => setTimeout(r, 60 + Math.random() * 80));
                     setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress: p } : s));
-                    setGlobalProgress(prev => Math.min(99, prev + (100 / QUANTUM_AUDIT_SEQUENCE.length / 20)));
+                    setGlobalProgress(prev => Math.min(99, prev + (100 / QUANTUM_AUDIT_SEQUENCE.length / 10)));
                     
                     // Add sublogs
-                    if (p % 20 === 0) {
+                    if (p % 40 === 0) {
                         const hex = `0x${Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase()}`;
                         setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, sublogs: [`[READ] ${hex} :: PARITY_CHECK_PASS`, ...s.sublogs].slice(0, 3) } : s));
                     }
                 }
 
                 // Chance to detect anomaly based on system state
-                if (systemState.resonanceFactorRho < 0.8 && Math.random() > 0.7) {
+                if (systemState.resonanceFactorRho < 0.8 && Math.random() > 0.8) {
                     const node = `FRAC_${Math.floor(Math.random() * 99)}`;
                     setAnomalies(prev => [...prev, node]);
                     audioEngine?.playEffect('renewal');
@@ -194,7 +197,7 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
 
             // Phase shift to Parity Check
             setStatus('PARITY_CHECK');
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 1000));
 
             // Generate Sophia Audit Report
             if (sophiaEngine) {

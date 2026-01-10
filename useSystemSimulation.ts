@@ -421,7 +421,7 @@ export const useSystemSimulation = (
     setSystemState, 
     addLogEntry, 
     initialSystemState,
-    setGrounded,
+    setGrounded, 
     setDiagnosticMode
   };
 };

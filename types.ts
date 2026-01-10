@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ThreeElements } from '@react-three/fiber';
 
@@ -15,9 +14,9 @@ declare global {
     webkitSpeechRecognition: any;
   }
   
-  // Property 'div' does not exist on type 'JSX.IntrinsicElements' fix:
-  // We remove the manual JSX namespace declaration which was overwriting React's defaults.
-  // R3F elements are handled via @react-three/fiber types if needed.
+  namespace JSX {
+    interface IntrinsicElements extends ThreeElements {}
+  }
 }
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
