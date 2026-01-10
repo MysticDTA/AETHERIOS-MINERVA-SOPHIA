@@ -1,3 +1,4 @@
+
 import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -15,9 +16,12 @@ interface State {
  * Ensures system composure even during component-level decoherence.
  */
 export class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+    };
+  }
 
   public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
@@ -29,6 +33,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
     this.props.onError?.(error, errorInfo);
     console.error("Uncaught error captured by Boundary:", error, errorInfo);
   }
+
+  private handleReset = () => {
+    this.setState({ hasError: false });
+  };
 
   public render() {
     if (this.state.hasError) {
@@ -44,7 +52,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 CAUSAL_ERROR: COMPONENT_RENDER_FAILURE
             </p>
              <button
-                onClick={() => this.setState({ hasError: false })}
+                onClick={this.handleReset}
                 className="mt-8 px-8 py-3 rounded-sm bg-rose-600/20 border border-rose-500/50 text-rose-300 font-orbitron font-bold text-[10px] uppercase tracking-[0.4em] hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95"
             >
                 Attempt Core Restoration

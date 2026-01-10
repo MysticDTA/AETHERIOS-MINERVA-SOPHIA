@@ -42,10 +42,23 @@ export const initialSystemState: SystemState = {
   },
   auth: {
     isAuthenticated: false,
-    // Fix: satisfy isBioVerified requirement in AuthState
     isBioVerified: false,
     operatorId: 'OP_88_ALPHA',
     sessionToken: 'jwt_demo_token_sophia_v2'
+  },
+  // Initialize missing Agentic Orchestrator state
+  agenticOrchestrator: {
+    activeNegotiations: [],
+    isAutonomicActive: false
+  },
+  // Initialize missing Estate Commander state
+  estateCommander: [],
+  // Initialize missing Vibrational Shield state
+  vibrationalShield: {
+    globalFrequency: 432,
+    blockedShadowAttempts: 0,
+    lastIncineratedSignature: 'NONE',
+    vibrationStatus: 'PURE'
   },
   quantumHealing: {
     health: 0.92,
@@ -124,7 +137,6 @@ export const initialSystemState: SystemState = {
     status: 'STABLE',
     seismicActivity: 0.01,
     telluricCurrent: 0.02,
-    // Fix: satisfy feedbackLoopStatus requirement in earthGrounding
     feedbackLoopStatus: 'IDLE'
   },
   tesseract: {
@@ -189,7 +201,6 @@ export const initialSystemState: SystemState = {
         { id: 'c4', name: 'Lemurian Labs', rho: 0.92, coherence: 0.94, stability: 0.94, activeNodes: 16, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
     ]
   },
-  // Fix: satisfy missing mandatory SystemState members
   legalEstate: {
     abnTrustId: 'ABN_TRUST_88_MCBRIDE',
     wrapperStatus: 'SEALED',
