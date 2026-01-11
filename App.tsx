@@ -102,6 +102,7 @@ export const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [authView, setAuthView] = useState<'LOGIN' | 'RESET' | 'BIO'>('LOGIN');
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [auditReport, setAuditReport] = useState<{ report: string; sources: any[] } | null>(null);
   
   const [sophiaEngine, setSophiaEngine] = useState<SophiaEngineCore | null>(null);
   const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -208,6 +209,11 @@ export const App: React.FC = () => {
       addLogEntry(LogType.INFO, 'Biometric Handshake Complete. User Tier: ACOLYTE.');
   };
 
+  const handleReportGenerated = (report: { report: string; sources: any[] }) => {
+      setAuditReport(report);
+      addLogEntry(LogType.INFO, "Deep Diagnostic Audit Report Generated.");
+  };
+
   const handleDiagnosticComplete = () => {
       setShowDiagnostic(false);
       setCurrentPage(6); 
@@ -248,7 +254,7 @@ export const App: React.FC = () => {
           case 3: return <Display3 systemState={systemState} onRelayCalibration={interactive.handleRelayCalibration} onStarCalibrate={interactive.handleStarCalibration} calibrationTargetId={interactive.calibrationTargetId} calibrationEffect={interactive.calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine} />;
           case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
-          case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={auditReport} />;
           case 7: return <Display7 systemState={systemState} transmission={cosmosCommsService.currentState} memories={knowledgeBase.getMemories()} onMemoryChange={() => setSystemState(prev => ({...prev}))} />;
           case 8: return <Display8 systemState={systemState} onPurgeAethericFlow={interactive.handlePurgeAethericFlow} isPurgingAether={interactive.isPurgingAether} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 10: return <Display10 systemState={systemState} />;
@@ -347,7 +353,15 @@ export const App: React.FC = () => {
                   />
               </Modal>
               {showDiagnostic && (
-                  <DeepDiagnosticOverlay onClose={() => setShowDiagnostic(false)} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />
+                  <DeepDiagnosticOverlay 
+                    onClose={() => setShowDiagnostic(false)} 
+                    onComplete={handleDiagnosticComplete} 
+                    systemState={systemState} 
+                    setSystemState={setSystemState}
+                    sophiaEngine={sophiaEngine} 
+                    audioEngine={audioEngineRef.current}
+                    onReportGenerated={handleReportGenerated}
+                  />
               )}
             </Layout>
           </ApiKeyGuard>

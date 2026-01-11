@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { DiagnosticStep, DiagnosticStatus, SystemState, LogType } from '../types';
+import { DiagnosticStep, DiagnosticStatus, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { AudioEngine } from './audio/AudioEngine';
 
@@ -173,10 +173,10 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                 setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'ACTIVE' } : s));
                 
                 // Simulate progress
-                for (let p = 0; p <= 100; p += 10) {
+                for (let p = 0; p <= 100; p += 20) {
                     await new Promise(r => setTimeout(r, 60 + Math.random() * 80));
                     setSteps(prev => prev.map((s, idx) => idx === i ? { ...s, progress: p } : s));
-                    setGlobalProgress(prev => Math.min(99, prev + (100 / QUANTUM_AUDIT_SEQUENCE.length / 10)));
+                    setGlobalProgress(prev => Math.min(99, prev + (100 / QUANTUM_AUDIT_SEQUENCE.length / 5)));
                     
                     // Add sublogs
                     if (p % 40 === 0) {
@@ -213,8 +213,10 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
 
             // Generate Sophia Audit Report
             if (sophiaEngine) {
+                setStatus('GENERATING_REPORT');
                 const report = await sophiaEngine.performSystemAudit(systemState, anomalies);
                 onReportGenerated?.(report);
+                audioEngine?.playEffect('synthesis');
             }
 
             setGlobalProgress(100);
@@ -286,6 +288,15 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                     <div className="flex-1 bg-black border border-white/5 rounded-xl relative overflow-hidden shadow-inner flex flex-col items-center justify-center group">
                         <div className="absolute inset-0 bg-gradient-to-t from-gold/5 via-transparent to-transparent pointer-events-none" />
                         <VolumetricScanner active={!isCompleted} progress={globalProgress} />
+                        
+                        {/* LOADING INDICATOR FOR REPORT GENERATION */}
+                        {status === 'GENERATING_REPORT' && (
+                            <div className="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-fade-in">
+                                <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4" />
+                                <span className="font-orbitron text-[12px] text-violet-300 uppercase tracking-[0.4em] animate-pulse">Synthesizing_Security_Audit</span>
+                                <span className="font-mono text-[9px] text-slate-500 mt-2">Gemini_3_Pro :: Reasoning_Engine_Active</span>
+                            </div>
+                        )}
                         
                         {anomalies.length > 0 && (
                             <div className="absolute top-10 right-10 flex flex-col gap-2 items-end z-20">

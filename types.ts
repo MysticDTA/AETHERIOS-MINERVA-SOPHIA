@@ -371,7 +371,7 @@ export interface DiagnosticStep {
     sublogs: string[];
 }
 
-export type DiagnosticStatus = 'SCANNING' | 'PARITY_CHECK' | 'COMPLETED';
+export type DiagnosticStatus = 'SCANNING' | 'PARITY_CHECK' | 'GENERATING_REPORT' | 'COMPLETED';
 
 export interface DynastyEpoch {
     id: number;
