@@ -22,7 +22,12 @@ export class ApiService {
    * Initializes a Stripe Checkout session.
    * Supports metadata for cross-project integration (Menerva vs Aetherios).
    */
-  static async createCheckoutSession(priceId: string, token: string | null, origin: 'MENERVA' | 'AETHERIOS' = 'AETHERIOS'): Promise<{ url: string } | null> {
+  static async createCheckoutSession(
+      priceId: string, 
+      operatorId: string,
+      token: string | null, 
+      origin: 'MENERVA' | 'AETHERIOS' = 'AETHERIOS'
+  ): Promise<{ url: string } | null> {
     const baseUrl = this.getBaseUrl();
     try {
       const response = await fetch(`${baseUrl}/api/payments/create-session`, {
@@ -30,6 +35,7 @@ export class ApiService {
         headers: this.getHeaders(token),
         body: JSON.stringify({ 
             priceId,
+            operatorId,
             metadata: {
                 project_origin: origin,
                 causal_lock: 'true',

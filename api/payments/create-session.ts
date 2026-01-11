@@ -21,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { priceId } = req.body;
+    const { priceId, operatorId } = req.body;
     const stripe = getStripe();
     
     // Resolve frontend URL dynamically from headers
@@ -32,7 +32,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const isTokenBundle = priceId.includes('tokens');
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Remove hardcoded payment_method_types to allow Dashboard-configured methods (Apple Pay, Google Pay, etc.)
+      // payment_method_types: ['card'],
       line_items: [{
         price: priceId,
         quantity: 1,
@@ -47,9 +48,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       tax_id_collection: { enabled: true },
       phone_number_collection: { enabled: true },
       
+      // Enable Automatic Tax for global compliance
+      automatic_tax: { enabled: true },
+      
       allow_promotion_codes: true,
       metadata: {
-        operator_id: req.body.operatorId || 'anonymous_node',
+        operator_id: operatorId || 'anonymous_node',
         portal_type: 'institutional_gold_v1.3.1'
       }
     });

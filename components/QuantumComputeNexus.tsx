@@ -7,6 +7,8 @@ import { QuantumErrorCorrection } from './QuantumErrorCorrection';
 import { QuantumCryptography } from './QuantumCryptography';
 import { QuantumAnomalyDetector } from './QuantumAnomalyDetector';
 import { QuantumTeleportation } from './QuantumTeleportation';
+import { QuantumSentinelPulse } from './QuantumSentinelPulse';
+import { QuantumEntanglementVisualizer } from './QuantumEntanglementVisualizer';
 
 interface QuantumComputeNexusProps {
     systemState: SystemState;
@@ -14,7 +16,7 @@ interface QuantumComputeNexusProps {
     voiceStream?: string;
 }
 
-type QuantumTab = 'NEURAL' | 'ERROR_CORRECTION' | 'CRYPTO' | 'ANOMALY' | 'TELEPORT';
+type QuantumTab = 'NEURAL' | 'ERROR_CORRECTION' | 'CRYPTO' | 'ANOMALY' | 'TELEPORT' | 'ENTANGLEMENT';
 
 const TABS: { id: QuantumTab; label: string }[] = [
     { id: 'NEURAL', label: 'Neural Network (QNN)' },
@@ -22,10 +24,14 @@ const TABS: { id: QuantumTab; label: string }[] = [
     { id: 'CRYPTO', label: 'Cryptography (QKD)' },
     { id: 'ANOMALY', label: 'Grover Anomaly Detect' },
     { id: 'TELEPORT', label: 'Entanglement Teleport' },
+    { id: 'ENTANGLEMENT', label: 'GHZ State Visualizer' },
 ];
 
 export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ systemState, sophiaEngine, voiceStream }) => {
     const [activeTab, setActiveTab] = useState<QuantumTab>('NEURAL');
+
+    // Dynamic pulse color based on system entropy/decoherence
+    const pulseColor = systemState.quantumHealing.decoherence > 0.15 ? '#f43f5e' : '#a78bfa';
 
     return (
         <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20">
@@ -48,7 +54,7 @@ export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ system
                     )}
                 </div>
 
-                <div className="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/5 self-start">
+                <div className="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/5 self-start flex-wrap">
                     {TABS.map(tab => (
                         <button
                             key={tab.id}
@@ -66,22 +72,38 @@ export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ system
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 min-h-0 relative">
-                {activeTab === 'NEURAL' && (
-                    <QuantumNeuralNetwork systemState={systemState} sophiaEngine={sophiaEngine} />
-                )}
-                {activeTab === 'ERROR_CORRECTION' && (
-                    <QuantumErrorCorrection />
-                )}
-                {activeTab === 'CRYPTO' && (
-                    <QuantumCryptography />
-                )}
-                {activeTab === 'ANOMALY' && (
-                    <QuantumAnomalyDetector systemState={systemState} />
-                )}
-                {activeTab === 'TELEPORT' && (
-                    <QuantumTeleportation />
-                )}
+            <div className="flex-1 min-h-0 relative bg-black/20 rounded-xl border border-white/5 overflow-hidden shadow-inner">
+                {/* Integrated Sentinel Pulse Layer - Visualizing Active Threat Pulses */}
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    <QuantumSentinelPulse 
+                        active={true} 
+                        resonance={systemState.resonanceFactorRho}
+                        color={pulseColor}
+                        className="opacity-25"
+                    />
+                </div>
+
+                {/* Module Container */}
+                <div className="relative z-10 w-full h-full p-4">
+                    {activeTab === 'NEURAL' && (
+                        <QuantumNeuralNetwork systemState={systemState} sophiaEngine={sophiaEngine} />
+                    )}
+                    {activeTab === 'ERROR_CORRECTION' && (
+                        <QuantumErrorCorrection />
+                    )}
+                    {activeTab === 'CRYPTO' && (
+                        <QuantumCryptography />
+                    )}
+                    {activeTab === 'ANOMALY' && (
+                        <QuantumAnomalyDetector systemState={systemState} />
+                    )}
+                    {activeTab === 'TELEPORT' && (
+                        <QuantumTeleportation />
+                    )}
+                    {activeTab === 'ENTANGLEMENT' && (
+                        <QuantumEntanglementVisualizer systemState={systemState} />
+                    )}
+                </div>
             </div>
         </div>
     );

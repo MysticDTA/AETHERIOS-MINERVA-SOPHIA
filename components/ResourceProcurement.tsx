@@ -143,7 +143,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
     }, []);
 
     const { sovereignTier } = systemState.userResources;
-    const { sessionToken } = systemState.auth;
+    const { sessionToken, operatorId } = systemState.auth;
 
     const handleInitializePayment = async (id: string) => {
         setProcuringId(id);
@@ -186,7 +186,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
         addLogEntry(LogType.SYSTEM, `STRIPE_SOVEREIGN: Initiating Multi-Sig Handshake [SHA-512]...`);
         
         try {
-            const result = await ApiService.createCheckoutSession(priceId, sessionToken);
+            const result = await ApiService.createCheckoutSession(priceId, operatorId, sessionToken);
             if (result?.url) {
                 addLogEntry(LogType.SYSTEM, `ACQUISITION_SUCCESS: Capital Liquidation confirmed. Redirecting to Secure Portal...`);
                 setTimeout(() => { window.location.href = result.url; }, 1000);
@@ -390,7 +390,6 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
     );
 };
 
-// Optimized Export
 export const ResourceProcurement = React.memo(ResourceProcurementComponent, (prev, next) => {
     // Return true if re-render is NOT needed
     if (prev.addLogEntry !== next.addLogEntry) return false;

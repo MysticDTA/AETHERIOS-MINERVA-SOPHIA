@@ -62,7 +62,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             
             <NodeStabilityMatrix resonance={systemState.resonanceFactorRho} decoherence={systemState.quantumHealing.decoherence} />
 
-            {isSovereign && (
+            {isSovereign ? (
                 <div className="bg-black/40 border border-gold/30 p-4 rounded-sm relative overflow-hidden group">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-[8px] font-mono text-gold uppercase tracking-widest font-black">Capital_Reserve</span>
@@ -75,6 +75,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <span>Manifest Pulse</span>
                         <span className="text-blue-400">ACTIVE</span>
                     </div>
+                </div>
+            ) : (
+                <div 
+                    className="bg-black/40 border border-white/10 p-4 rounded-sm relative overflow-hidden group hover:border-gold/30 transition-all cursor-pointer shadow-lg" 
+                    onClick={() => { audioEngine?.playUIClick(); onUpgrade?.(); }}
+                >
+                    <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex justify-between items-center mb-2 relative z-10">
+                        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-black">Sovereign_Access</span>
+                        <div className="w-1.5 h-1.5 bg-slate-700 rounded-full group-hover:bg-gold transition-colors" />
+                    </div>
+                    <p className="font-orbitron text-sm text-slate-400 group-hover:text-pearl transition-colors relative z-10">
+                        Restricted. <span className="text-gold underline decoration-gold/30 underline-offset-4 group-hover:decoration-gold">Upgrade License</span>
+                    </p>
                 </div>
             )}
 

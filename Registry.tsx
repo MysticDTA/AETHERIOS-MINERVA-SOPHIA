@@ -17,7 +17,8 @@ export const SYSTEM_NODES = [
     { id: 4, label: 'CONSOLE', requiredTier: 'ACOLYTE' as UserTier, description: 'Command Console', isBridge: true },
     { id: 10, label: 'BREATH', requiredTier: 'ACOLYTE' as UserTier, description: 'Respiratory Sync' },
     { id: 7, label: 'DECODER', requiredTier: 'ARCHITECT' as UserTier, description: 'Signal Intercept', isAudit: true },
-    { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE' as UserTier, description: 'Asset Vault', isLogs: true }
+    { id: 15, label: 'VAULT', requiredTier: 'ACOLYTE' as UserTier, description: 'Asset Vault', isLogs: true },
+    { id: 13, label: 'APOLLO', requiredTier: 'ACOLYTE' as UserTier, description: 'Apollo Query Interface' }
 ];
 
 export const TIER_REGISTRY: Record<UserTier, { label: string, description: string, color: string, shadow: string }> = {
