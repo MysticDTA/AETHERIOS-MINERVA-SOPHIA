@@ -66,6 +66,14 @@ export const initialSystemState: SystemState = {
       fuelLevel: 0.85,
       securityLink: "ENCRYPTED"
   },
+  chronos: {
+      activeTimeline: 'GOLDEN',
+      projectedRho: 0.98,
+      timelineStability: 0.99,
+      anchorStatus: 'UNLOCKED',
+      butterflyVariance: 0.02,
+      forecastHorizon: 30
+  },
   vibrationalShield: {
     globalFrequency: 432,
     blockedShadowAttempts: 0,
@@ -395,6 +403,13 @@ export const useSystemSimulation = (
             threatMitigationIndex: Math.min(1.0, 1.0 - newDecoherence * 0.1)
         };
 
+        // CHRONOS ENGINE SIMULATION
+        const newChronos = {
+            ...prev.chronos,
+            projectedRho: Math.min(1.0, Math.max(0.1, prev.chronos.projectedRho + (resonanceModifier > 0.9 ? 0.001 : -0.001))),
+            timelineStability: prev.chronos.anchorStatus === 'LOCKED' ? 1.0 : Math.max(0.5, resonanceModifier)
+        };
+
         return {
           ...prev,
           isGrounded,
@@ -421,7 +436,8 @@ export const useSystemSimulation = (
               quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
               status: coherenceStatus
           },
-          hybridSecurity: newHybridSecurity
+          hybridSecurity: newHybridSecurity,
+          chronos: newChronos
         };
       });
     }, 1000);

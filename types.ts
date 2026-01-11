@@ -422,6 +422,17 @@ export interface VehicleTelemetry {
     securityLink: 'ENCRYPTED' | 'SEARCHING';
 }
 
+export type TimelineType = 'GOLDEN' | 'INERTIAL' | 'SHADOW';
+
+export interface ChronosState {
+    activeTimeline: TimelineType;
+    projectedRho: number;
+    timelineStability: number;
+    anchorStatus: 'UNLOCKED' | 'ANCHORING' | 'LOCKED';
+    butterflyVariance: number; // 0-1, how much a small change affects output
+    forecastHorizon: number; // Days into future
+}
+
 export interface SystemState {
   userResources: {
     cradleTokens: number;
@@ -445,8 +456,9 @@ export interface SystemState {
     isAutonomicActive: boolean;
   };
   estateCommander: EstateTelemetry[];
-  sanctuary: SanctuaryState; // New: Sanctuary OS
-  vehicle: VehicleTelemetry; // New: Cullinan
+  sanctuary: SanctuaryState; 
+  vehicle: VehicleTelemetry; 
+  chronos: ChronosState; // New Chronos Engine State
   vibrationalShield: VibrationalShieldState;
   resonanceFactorRho: number;
   temporalCoherenceDrift: number;

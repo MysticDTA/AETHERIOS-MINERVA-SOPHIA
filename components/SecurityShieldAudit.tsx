@@ -307,7 +307,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
             </div>
 
             {viewMode === 'SENTINEL' ? (
-                <QuantumSecuritySentinel audioEngine={audioEngine} />
+                <QuantumSecuritySentinel audioEngine={audioEngine} systemState={systemState} />
             ) : viewMode === 'CRYPTO' ? (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
                     <div className="lg:col-span-8">

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { AudioEngine } from './audio/AudioEngine';
+import { SystemState } from '../types';
 
 interface Threat {
     id: number;
@@ -8,9 +9,10 @@ interface Threat {
     y: number;
     vx: number;
     vy: number;
-    type: 'RANSOMWARE' | 'POLYMORPHIC' | 'QUANTUM_INJECT' | 'ZERO_DAY' | 'SHADOW_NODE';
+    type: 'RANSOMWARE' | 'POLYMORPHIC' | 'QUANTUM_INJECT' | 'ZERO_DAY' | 'SHADOW_NODE' | 'INTENT_SIGNATURE';
     integrity: number;
     signature: string;
+    isGhost: boolean; // For pre-crime intent
 }
 
 interface Hunter {
@@ -24,6 +26,7 @@ interface Hunter {
 
 interface QuantumSecuritySentinelProps {
     audioEngine?: AudioEngine | null;
+    systemState?: SystemState;
 }
 
 const THREAT_TYPES = [
@@ -33,20 +36,22 @@ const THREAT_TYPES = [
     { type: 'SHADOW_NODE', label: 'Elayan_Interference', risk: 'ABSOLUTE' }
 ];
 
-export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = ({ audioEngine }) => {
+export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = ({ audioEngine, systemState }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [threats, setThreats] = useState<Threat[]>([]);
     const [neutralizedCount, setNeutralizedCount] = useState(0);
     const [isScanning, setIsScanning] = useState(true);
     const [hunterMode, setHunterMode] = useState(false);
+    const [preCrimeMode, setPreCrimeMode] = useState(false);
     const [firewallIntegrity, setFirewallIntegrity] = useState(100);
-    const [purgeBeam, setPurgeBeam] = useState<{ x: number, y: number, life: number }[]>([]);
     
     // Refs for animation loop
     const threatsRef = useRef<Threat[]>([]);
     const huntersRef = useRef<Hunter[]>([]);
     const beamsRef = useRef<{ x: number, y: number, life: number }[]>([]);
+
+    const resonance = systemState?.resonanceFactorRho || 0.9;
 
     // Initialize & Loop
     useEffect(() => {
@@ -75,7 +80,31 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
         window.addEventListener('resize', resize);
 
         const spawnThreat = () => {
-            if (threatsRef.current.length < (hunterMode ? 12 : 8) && Math.random() > 0.98) {
+            // Higher resonance slows down threat spawn
+            const spawnThreshold = 0.98 + (resonance * 0.015);
+            
+            // Check pre-crime intent spawning
+            if (preCrimeMode && Math.random() > 0.96 && threatsRef.current.length < 15) {
+                 const angle = Math.random() * Math.PI * 2;
+                 const dist = Math.max(width, height) / 2 + 100; // Further out
+                 
+                 const newThreat: Threat = {
+                    id: Date.now() + Math.random(),
+                    x: cx + Math.cos(angle) * dist,
+                    y: cy + Math.sin(angle) * dist,
+                    vx: -Math.cos(angle) * 0.3,
+                    vy: -Math.sin(angle) * 0.3,
+                    type: 'INTENT_SIGNATURE',
+                    integrity: 50, // Weaker
+                    signature: `INTENT_0x${Math.floor(Math.random()*0xFFFF).toString(16)}`,
+                    isGhost: true
+                };
+                threatsRef.current.push(newThreat);
+                setThreats([...threatsRef.current]);
+                return;
+            }
+
+            if (threatsRef.current.length < (hunterMode ? 12 : 8) && Math.random() > spawnThreshold) {
                 const angle = Math.random() * Math.PI * 2;
                 const dist = Math.max(width, height) / 2 + 50;
                 const typeData = THREAT_TYPES[Math.floor(Math.random() * THREAT_TYPES.length)];
@@ -88,11 +117,12 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                     vy: -Math.sin(angle) * (0.5 + Math.random()),
                     type: typeData.type as any,
                     integrity: 100,
-                    signature: `0x${Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase()}`
+                    signature: `0x${Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase()}`,
+                    isGhost: false
                 };
                 threatsRef.current.push(newThreat);
                 setThreats([...threatsRef.current]);
-                audioEngine?.playEffect('ui_click'); // Subtle tick on spawn
+                audioEngine?.playEffect('ui_click'); 
             }
         };
 
@@ -162,19 +192,22 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 const target = threatsRef.current.find(t => t.id === hunter.targetId);
                 if (target) {
                     const angle = Math.atan2(target.y - hunter.y, target.x - hunter.x);
-                    hunter.vx += Math.cos(angle) * 0.2;
-                    hunter.vy += Math.sin(angle) * 0.2;
+                    // Resonance boosts hunter speed
+                    const boost = 1 + (resonance - 0.5);
+                    hunter.vx += Math.cos(angle) * 0.2 * boost;
+                    hunter.vy += Math.sin(angle) * 0.2 * boost;
+                    
                     // Cap speed
                     const speed = Math.hypot(hunter.vx, hunter.vy);
-                    if (speed > 4) {
-                        hunter.vx = (hunter.vx / speed) * 4;
-                        hunter.vy = (hunter.vy / speed) * 4;
+                    if (speed > 4 * boost) {
+                        hunter.vx = (hunter.vx / speed) * 4 * boost;
+                        hunter.vy = (hunter.vy / speed) * 4 * boost;
                     }
                     
                     // Attack
-                    if (Math.hypot(hunter.x - target.x, hunter.y - target.y) < 20) {
+                    if (Math.hypot(hunter.x - target.x, hunter.y - target.y) < 30) {
                         beamsRef.current.push({ x: target.x, y: target.y, life: 1.0 });
-                        target.integrity -= 20;
+                        target.integrity -= 5 + (resonance * 10); // Resonance boosts damage
                         
                         // Draw Attack Beam
                         ctx.beginPath();
@@ -228,12 +261,13 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 }
 
                 // Draw Threat
-                const color = t.type === 'SHADOW_NODE' ? '#ef4444' : t.type === 'QUANTUM_INJECT' ? '#c084fc' : '#fb923c';
+                const color = t.isGhost ? '#a78bfa' : t.type === 'SHADOW_NODE' ? '#ef4444' : t.type === 'QUANTUM_INJECT' ? '#c084fc' : '#fb923c';
                 ctx.save();
                 ctx.translate(t.x, t.y);
                 ctx.rotate(Date.now() / 200);
                 
                 ctx.fillStyle = color;
+                ctx.globalAlpha = t.isGhost ? 0.5 : 1.0;
                 ctx.beginPath();
                 ctx.moveTo(0, -8); ctx.lineTo(6, 6); ctx.lineTo(-6, 6); ctx.closePath();
                 ctx.fill();
@@ -297,7 +331,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             window.removeEventListener('resize', resize);
             cancelAnimationFrame(animationFrame);
         };
-    }, [isScanning, hunterMode]); 
+    }, [isScanning, hunterMode, resonance, preCrimeMode]); 
 
     const handlePurge = () => {
         if (threatsRef.current.length === 0) return;
@@ -345,6 +379,12 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                 </div>
                 <div className="flex gap-2">
                     <button 
+                        onClick={() => setPreCrimeMode(!preCrimeMode)}
+                        className={`px-4 py-2 border font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${preCrimeMode ? 'bg-violet-900/40 border-violet-500 text-violet-300' : 'bg-black/40 border-white/10 text-slate-500'}`}
+                    >
+                        {preCrimeMode ? 'PRE-CRIME: ACTIVE' : 'PRE-CRIME: IDLE'}
+                    </button>
+                    <button 
                         onClick={() => setHunterMode(!hunterMode)}
                         className={`px-6 py-2 border font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${hunterMode ? 'bg-blue-900/40 border-blue-500 text-blue-300 animate-pulse' : 'bg-black/40 border-white/10 text-slate-500'}`}
                     >
@@ -383,12 +423,14 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                             </div>
                         ) : (
                             threats.map(t => (
-                                <div key={t.id} className="bg-white/5 border border-white/5 p-2 rounded flex justify-between items-center group hover:bg-rose-950/20 hover:border-rose-500/30 transition-all">
+                                <div key={t.id} className={`bg-white/5 border border-white/5 p-2 rounded flex justify-between items-center group hover:bg-rose-950/20 hover:border-rose-500/30 transition-all ${t.isGhost ? 'opacity-50 border-violet-500/30' : ''}`}>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-rose-300">{t.type}</span>
+                                        <span className={`text-[10px] font-bold ${t.isGhost ? 'text-violet-300' : 'text-rose-300'}`}>{t.type}</span>
                                         <span className="text-[8px] font-mono text-slate-500">{t.signature}</span>
                                     </div>
-                                    <span className="text-[8px] font-mono text-rose-500 font-bold animate-pulse">DETECTED</span>
+                                    <span className={`text-[8px] font-mono font-bold animate-pulse ${t.isGhost ? 'text-violet-400' : 'text-rose-500'}`}>
+                                        {t.isGhost ? 'PRE-CRIME' : 'DETECTED'}
+                                    </span>
                                 </div>
                             ))
                         )}

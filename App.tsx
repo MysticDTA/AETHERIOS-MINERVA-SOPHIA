@@ -34,6 +34,7 @@ import { cosmosCommsService } from './services/cosmosCommsService';
 import { knowledgeBase } from './services/knowledgeBase';
 import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
+import { ChronosCausalEngine } from './components/ChronosCausalEngine';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
@@ -44,6 +45,7 @@ const ORB_MODES: OrbModeConfig[] = [
   { id: 'REPAIR', name: 'Repair', description: 'Entropy reduction.' },
   { id: 'GROUNDING', name: 'Grounding', description: 'Telluric discharge.' },
   { id: 'CONCORDANCE', name: 'Concordance', description: 'Star-map alignment.' },
+  { id: 'OFFLINE', name: 'Offline', description: 'System dormant.' }
 ];
 
 export const App: React.FC = () => {
@@ -106,7 +108,8 @@ export const App: React.FC = () => {
           case 8: return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
           case 28: return <KingdomSiteCommander />;
           case 29: return <AgenticOrchestrator active={true} />;
-          case 30: return <VibrationalShield />;
+          case 30: return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
+          case 31: return <ChronosCausalEngine systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
           case 27: return <QuantumDynastyLedger systemState={systemState} />;
           default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
