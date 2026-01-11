@@ -131,7 +131,7 @@ const PaymentRailStatus: React.FC = () => {
     );
 };
 
-export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ systemState, setSystemState, addLogEntry }) => {
+const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [procuringId, setProcuringId] = useState<string | null>(null);
     const [gatewayStatus, setGatewayStatus] = useState<'ONLINE' | 'SYNCING'>('SYNCING');
     const [isAuditing, setIsAuditing] = useState(false);
@@ -389,3 +389,22 @@ export const ResourceProcurement: React.FC<ResourceProcurementProps> = ({ system
         </div>
     );
 };
+
+// Optimized Export
+export const ResourceProcurement = React.memo(ResourceProcurementComponent, (prev, next) => {
+    // Return true if re-render is NOT needed
+    if (prev.addLogEntry !== next.addLogEntry) return false;
+    if (prev.setSystemState !== next.setSystemState) return false;
+    
+    const pState = prev.systemState;
+    const nState = next.systemState;
+    
+    // Only re-render if critical data changes (Auth, Resources, Visual Indicators)
+    if (pState.userResources !== nState.userResources) return false;
+    if (pState.auth !== nState.auth) return false;
+    
+    // Performance metrics used in HUDs might trigger visual updates
+    if (pState.resonanceFactorRho !== nState.resonanceFactorRho) return false;
+    
+    return true; 
+});
