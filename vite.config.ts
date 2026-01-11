@@ -9,9 +9,13 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
       'process.env.STRIPE_SECRET_KEY': JSON.stringify(env.STRIPE_SECRET_KEY),
-      // Update default frontend URL to the sovereign domain
       'process.env.FRONTEND_URL': JSON.stringify(env.FRONTEND_URL || 'https://infodinetruthascensiocom.com'),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+    },
+    resolve: {
+      alias: {
+        '@': '/src',
+      },
     },
     build: {
       outDir: 'dist',

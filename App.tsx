@@ -5,13 +5,12 @@ import { Layout } from './components/Layout';
 import { Header } from './components/Header';
 import { SystemFooter } from './components/SystemFooter';
 import { Dashboard } from './components/Dashboard';
-import { Display3 } from './components/Display3';
 import { Display4 } from './components/Display4';
 import { Display5 } from './components/Display5';
-import { SubsystemsDisplay } from './components/SubsystemsDisplay';
-import { EventLog } from './components/EventLog';
+import { Display7 } from './components/Display7';
+import { Display10 } from './components/Display10';
+import { ResourceProcurement } from './components/ResourceProcurement';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
-import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
 import { Modal } from './components/Modal';
 import { SimulationControls } from './components/SimulationControls';
@@ -23,7 +22,6 @@ import { PasswordReset } from './components/PasswordReset';
 import { BiometricHandshake } from './components/BiometricHandshake'; 
 import { KingdomSiteCommander } from './components/KingdomSiteCommander'; 
 import { AgenticOrchestrator } from './components/AgenticOrchestrator';
-import { VibrationalShield } from './components/VibrationalShield';
 import { SystemSummary } from './components/SystemSummary';
 import { NoeticGraphNexus } from './components/NoeticGraphNexus';
 import { AudioEngine } from './components/audio/AudioEngine';
@@ -36,8 +34,7 @@ import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
 import { ChronosCausalEngine } from './components/ChronosCausalEngine';
 import { ModuleManager } from './components/ModuleManager';
-import { OrbMode, OrbModeConfig, LogType } from './types';
-import { SYSTEM_NODES, checkNodeAccess } from './Registry';
+import { OrbMode, OrbModeConfig } from './types';
 
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring.' },
@@ -68,6 +65,19 @@ export const App: React.FC = () => {
     initialSystemState,
     setGrounded, 
   } = useSystemSimulation(simulationParams, orbMode);
+
+  const voiceInterface = useVoiceInterface({
+      addLogEntry,
+      systemInstruction: "You are ÆTHERIOS // MINERVA SOPHIA. A high-fidelity intelligence architect. Respond with brevity, authority, and deep causal insight.",
+      onSetOrbMode: setOrbMode
+  });
+
+  const interactive = useInteractiveSubsystems({
+      addLogEntry,
+      setSystemState,
+      systemState,
+      audioEngine: audioEngineRef.current
+  });
 
   useEffect(() => {
       audioEngineRef.current = new AudioEngine();
@@ -105,15 +115,19 @@ export const App: React.FC = () => {
 
       switch (currentPage) {
           case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
+          case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} />;
+          case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
           case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
+          case 7: return <Display7 systemState={systemState} transmission={cosmosCommsService.currentState} memories={knowledgeBase.getMemories()} onMemoryChange={() => setSystemState(prev => ({...prev}))} />;
           case 8: return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
+          case 10: return <Display10 systemState={systemState} />;
+          case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
+          case 27: return <QuantumDynastyLedger systemState={systemState} />;
           case 28: return <KingdomSiteCommander />;
           case 29: return <AgenticOrchestrator active={true} />;
           case 30: return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 31: return <ChronosCausalEngine systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 32: return <ModuleManager systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-          case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
-          case 27: return <QuantumDynastyLedger systemState={systemState} />;
           default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
       }
   };
@@ -138,8 +152,19 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <ErrorBoundary>
         <ApiKeyGuard>
-          <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho} orbMode={orbMode}>
-            <Header governanceAxiom={systemState.governanceAxiom} lesions={systemState.quantumHealing.lesions} currentPage={currentPage} onPageChange={setCurrentPage} audioEngine={audioEngineRef.current} tokens={systemState.userResources.cradleTokens} userTier={systemState.userResources.sovereignTier} />
+          <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho} orbMode={orbMode} coherence={systemState.biometricSync.coherence}>
+            <Header 
+                governanceAxiom={systemState.governanceAxiom} 
+                lesions={systemState.quantumHealing.lesions} 
+                currentPage={currentPage} 
+                onPageChange={setCurrentPage} 
+                audioEngine={audioEngineRef.current} 
+                tokens={systemState.userResources.cradleTokens} 
+                userTier={systemState.userResources.sovereignTier}
+                transmissionStatus={cosmosCommsService.currentState.status}
+                onToggleVoice={() => setCurrentPage(4)}
+                isVoiceActive={voiceInterface.isSessionActive}
+            />
             <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">{renderPage()}</main>
             <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={setOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
             <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
