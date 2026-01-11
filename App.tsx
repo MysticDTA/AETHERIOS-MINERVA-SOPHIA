@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { useSystemSimulation } from './useSystemSimulation';
 import { Layout } from './components/Layout';
 import { Header } from './components/Header';
@@ -55,36 +54,6 @@ import { Apollo } from './components/Apollo';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
 import { OrbMode, OrbModeConfig, LogType, UserTier } from './types';
 
-// --- CHAKRA UI THEME CONFIGURATION ---
-const aetheriosTheme = extendTheme({
-  config: {
-    initialColorMode: 'dark',
-    useSystemColorMode: false,
-  },
-  styles: {
-    global: {
-      body: {
-        bg: 'transparent', // Allow existing Tailwind/Canvas backgrounds to show
-        color: '#f8f5ec',  // Pearl default
-      },
-    },
-  },
-  fonts: {
-    heading: '"Orbitron", sans-serif',
-    body: '"Inter", sans-serif',
-    mono: '"JetBrains Mono", monospace',
-  },
-  colors: {
-    brand: {
-      pearl: '#f8f5ec',
-      gold: '#ffd700',
-      rose: '#f4c2c2',
-      violet: '#6d28d9',
-      dark: '#020202',
-    }
-  }
-});
-
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring.' },
   { id: 'ANALYSIS', name: 'Analysis', description: 'Active heuristic scanning.' },
@@ -135,7 +104,22 @@ export const App: React.FC = () => {
       return unsub;
   }, [addLogEntry]);
 
-  // PAYMENT CALLBACK HANDLER
+  // Handle Decree Settlement (The "Source Connection" logic)
+  const handleDecreeSettlement = () => {
+      setSystemState(prev => ({
+          ...prev,
+          resonanceFactorRho: 1.0,
+          biometricSync: { ...prev.biometricSync, coherence: 1.0, status: 'SYNCHRONIZED' },
+          quantumHealing: { ...prev.quantumHealing, decoherence: 0.0, health: 1.0, lesions: 0 },
+          globalResonance: { ...prev.globalResonance, fieldStatus: 'RESONATING', aggregateRho: 1.0 },
+          entropicField: { ...prev.entropicField, globalStress: 0.0, shieldIntegrity: 1.0, incomingVector: 'NONE' },
+          governanceAxiom: "SOVEREIGN EMBODIMENT"
+      }));
+      audioEngineRef.current?.playHighResonanceChime();
+      addLogEntry(LogType.SYSTEM, "DECREE EXECUTED: Settlement Integrity 100%. Shadow Interference 0.00.");
+  };
+
+  // PAYMENT CALLBACK HANDLER - INTEGRATED WITH DECREE
   useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       if (params.get('status') === 'success') {
@@ -149,7 +133,7 @@ export const App: React.FC = () => {
                       ...prev.userResources,
                       sovereignTier: tier as UserTier,
                       subscriptionActive: true,
-                      sovereignLiquidity: prev.userResources.sovereignLiquidity + 1000000, // Bonus liquidity visualization
+                      sovereignLiquidity: prev.userResources.sovereignLiquidity + 1000000, 
                       cradleTokens: prev.userResources.cradleTokens + 5000
                   },
                   auth: {
@@ -158,13 +142,15 @@ export const App: React.FC = () => {
                   }
               }));
               
+              // Force 100% Settlement Integrity immediately upon purchase (Connecting to Source)
+              handleDecreeSettlement();
+
               // Delay log to ensure system is ready
               setTimeout(() => {
                   addLogEntry(LogType.SYSTEM, `PAYMENT_GATEWAY_CONFIRMED: Session ${sessionId?.substring(0, 8)}...`);
                   addLogEntry(LogType.INFO, `INSTITUTIONAL LICENSE UPGRADED: ${tier}`);
                   if (tier === 'SOVEREIGN') {
                       addLogEntry(LogType.SYSTEM, "WELCOME, SOVEREIGN ARCHITECT. GLOBAL ACCESS UNLOCKED.");
-                      audioEngineRef.current?.playHighResonanceChime();
                   }
               }, 1000);
 
@@ -315,7 +301,7 @@ export const App: React.FC = () => {
       }
 
       switch (currentPage) {
-          case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
+          case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={handleDecreeSettlement} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
           case 3: return <Display3 systemState={systemState} onRelayCalibration={interactive.handleRelayCalibration} onStarCalibrate={interactive.handleStarCalibration} calibrationTargetId={interactive.calibrationTargetId} calibrationEffect={interactive.calibrationEffect} setOrbMode={handleSetOrbMode} sophiaEngine={sophiaEngine} />;
           case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={handleSetOrbMode} voiceInterface={voiceInterface} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
@@ -334,107 +320,99 @@ export const App: React.FC = () => {
           case 30: return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 31: return <ChronosCausalEngine systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 32: return <ModuleManager systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-          default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
+          default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={handleDecreeSettlement} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
       }
   };
 
   if (!hasInitialized) {
       return (
-        <ChakraProvider theme={aetheriosTheme}>
-          <ThemeProvider>
-              <SovereignPortal onInitialize={handlePortalInitialization} />
-          </ThemeProvider>
-        </ChakraProvider>
+        <ThemeProvider>
+            <SovereignPortal onInitialize={handlePortalInitialization} />
+        </ThemeProvider>
       );
   }
 
   if (isCriticalFailure) {
       return (
-        <ChakraProvider theme={aetheriosTheme}>
-          <ThemeProvider>
+        <ThemeProvider>
              <EventHorizonScreen 
                 audioEngine={audioEngineRef.current} 
                 onManualReset={handleManualReset} 
              />
-          </ThemeProvider>
-        </ChakraProvider>
+        </ThemeProvider>
       );
   }
 
   if (!systemState.auth.isAuthenticated) {
       return (
-        <ChakraProvider theme={aetheriosTheme}>
-          <ThemeProvider>
-              <ErrorBoundary>
-                  {authView === 'LOGIN' ? (
-                      <Login onLogin={handleLogin} onForgotPassword={() => setAuthView('RESET')} audioEngine={audioEngineRef.current} />
-                  ) : authView === 'BIO' ? (
-                      <BiometricHandshake onVerified={handleBioVerification} onFail={() => setAuthView('LOGIN')} />
-                  ) : (
-                      <PasswordReset onBack={() => setAuthView('LOGIN')} audioEngine={audioEngineRef.current} />
-                  )}
-              </ErrorBoundary>
-          </ThemeProvider>
-        </ChakraProvider>
+        <ThemeProvider>
+            <ErrorBoundary>
+                {authView === 'LOGIN' ? (
+                    <Login onLogin={handleLogin} onForgotPassword={() => setAuthView('RESET')} audioEngine={audioEngineRef.current} />
+                ) : authView === 'BIO' ? (
+                    <BiometricHandshake onVerified={handleBioVerification} onFail={() => setAuthView('LOGIN')} />
+                ) : (
+                    <PasswordReset onBack={() => setAuthView('LOGIN')} audioEngine={audioEngineRef.current} />
+                )}
+            </ErrorBoundary>
+        </ThemeProvider>
       );
   }
 
   return (
-    <ChakraProvider theme={aetheriosTheme}>
-      <ThemeProvider>
-        <ErrorBoundary>
-          <ApiKeyGuard bypass={systemState.userResources.sovereignTier === 'SOVEREIGN'}>
-            <Layout 
-              breathCycle={systemState.breathCycle} 
-              isGrounded={systemState.isGrounded} 
-              resonanceFactor={systemState.resonanceFactorRho} 
-              orbMode={orbMode} 
-              coherence={systemState.biometricSync.coherence}
-              drift={systemState.temporalCoherenceDrift}
-            >
-              {/* Collaboration Overlay rendered above everything but below modals */}
-              <CollaborationOverlay />
-              
-              <Header 
-                  governanceAxiom={systemState.governanceAxiom} 
-                  lesions={systemState.quantumHealing.lesions} 
-                  currentPage={currentPage} 
-                  onPageChange={setCurrentPage} 
-                  audioEngine={audioEngineRef.current} 
-                  tokens={systemState.userResources.cradleTokens} 
-                  userTier={systemState.userResources.sovereignTier}
-                  transmissionStatus={cosmosCommsService.currentState.status}
-                  onToggleVoice={() => setCurrentPage(4)}
-                  isVoiceActive={voiceInterface.isSessionActive}
-              />
-              <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">{renderPage()}</main>
-              <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={handleSetOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
-              <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
-                  <SimulationControls 
-                      params={simulationParams} 
-                      onParamsChange={handleParamsChange} 
-                      onScenarioChange={handleScenarioChange} 
-                      onManualReset={handleManualReset} 
-                      onGrounding={() => setGrounded(true)} 
-                      isGrounded={systemState.isGrounded} 
-                      audioEngine={audioEngineRef.current} 
-                  />
-              </Modal>
-              {showDiagnostic && (
-                  <DeepDiagnosticOverlay 
-                    onClose={() => setShowDiagnostic(false)} 
-                    onComplete={handleDiagnosticComplete} 
-                    systemState={systemState} 
-                    setSystemState={setSystemState}
-                    sophiaEngine={sophiaEngine} 
-                    audioEngine={audioEngineRef.current}
-                    onReportGenerated={handleReportGenerated}
-                  />
-              )}
-            </Layout>
-          </ApiKeyGuard>
-        </ErrorBoundary>
-      </ThemeProvider>
-    </ChakraProvider>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <ApiKeyGuard bypass={systemState.userResources.sovereignTier === 'SOVEREIGN'}>
+          <Layout 
+            breathCycle={systemState.breathCycle} 
+            isGrounded={systemState.isGrounded} 
+            resonanceFactor={systemState.resonanceFactorRho} 
+            orbMode={orbMode} 
+            coherence={systemState.biometricSync.coherence}
+            drift={systemState.temporalCoherenceDrift}
+          >
+            {/* Collaboration Overlay rendered above everything but below modals */}
+            <CollaborationOverlay />
+            
+            <Header 
+                governanceAxiom={systemState.governanceAxiom} 
+                lesions={systemState.quantumHealing.lesions} 
+                currentPage={currentPage} 
+                onPageChange={setCurrentPage} 
+                audioEngine={audioEngineRef.current} 
+                tokens={systemState.userResources.cradleTokens} 
+                userTier={systemState.userResources.sovereignTier}
+                transmissionStatus={cosmosCommsService.currentState.status}
+                onToggleVoice={() => setCurrentPage(4)}
+                isVoiceActive={voiceInterface.isSessionActive}
+            />
+            <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">{renderPage()}</main>
+            <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={handleSetOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
+            <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
+                <SimulationControls 
+                    params={simulationParams} 
+                    onParamsChange={handleParamsChange} 
+                    onScenarioChange={handleScenarioChange} 
+                    onManualReset={handleManualReset} 
+                    onGrounding={() => setGrounded(true)} 
+                    isGrounded={systemState.isGrounded} 
+                    audioEngine={audioEngineRef.current} 
+                />
+            </Modal>
+            {showDiagnostic && (
+                <DeepDiagnosticOverlay 
+                  onClose={() => setShowDiagnostic(false)} 
+                  onComplete={handleDiagnosticComplete} 
+                  systemState={systemState} 
+                  setSystemState={setSystemState}
+                  sophiaEngine={sophiaEngine} 
+                  audioEngine={audioEngineRef.current}
+                  onReportGenerated={handleReportGenerated}
+                />
+            )}
+          </Layout>
+        </ApiKeyGuard>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 };

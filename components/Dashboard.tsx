@@ -13,6 +13,7 @@ import { NodeStabilityMatrix } from './NodeStabilityMatrix';
 import { Tooltip } from './Tooltip';
 import { AudioEngine } from './audio/AudioEngine';
 import { CoherenceResonancePulse } from './CoherenceResonancePulse';
+import { SettlementIntegrityMonitor } from './SettlementIntegrityMonitor';
 
 interface DashboardProps {
   systemState: SystemState;
@@ -94,20 +95,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             <div className="space-y-4">
-                <div className="bg-black/40 border border-violet-500/20 p-4 rounded-xl relative overflow-hidden group shadow-lg">
-                    <div className="flex justify-between items-center mb-3">
-                        <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest font-black">Quantum_Posture</span>
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_5px_#10b981] animate-pulse" />
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                        <p className="font-orbitron text-xl text-pearl font-black">READY</p>
-                        <span className="text-[9px] font-mono text-slate-500">Hybrid_Cipher</span>
-                    </div>
-                    <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 w-[98%] shadow-[0_0_10px_#8b5cf6]" />
-                    </div>
-                </div>
-
                 <SystemIntegrityCore 
                     data={systemState.quantumHealing} 
                     resonance={systemState.resonanceFactorRho} 
@@ -124,12 +111,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 className="flex-1 py-3 bg-emerald-600/10 border border-emerald-500/40 text-emerald-400 font-orbitron text-[9px] uppercase font-bold hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
                             >
                                 FULL_SYSTEM_AUDIT
-                            </button>
-                            <button 
-                                onClick={onOptimize}
-                                className="flex-1 py-3 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
-                            >
-                                OPTIMIZE_NODE
                             </button>
                         </div>
                     </div>
@@ -149,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* --- COLUMN 2: CORE VISUALS & QUANTUM FIELD (5/12) --- */}
+      {/* --- COLUMN 2: CORE VISUALS & SETTLEMENT INTEGRITY (5/12) --- */}
       <div className="xl:col-span-5 flex flex-col items-center gap-6">
         <div className="w-full flex flex-col items-center justify-center min-h-[350px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
@@ -174,11 +155,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         <div className="w-full space-y-6">
-            {/* Swapped PerformanceChart for EntropicFieldVisualizer for QUANTUM INTEGRATION effect */}
-            <div className="h-64">
+            {/* Replaced EntropicFieldVisualizer with SettlementIntegrityMonitor for user request */}
+            <SettlementIntegrityMonitor 
+                systemState={systemState} 
+                onDecree={onOptimize} 
+            />
+            
+            <div className="h-48">
                 <EntropicFieldVisualizer data={systemState.entropicField} />
             </div>
-            <WombCoreStability data={systemState.supernovaTriforce} />
         </div>
       </div>
 
