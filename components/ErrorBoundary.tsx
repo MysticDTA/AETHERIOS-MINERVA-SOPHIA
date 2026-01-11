@@ -1,13 +1,13 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
-interface Props {
+interface ErrorBoundaryProps {
   children?: ReactNode;
   // Optional callback to report errors to a parent component or logging system
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
 }
 
@@ -15,12 +15,15 @@ interface State {
  * ErrorBoundary - Captures runtime fractures in the UI lattice.
  * Ensures system composure even during component-level decoherence.
  */
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+    };
+  }
 
-  public static getDerivedStateFromError(_: Error): Partial<State> {
+  public static getDerivedStateFromError(_: Error): Partial<ErrorBoundaryState> {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }

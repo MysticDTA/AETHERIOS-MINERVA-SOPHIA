@@ -103,14 +103,14 @@ export const Header: React.FC<HeaderProps> = ({
                                 onClick={() => handlePageChange(node.id, node.requiredTier)}
                                 title={node.description}
                                 aria-label={`Navigate to ${node.description}`}
-                                className={`flex-shrink-0 px-4 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border group ${
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border group active:scale-95 ${
                                     currentPage === node.id
-                                    ? 'bg-pearl text-dark-bg font-black border-pearl shadow-[0_0_15px_rgba(248,245,236,0.3)]'
+                                    ? 'bg-pearl text-dark-bg font-black border-pearl shadow-[0_0_15px_rgba(248,245,236,0.3)] hover:shadow-[0_0_25px_rgba(248,245,236,0.5)]'
                                     : disabled 
                                         ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
                                         : commsAlert
                                             ? 'bg-gold/20 border-gold/50 text-gold animate-pulse shadow-[0_0_8px_gold]'
-                                            : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5 hover:border-white/20'
+                                            : 'bg-dark-surface/60 text-warm-grey border-white/5 hover:bg-white/10 hover:border-white/20 hover:text-pearl hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]'
                                 }`}
                             >
                                 {disabled && <span className="absolute -top-1 -right-1 text-[8px] filter grayscale opacity-50">🔒</span>}
@@ -123,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             
             <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end shrink-0">
-                 <div className="flex items-center gap-4 bg-black/60 border border-white/5 px-5 py-2.5 rounded-md transition-all hover:border-gold/20 hover:bg-black/80 group">
+                 <div className="flex items-center gap-4 bg-black/60 border border-white/5 px-5 py-2.5 rounded-md transition-all hover:border-gold/20 hover:bg-black/80 group hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]">
                     <div className="flex flex-col items-end">
                         <span className="text-[8px] text-slate-500 font-bold uppercase tracking-[0.2em] mb-0.5 group-hover:text-gold transition-colors">Sovereignty_Index</span>
                         <span className="font-orbitron text-sm text-gold font-bold text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-40 ml-1">Ω</span></span>

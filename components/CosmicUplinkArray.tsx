@@ -131,6 +131,9 @@ const CelestialNavigator: React.FC<{
     const ripples = useMemo(() => [0, 1, 2], []);
     const [hoveredRelayId, setHoveredRelayId] = useState<string | null>(null);
 
+    // Helper for formatting coordinates
+    const formatCoord = (val: number) => val.toFixed(2);
+
     return (
         <div className="relative w-full aspect-square bg-[#050505] rounded-full border border-white/[0.08] overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,1)] ring-1 ring-white/5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.05)_0%,transparent_70%)]" />
@@ -205,22 +208,13 @@ const CelestialNavigator: React.FC<{
                     
                     return (
                         <g key={`relay-${relay.id}`} className="pointer-events-auto">
-                            {/* Tolerance Ring */}
-                            <circle 
-                                cx={cx} cy={cy} r={magFactor * 3} 
-                                fill="none" 
-                                stroke={isOnline ? "rgba(34, 197, 94, 0.2)" : "rgba(239, 68, 68, 0.1)"} 
-                                strokeWidth="0.2" 
-                                strokeDasharray="1 1"
-                            />
-
                             {/* Carrier Beam */}
                             <line 
                                 x1="50" y1="50" x2={cx} y2={cy} 
                                 stroke={isHighlighted ? 'white' : isOnline ? body.color : 'rgba(244, 63, 94, 0.1)'} 
-                                strokeWidth={isHighlighted ? 0.6 : 0.1}
+                                strokeWidth={isHighlighted ? 0.4 : 0.1}
                                 strokeDasharray={isOnline || isHighlighted ? 'none' : '0.5 1.5'}
-                                opacity={isHighlighted ? 0.9 : 0.2}
+                                opacity={isHighlighted ? 0.8 : 0.3}
                                 className="transition-all duration-300"
                             />
                             
@@ -230,33 +224,44 @@ const CelestialNavigator: React.FC<{
                                 onMouseEnter={() => setHoveredRelayId(relay.id)}
                                 onMouseLeave={() => setHoveredRelayId(null)}
                                 className="cursor-pointer group/node"
-                                style={{ transformOrigin: `${cx}% ${cy}%` }}
+                                style={{ transformOrigin: `${cx}px ${cy}px` }}
                             >
+                                {/* Core Glow */}
                                 <circle 
-                                    cx={cx} cy={cy} r={magFactor * (isCalibrating ? 1.8 : isHovered ? 1.6 : 1)} 
+                                    cx={cx} cy={cy} r={magFactor * (isHighlighted ? 3 : 1.5)} 
                                     fill={isOnline ? body.color : '#1e293b'} 
                                     filter="url(#stellarGlow)"
-                                    stroke={isHighlighted ? 'white' : 'none'}
-                                    strokeWidth={isHighlighted ? 0.3 : 0}
-                                    className="transition-all duration-300 shadow-[0_0_15px_currentColor]"
+                                    opacity={isHighlighted ? 0.8 : 0.5}
+                                    className="transition-all duration-300"
                                 />
-                                
-                                {isCalibrating && (
-                                    <>
-                                        {/* Scope Overlay */}
-                                        <g opacity="0.6">
-                                            <line x1={cx - 5} y1={cy} x2={cx + 5} y2={cy} stroke="white" strokeWidth="0.1" />
-                                            <line x1={cx} y1={cy - 5} x2={cx} y2={cy + 5} stroke="white" strokeWidth="0.1" />
-                                            <circle cx={cx} cy={cy} r="4" fill="none" stroke="white" strokeWidth="0.1" className="animate-pulse" />
-                                        </g>
-                                        <circle cx={cx} cy={cy} r="2" fill="none" stroke="white" strokeWidth="0.1">
-                                            <animate attributeName="r" values="1;6" dur="1.5s" repeatCount="indefinite" />
-                                            <animate attributeName="opacity" values="1;0" dur="1.5s" repeatCount="indefinite" />
-                                        </circle>
-                                        <circle r="0.5" fill="white">
-                                            <animateMotion dur="1s" repeatCount="indefinite" path={`M ${cx} ${cy} L 50 50`} />
-                                        </circle>
-                                    </>
+                                {/* Core */}
+                                <circle 
+                                    cx={cx} cy={cy} r={magFactor * 0.8}
+                                    fill={isHighlighted ? '#fff' : body.color}
+                                />
+
+                                {/* Interactive Reticle */}
+                                {(isHighlighted) && (
+                                    <g>
+                                        <circle cx={cx} cy={cy} r={magFactor + 3} fill="none" stroke="var(--gold)" strokeWidth="0.2" className="animate-[spin_4s_linear_infinite]" strokeDasharray="2 1" />
+                                        <line x1={cx-4} y1={cy} x2={cx-2} y2={cy} stroke="white" strokeWidth="0.1" />
+                                        <line x1={cx+2} y1={cy} x2={cx+4} y2={cy} stroke="white" strokeWidth="0.1" />
+                                        <line x1={cx} y1={cy-4} x2={cx} y2={cy-2} stroke="white" strokeWidth="0.1" />
+                                        <line x1={cx} y1={cy+2} x2={cx} y2={cy+4} stroke="white" strokeWidth="0.1" />
+                                    </g>
+                                )}
+
+                                {/* Data Label on Hover/Calibrate */}
+                                {isHighlighted && (
+                                    <g transform={`translate(${cx + 6}, ${cy - 6})`}>
+                                        <rect x="-2" y="-8" width="40" height="16" fill="rgba(0,0,0,0.8)" stroke="rgba(255,255,255,0.2)" strokeWidth="0.1" rx="1" />
+                                        <text x="0" y="-3" fill="var(--gold)" fontSize="3" fontFamily="Orbitron" fontWeight="bold">{body.name}</text>
+                                        <text x="0" y="2" fill="white" fontSize="2.5" fontFamily="monospace">RA: {formatCoord(body.ra)}h</text>
+                                        <text x="0" y="5" fill="white" fontSize="2.5" fontFamily="monospace">DEC: {formatCoord(body.dec)}°</text>
+                                        <text x="20" y="5" fill={isOnline ? "#4ade80" : "#f87171"} fontSize="2.5" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
+                                            {isCalibrating ? "CALIBRATING..." : isOnline ? "LOCKED" : "OFFLINE"}
+                                        </text>
+                                    </g>
                                 )}
                             </g>
                         </g>
@@ -264,7 +269,8 @@ const CelestialNavigator: React.FC<{
                 })}
             </svg>
             
-            {liveTelemetry && (
+            {/* Live Telemetry Overlay (General System) */}
+            {liveTelemetry && !hoveredRelayId && (
                 <div className="absolute top-6 left-6 right-6 p-4 bg-black/70 border border-white/10 rounded-sm backdrop-blur-xl animate-fade-in z-30 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-l-4 border-l-gold pointer-events-none">
                     <div className="flex justify-between items-start mb-3 border-b border-white/10 pb-2">
                         <div>
@@ -273,7 +279,6 @@ const CelestialNavigator: React.FC<{
                         </div>
                         <span className="text-[8px] font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded">DIST: {liveTelemetry.dist}</span>
                     </div>
-                    <p className="text-[11px] font-minerva italic text-pearl/80 leading-relaxed mb-4">"{liveTelemetry.status}"</p>
                     <div className="grid grid-cols-3 gap-2 border-t border-white/5 pt-3">
                         <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Mag</p><p className="text-[9px] font-mono text-gold">{liveTelemetry.magnitude}</p></div>
                         <div className="text-center bg-white/5 p-1 rounded-sm"><p className="text-[7px] text-slate-500 uppercase">Rho_Sync</p><p className="text-[9px] font-mono text-cyan-400">{liveTelemetry.flux}</p></div>

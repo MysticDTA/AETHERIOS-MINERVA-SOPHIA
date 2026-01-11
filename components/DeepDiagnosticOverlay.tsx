@@ -268,7 +268,15 @@ export const DeepDiagnosticOverlay: React.FC<DeepDiagnosticOverlayProps> = ({
                             )}
                             <div className="flex justify-between items-center mb-3">
                                 <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${step.status === 'ACTIVE' ? 'text-gold' : 'text-slate-500'}`}>0{idx + 1}_PROCEDURE</span>
-                                <div className={`w-1.5 h-1.5 rounded-full ${step.status === 'SUCCESS' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : step.status === 'ACTIVE' ? 'bg-gold animate-pulse' : 'bg-slate-800'}`} />
+                                {step.status === 'SUCCESS' ? (
+                                    <div className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center shadow-[0_0_10px_#10b981]">
+                                        <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                            <path className="checkmark-path" d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </div>
+                                ) : (
+                                    <div className={`w-1.5 h-1.5 rounded-full ${step.status === 'ACTIVE' ? 'bg-gold animate-pulse' : 'bg-slate-800'}`} />
+                                )}
                             </div>
                             <p className={`font-orbitron text-[11px] font-bold tracking-wider mb-2 ${step.status === 'ACTIVE' ? 'text-pearl' : 'text-slate-500'}`}>{step.label}</p>
                             

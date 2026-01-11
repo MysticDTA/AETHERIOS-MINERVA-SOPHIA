@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SystemState, LogType, IngestedModule } from '../types';
 import { QuantumSentinelPulse } from './QuantumSentinelPulse';
@@ -34,6 +35,7 @@ const RuntimeVisualizer: React.FC<{ active: boolean; resonance: number }> = ({ a
 
 export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSystemState, addLogEntry }) => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    // Ensure modules defaults to empty array to prevent runtime errors if state is partial
     const modules = systemState.ingestedModules || [];
     const selectedModule = modules.find(m => m.id === selectedId);
 
@@ -43,15 +45,17 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
             ...prev,
             ingestedModules: prev.ingestedModules.filter(m => m.id !== id)
         }));
-        setSelectedId(null);
+        if (selectedId === id) setSelectedId(null);
     };
 
     const handleRestart = (id: string) => {
         addLogEntry(LogType.SYSTEM, `Restarting module process: ${id}`);
+        
+        // Use 'as const' to satisfy the literal union type required by IngestedModule['status']
         setSystemState(prev => ({
             ...prev,
             ingestedModules: prev.ingestedModules.map(m => 
-                m.id === id ? { ...m, status: 'SYNCING' as IngestedModule['status'] } : m
+                m.id === id ? { ...m, status: 'SYNCING' as const } : m
             )
         }));
         
@@ -59,7 +63,7 @@ export const ModuleManager: React.FC<ModuleManagerProps> = ({ systemState, setSy
             setSystemState(prev => ({
                 ...prev,
                 ingestedModules: prev.ingestedModules.map(m => 
-                    m.id === id ? { ...m, status: 'MOUNTED' as IngestedModule['status'] } : m
+                    m.id === id ? { ...m, status: 'MOUNTED' as const } : m
                 )
             }));
             addLogEntry(LogType.INFO, `Module ${id} synced and mounted successfully.`);

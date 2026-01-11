@@ -80,10 +80,10 @@ export const SystemFooter: React.FC<SystemFooterProps> = React.memo(({
                                 onClick={() => setCurrentPage(node.id)} 
                                 className={`px-5 py-2 border font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm transition-all font-bold active:scale-95 shadow-md hover:scale-105 ${
                                     currentPage === node.id ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_15px_white]' :
-                                    node.isShield ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white' :
-                                    node.isLogs ? 'bg-slate-900/20 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white' :
-                                    node.isAudit ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg' :
-                                    'bg-violet-950/20 border-violet-500/30 text-violet-400 hover:bg-violet-500 hover:text-white'
+                                    node.isShield ? 'bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-400' :
+                                    node.isLogs ? 'bg-slate-900/20 border-slate-500/20 text-slate-400 hover:bg-slate-500 hover:text-white hover:border-slate-400' :
+                                    node.isAudit ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold hover:text-dark-bg hover:border-gold' :
+                                    'bg-violet-950/20 border-violet-500/30 text-violet-400 hover:bg-violet-500 hover:text-white hover:border-violet-400'
                                 }`}
                             >
                                 {node.label}
@@ -92,7 +92,7 @@ export const SystemFooter: React.FC<SystemFooterProps> = React.memo(({
                         {onOpenConfig && (
                             <button
                                 onClick={onOpenConfig}
-                                className="px-5 py-2 border border-slate-700/50 bg-slate-900/40 text-slate-300 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-800 hover:text-pearl transition-all font-bold hover:border-pearl/30 ml-2"
+                                className="px-5 py-2 border border-slate-700/50 bg-slate-900/40 text-slate-300 font-orbitron text-[9px] uppercase tracking-[0.2em] rounded-sm hover:bg-slate-800 hover:text-pearl transition-all font-bold hover:border-pearl/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-95 ml-2"
                             >
                                 CONFIG
                             </button>

@@ -36,27 +36,6 @@ declare global {
   }
 }
 
-// Ensure React.JSX is also augmented for newer React versions
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      ambientLight: any;
-      pointLight: any;
-      group: any;
-      mesh: any;
-      sphereGeometry: any;
-      meshBasicMaterial: any;
-      meshStandardMaterial: any;
-      cylinderGeometry: any;
-      gridHelper: any;
-      color: any;
-      fog: any;
-      primitive: any;
-      [elemName: string]: any;
-    }
-  }
-}
-
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
 
 export interface NegotiationNode {
