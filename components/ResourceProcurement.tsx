@@ -71,8 +71,8 @@ const MastercardLogo = () => (
     </svg>
 );
 
-const PaymentRailStatus: React.FC = () => {
-    const [status, setStatus] = useState<'SCANNING' | 'ONLINE' | 'ERROR'>('SCANNING');
+const PaymentRailStatus: React.FC<{ processing: boolean }> = ({ processing }) => {
+    const [status, setStatus] = useState<'SCANNING' | 'ONLINE' | 'PROCESSING' | 'ERROR'>('SCANNING');
     const [latency, setLatency] = useState<number | null>(null);
     const [region, setRegion] = useState('INIT_LINK');
 
@@ -94,31 +94,36 @@ const PaymentRailStatus: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (processing) setStatus('PROCESSING');
+        else if (status === 'PROCESSING') setStatus('ONLINE');
+    }, [processing]);
+
     return (
         <div className="flex flex-col gap-2 p-4 bg-black/80 border border-white/10 rounded-sm min-w-[240px] shadow-lg relative overflow-hidden group">
-            {status === 'SCANNING' && (
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-gold/50 animate-shimmer" />
+            {(status === 'SCANNING' || status === 'PROCESSING') && (
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-gold/10 to-transparent animate-shimmer pointer-events-none" />
             )}
             
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+            <div className="flex justify-between items-center border-b border-white/5 pb-2 relative z-10">
                 <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Secure_Payment_Rail</span>
                 <span className={`text-[8px] font-mono font-bold ${status === 'ONLINE' ? 'text-emerald-400' : 'text-gold animate-pulse'}`}>
-                    {status === 'ONLINE' ? 'TLS_1.3_LOCKED' : 'ROUTING...'}
+                    {status === 'ONLINE' ? 'TLS_1.3_LOCKED' : status === 'PROCESSING' ? 'TX_VERIFYING...' : 'ROUTING...'}
                 </span>
             </div>
-            <div className="flex gap-2">
-                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-blue-500/30'}`}>
+            <div className="flex gap-2 relative z-10">
+                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'PROCESSING' ? 'border-gold shadow-[0_0_10px_rgba(230,199,127,0.3)]' : status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-blue-500/30'}`}>
                     <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-300 transition-colors">
                         <VisaLogo />
                     </div>
                 </div>
-                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-orange-500/30'}`}>
+                <div className={`flex-1 flex items-center justify-center bg-white/5 p-2 rounded-sm border transition-all cursor-help ${status === 'PROCESSING' ? 'border-gold shadow-[0_0_10px_rgba(230,199,127,0.3)]' : status === 'SCANNING' ? 'border-gold/30' : 'border-white/5 hover:border-orange-500/30'}`}>
                     <div className="flex items-center gap-2 text-slate-400 group-hover:text-orange-300 transition-colors">
                         <MastercardLogo />
                     </div>
                 </div>
             </div>
-            <div className="flex justify-between items-center pt-1">
+            <div className="flex justify-between items-center pt-1 relative z-10">
                 <div className="flex gap-2 items-center">
                     <span className="text-[7px] font-mono text-slate-600 uppercase">Route:</span>
                     <span className="text-[7px] font-mono text-pearl">{region}</span>
@@ -260,7 +265,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <PaymentRailStatus />
+                        <PaymentRailStatus processing={isAuditing || procuringId !== null} />
                         <div className="h-16 w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent hidden xl:block" />
                         <div className="flex flex-col items-end gap-1 text-right">
                             <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.2em] font-bold">Worldwide-Tier Gateway</span>
@@ -339,7 +344,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                                             className={`w-full py-4 rounded-sm font-orbitron text-[10px] font-black uppercase tracking-[0.4em] transition-all border-2 relative overflow-hidden group/btn active:scale-95 ${isActive ? 'bg-white/10 border-white/20 text-slate-500 cursor-not-allowed' : 'bg-gold text-dark-bg border-gold hover:bg-white hover:border-white shadow-[0_0_40px_rgba(255,215,0,0.3)]'}`}
                                         >
                                             <div className="absolute inset-0 bg-white/40 -translate-x-full group-hover:btn:translate-x-full transition-transform duration-1000" />
-                                            <span className="relative z-10">{isActive ? 'VAULT_ACTIVE' : 'Liquidate_Capital'}</span>
+                                            <span className="relative z-10">{isActive ? 'VAULT_ACTIVE' : `Acquire_${tier.id === 'SOVEREIGN' ? 'Sovereign' : 'License'}`}</span>
                                         </button>
                                         {!isActive && (
                                             <button 
@@ -379,11 +384,6 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                     background: linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.1) 50%, transparent 60%);
                     background-size: 200% 200%;
                     animation: shimmer 3s infinite linear;
-                }
-                @keyframes scanline-sweep {
-                    0% { transform: translateX(-100%); opacity: 0; }
-                    50% { opacity: 1; }
-                    100% { transform: translateX(100%); opacity: 0; }
                 }
             `}</style>
         </div>

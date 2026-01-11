@@ -53,7 +53,7 @@ import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 import { HeirNetworkDisplay } from './components/HeirNetworkDisplay';
 import { Apollo } from './components/Apollo';
 import { EventHorizonScreen } from './components/EventHorizonScreen';
-import { OrbMode, OrbModeConfig, LogType } from './types';
+import { OrbMode, OrbModeConfig, LogType, UserTier } from './types';
 
 // --- CHAKRA UI THEME CONFIGURATION ---
 const aetheriosTheme = extendTheme({
@@ -134,6 +134,51 @@ export const App: React.FC = () => {
       });
       return unsub;
   }, [addLogEntry]);
+
+  // PAYMENT CALLBACK HANDLER
+  useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('status') === 'success') {
+          const tier = params.get('tier');
+          const sessionId = params.get('session_id');
+          
+          if (tier) {
+              setSystemState(prev => ({
+                  ...prev,
+                  userResources: {
+                      ...prev.userResources,
+                      sovereignTier: tier as UserTier,
+                      subscriptionActive: true,
+                      sovereignLiquidity: prev.userResources.sovereignLiquidity + 1000000, // Bonus liquidity visualization
+                      cradleTokens: prev.userResources.cradleTokens + 5000
+                  },
+                  auth: {
+                      ...prev.auth,
+                      isAuthenticated: true // Ensure they stay logged in if redirect happened
+                  }
+              }));
+              
+              // Delay log to ensure system is ready
+              setTimeout(() => {
+                  addLogEntry(LogType.SYSTEM, `PAYMENT_GATEWAY_CONFIRMED: Session ${sessionId?.substring(0, 8)}...`);
+                  addLogEntry(LogType.INFO, `INSTITUTIONAL LICENSE UPGRADED: ${tier}`);
+                  if (tier === 'SOVEREIGN') {
+                      addLogEntry(LogType.SYSTEM, "WELCOME, SOVEREIGN ARCHITECT. GLOBAL ACCESS UNLOCKED.");
+                      audioEngineRef.current?.playHighResonanceChime();
+                  }
+              }, 1000);
+
+              // Clean URL
+              window.history.replaceState({}, '', window.location.pathname);
+              // Navigate to welcome screen or dashboard
+              setCurrentPage(1); 
+              setShowWelcome(true);
+          }
+      } else if (params.get('status') === 'cancelled') {
+          addLogEntry(LogType.WARNING, "PAYMENT_GATEWAY_TERMINATED: User cancelled acquisition.");
+          window.history.replaceState({}, '', window.location.pathname);
+      }
+  }, [addLogEntry, setSystemState]);
 
   const voiceInterface = useVoiceInterface({
       addLogEntry,

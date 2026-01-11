@@ -30,6 +30,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const stripe = getStripe();
 
+    // Determine Tier based on priceId logic
+    let targetTier = 'ACOLYTE';
+    if (priceId.includes('architect')) targetTier = 'ARCHITECT';
+    else if (priceId.includes('sovereign')) targetTier = 'SOVEREIGN';
+    else if (priceId.includes('syndicate')) targetTier = 'LEGACY_MENERVA';
+
     // --- SIMULATION MODE (If no Stripe Key) ---
     if (!stripe) {
         console.warn("[Stripe] Secret Key missing. Simulating Checkout Session.");
@@ -37,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await new Promise(resolve => setTimeout(resolve, 1200));
         
         return res.status(200).json({ 
-            url: `${baseUrl}?status=success&session_id=mock_sess_${Date.now()}_simulated`, 
+            url: `${baseUrl}?status=success&session_id=mock_sess_${Date.now()}_simulated&tier=${targetTier}`, 
             id: `cs_sim_${Date.now()}` 
         });
     }
@@ -51,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         quantity: 1,
       }],
       mode: isTokenBundle ? 'payment' : 'subscription',
-      success_url: `${baseUrl}?status=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}?status=success&session_id={CHECKOUT_SESSION_ID}&tier=${targetTier}`,
       cancel_url: `${baseUrl}?status=cancelled`,
       customer_email: req.body.email,
       billing_address_collection: 'required',
@@ -60,7 +66,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       allow_promotion_codes: true,
       metadata: {
         operator_id: operatorId || 'anonymous_node',
-        portal_type: 'institutional_gold_v1.3.1'
+        portal_type: 'institutional_gold_v1.3.1',
+        target_tier: targetTier
       }
     });
 
