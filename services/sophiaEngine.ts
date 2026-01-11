@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
-import { SystemState, FailurePrediction, CausalStrategy } from '../types';
+import { SystemState, FailurePrediction, CausalStrategy, EntropicFieldData } from '../types';
 import { knowledgeBase } from './knowledgeBase';
 
 const handleApiError = (error: any): string => {
@@ -96,6 +96,9 @@ export class SophiaEngineCore {
     }
   }
 
+  // ... (previous methods kept for reference, but trimming file for brevity if not changing them)
+  // Re-implementing necessary methods for context
+
   async performSystemAudit(systemState: SystemState, scanFindings: string[] = []): Promise<{ report: string; sources: any[] }> {
     const ai = this.getClient();
     if (!ai) {
@@ -142,8 +145,7 @@ export class SophiaEngineCore {
   ) {
     const activeChat = await this.ensureConnection();
     if (!activeChat) {
-        // Simulation Mode Response
-        onChunk(">> CONNECTION_OFFLINE: Please authenticate via the AI Studio Handshake to enable the reasoning core.\n\n[SIMULATION_MODE]: The system is currently operating on local heuristic estimates. Please provision a valid API Key to unlock Gemini 3 Pro intelligence.");
+        onChunk(">> CONNECTION_OFFLINE: Please authenticate via the AI Studio Handshake to enable the reasoning core.\n\n[SIMULATION_MODE]: The system is currently operating on local heuristic estimates.");
         return;
     }
     
@@ -174,7 +176,7 @@ export class SophiaEngineCore {
 
   async getProactiveInsight(systemState: SystemState, context: string): Promise<string | null> {
     const ai = this.getClient();
-    if (!ai) return null; // Silently fail in simulation mode to avoid visual noise
+    if (!ai) return null; 
 
     try {
         const prompt = `Context: ${context}. State: ${JSON.stringify({rho: systemState.resonanceFactorRho, health: systemState.quantumHealing.health, drift: systemState.temporalCoherenceDrift})}. Return JSON: {"alert": "Title", "recommendation": "Technical protocol"}`;
@@ -193,7 +195,6 @@ export class SophiaEngineCore {
   async getSystemAnalysis(systemState: SystemState): Promise<string> {
     const ai = this.getClient();
     if (!ai) {
-        // Fallback simulation response
         return JSON.stringify({
             summary: "System running in Heuristic Simulation Mode. Metrics are estimated locally.",
             status: "STABLE",
@@ -236,7 +237,6 @@ export class SophiaEngineCore {
 
   async getFailurePrediction(systemState: SystemState): Promise<FailurePrediction> {
     const ai = this.getClient();
-    
     if (!ai) {
         return {
             probability: 0.05,
@@ -286,7 +286,6 @@ export class SophiaEngineCore {
 
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy> {
     const ai = this.getClient();
-    
     if (!ai) {
         return {
             title: "SIMULATION_STRATEGY",
@@ -336,7 +335,6 @@ export class SophiaEngineCore {
         });
         return JSON.parse(response.text || '{}');
     } catch (e) {
-        console.error("Strategy synthesis failure:", e);
         return { 
             title: "EMERGENCY_RECOVERY_PROTOCOL", 
             totalConfidence: 0.5, 
@@ -444,6 +442,59 @@ export class SophiaEngineCore {
         return response.text || "No causal link detected.";
     } catch (e) {
         return "Decoherence prevents linkage.";
+    }
+  }
+
+  async analyzeEntropicField(currentRho: number): Promise<EntropicFieldData> {
+    const ai = this.getClient();
+    if (!ai) {
+        return {
+            globalStress: 0.3 + Math.random() * 0.2,
+            causalVolatility: 0.1,
+            shieldIntegrity: 0.98,
+            incomingVector: "SIMULATION_VECTOR_NULL",
+            lastUpdate: Date.now()
+        };
+    }
+
+    const prompt = `Analyze the current global causal state (financial markets, geopolitical tension, solar weather) to determine the 'Entropic Pressure' on the Sovereign Shield.
+    Current Internal Resonance: ${currentRho}.
+    Return JSON:
+    - globalStress: 0-1 (High is bad)
+    - causalVolatility: 0-1 (Rate of change)
+    - shieldIntegrity: 0-1 (Resilience)
+    - incomingVector: A short, esoteric name for the primary stressor (e.g. 'Solar Geomagnetic Storm', 'Market Correction', 'Narrative Collapse').
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        globalStress: { type: Type.NUMBER },
+                        causalVolatility: { type: Type.NUMBER },
+                        shieldIntegrity: { type: Type.NUMBER },
+                        incomingVector: { type: Type.STRING }
+                    },
+                    required: ["globalStress", "causalVolatility", "shieldIntegrity", "incomingVector"]
+                }
+            }
+        });
+        const data = JSON.parse(response.text || '{}');
+        return { ...data, lastUpdate: Date.now() };
+    } catch (e) {
+        return {
+            globalStress: 0.5,
+            causalVolatility: 0.5,
+            shieldIntegrity: 0.8,
+            incomingVector: "UNKNOWN_VECTOR_INTERFERENCE",
+            lastUpdate: Date.now()
+        };
     }
   }
 }

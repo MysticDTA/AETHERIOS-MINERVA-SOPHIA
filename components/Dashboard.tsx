@@ -8,7 +8,7 @@ import { SystemAnalysis } from './SystemAnalysis';
 import { SophiaCognitiveCore } from './SophiaCognitiveCore';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { SystemIntegrityCore } from './SystemIntegrityCore';
-import { PerformanceMetricsChart } from './PerformanceMetricsChart';
+import { EntropicFieldVisualizer } from './EntropicFieldVisualizer';
 import { NodeStabilityMatrix } from './NodeStabilityMatrix';
 import { Tooltip } from './Tooltip';
 import { AudioEngine } from './audio/AudioEngine';
@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end">
                         <span className="text-[6px] font-mono text-emerald-400 font-bold uppercase">Audit_Locked</span>
-                        <span className="text-[8px] font-mono text-pearl">v1.4.0_PROD</span>
+                        <span className="text-[8px] font-mono text-pearl">v1.4.1_QUANTUM</span>
                     </div>
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
                 </div>
@@ -149,7 +149,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* --- COLUMN 2: CORE VISUALS & PERFORMANCE (5/12) --- */}
+      {/* --- COLUMN 2: CORE VISUALS & QUANTUM FIELD (5/12) --- */}
       <div className="xl:col-span-5 flex flex-col items-center gap-6">
         <div className="w-full flex flex-col items-center justify-center min-h-[350px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
@@ -174,7 +174,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         <div className="w-full space-y-6">
-            <PerformanceMetricsChart performance={systemState.performance} />
+            {/* Swapped PerformanceChart for EntropicFieldVisualizer for QUANTUM INTEGRATION effect */}
+            <div className="h-64">
+                <EntropicFieldVisualizer data={systemState.entropicField} />
+            </div>
             <WombCoreStability data={systemState.supernovaTriforce} />
         </div>
       </div>

@@ -68,7 +68,7 @@ const AetherStreamCanvas: React.FC<{ density: number; efficiency: number, color:
                 
                 // Turbulence/Entropy: Vertical Jitter
                 if (status === 'TURBULENT' || entropy > 0.1) {
-                    p.y += (Math.random() - 0.5) * (entropy * 10);
+                    p.y += (Math.random() - 0.5) * (entropy * 20);
                 }
 
                 // Wrap
@@ -110,12 +110,12 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
                     <h3 className="font-orbitron text-md text-warm-grey">Aetheric Transfer</h3>
                      <p className={`font-orbitron font-bold text-md ${displayConfig.color} ${!isPreviewing && fluxStatus !== 'STABLE' ? 'animate-pulse' : ''}`}>
                         {displayConfig.label}
-                        {isPreviewing && <span className="text-[10px] text-cyan-400 ml-2 font-mono uppercase tracking-widest">(Simulation Active)</span>}
+                        {isPreviewing && <span className="text-[10px] text-cyan-400 ml-2 font-mono uppercase tracking-widest">(SIMULATION)</span>}
                     </p>
                 </div>
                 <button 
                     onClick={onPurge}
-                    disabled={isPurging || fluxStatus === 'STABLE'}
+                    disabled={isPurging || (fluxStatus === 'STABLE' && !isPreviewing)}
                     className="px-3 py-1 rounded-md text-xs font-bold transition-colors uppercase bg-dark-surface/70 hover:bg-slate-700 text-warm-grey disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isPurging ? 'PURGING...' : 'Purge Flow'}

@@ -356,6 +356,14 @@ export interface GlobalResonanceState {
     communities: CommunityData[];
 }
 
+export interface EntropicFieldData {
+    globalStress: number; // 0-1
+    causalVolatility: number; // 0-1
+    shieldIntegrity: number; // 0-1
+    incomingVector: string; // Description e.g. "Market Volatility"
+    lastUpdate: number;
+}
+
 export interface SchematicNode {
     id: string;
     label: string;
@@ -470,14 +478,14 @@ export interface SystemState {
     cradleTokens: number;
     sovereignTier: UserTier;
     sovereignLiquidity: number; 
-    recoveryVault: number; // New field for Heir Protocol
+    recoveryVault: number;
     manifestPulse: number; 
     unlockedModules: string[];
     ledgerHistory: any[];
     subscriptionActive: boolean;
     menervaLegacyPoints: number;
   };
-  heirNetwork: HeirNode[]; // New field for Heir Protocol
+  heirNetwork: HeirNode[];
   performance: PerformanceTelemetry;
   auth: {
     isAuthenticated: boolean;
@@ -524,6 +532,7 @@ export interface SystemState {
   isPhaseLocked: boolean;
   ingestedModules: IngestedModule[];
   globalResonance: GlobalResonanceState;
+  entropicField: EntropicFieldData; // NEW FIELD
   legalEstate: {
     abnTrustId: string;
     wrapperStatus: string;

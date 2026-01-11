@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CoherenceResonanceData, SystemState } from '../types';
 import { SophiaEngineCore } from '../services/sophiaEngine';
 import { audioAnalysisService } from '../services/audioAnalysisService';
+import { cosmosCommsService } from '../services/cosmosCommsService';
 
 interface CoherenceMonitorProps {
   data: CoherenceResonanceData;
@@ -39,12 +40,10 @@ const InterferometerCanvas: React.FC<{
         let animationFrame: number;
         let time = 0;
 
-        // Configuration for the Moiré Pattern
         const ringCount = 32;
         const baseSpacing = 8;
 
         const render = () => {
-            // Audio Reactivity
             const audioMetrics = audioAnalysisService.getEnergyMetrics();
             const bassKick = audioMetrics.bass * 20;
             const midJitter = audioMetrics.mid * 5;
@@ -55,11 +54,9 @@ const InterferometerCanvas: React.FC<{
             const cx = w / 2;
             const cy = h / 2;
 
-            // Clear with deep void trail
             ctx.fillStyle = 'rgba(2, 2, 4, 0.2)';
             ctx.fillRect(0, 0, w, h);
 
-            // Phase Lock Visual Indicator (Background Glow)
             const isLocked = Math.abs(phaseOffset) < 0.05 && currentRho > 0.95;
             if (isLocked) {
                 const glowSize = 100 + Math.sin(time * 5) * 10;
@@ -72,18 +69,15 @@ const InterferometerCanvas: React.FC<{
                 ctx.fill();
             }
 
-            // Draw Reference Grid (The "Truth" / System Baseline)
-            // This layer rotates slowly and consistently
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(time * 0.2); 
-            ctx.strokeStyle = 'rgba(230, 199, 127, 0.15)'; // Dim Gold
+            ctx.strokeStyle = 'rgba(230, 199, 127, 0.15)'; 
             ctx.lineWidth = 1;
             
             for(let i = 1; i <= ringCount; i++) {
                 const r = i * baseSpacing + bassKick * 0.5;
                 
-                // Hexagonal distortion for the reference lattice
                 ctx.beginPath();
                 for (let j = 0; j < 6; j++) {
                     const angle = (j / 6) * Math.PI * 2;
@@ -97,52 +91,29 @@ const InterferometerCanvas: React.FC<{
             }
             ctx.restore();
 
-            // Draw Input Grid (The "Operator" / Current State)
-            // This layer's rotation and stability are affected by Rho, Entropy, and Tuning
             ctx.save();
             ctx.translate(cx, cy);
             
-            // Rotation Delta: When phaseOffset is 0, this matches the reference speed (Lock)
-            // Otherwise, it spins faster/slower creating interference
             const rotationDelta = phaseOffset * Math.PI; 
             ctx.rotate((time * 0.2) + rotationDelta + (midJitter * 0.05 * entropy)); 
 
-            // Color shifts based on alignment
             const signalColor = isLocked ? '#10b981' : currentRho > 0.8 ? '#a78bfa' : '#f43f5e';
             ctx.strokeStyle = signalColor;
             ctx.lineWidth = isLocked ? 2 : 1.5;
             
-            // Jitter/Entropy Effect on position
             const shakeX = (Math.random() - 0.5) * entropy * 10;
             const shakeY = (Math.random() - 0.5) * entropy * 10;
             ctx.translate(shakeX, shakeY);
 
             for(let i = 1; i <= ringCount; i++) {
-                // Determine shape based on coherence. High coherence = Hexagon (matches reference). Low = Circle/Blob.
-                const morphFactor = currentRho; // 1 = Hex, 0 = Circle
                 const r = i * baseSpacing + bassKick;
 
                 ctx.beginPath();
                 for (let j = 0; j <= 60; j++) {
                     const theta = (j / 60) * Math.PI * 2;
-                    
-                    // Interpolate between Circle (cos(theta)) and Hexagon approximation
-                    // Simple Hexagon radius modulation
-                    const hexR = r / Math.cos(((theta % (Math.PI/3)) - (Math.PI/6)));
-                    const circleR = r;
-                    
-                    // We only use true Hex logic for simplicity in visual:
-                    // Just draw circles that deform into hexes? 
-                    // Let's stick to circles for the interference layer to create Moiré with the hex background
-                    
-                    // Actually, Moiré is best with identical patterns offset. Let's draw Hexagons too.
-                    // But offset them radially if rho is low.
-                    
-                    // Radial distortion based on entropy
                     const noise = Math.sin(theta * 10 + time * 5) * entropy * 10;
                     const finalR = r + noise; 
 
-                    // Drawing a circle/blob for the user layer to contrast the rigid hex background
                     const x = finalR * Math.cos(theta);
                     const y = finalR * Math.sin(theta);
                     
@@ -154,7 +125,6 @@ const InterferometerCanvas: React.FC<{
             }
             ctx.restore();
 
-            // Center Singularity
             ctx.beginPath();
             ctx.arc(cx, cy, 10 + bassKick, 0, Math.PI * 2);
             ctx.fillStyle = isLocked ? '#fff' : signalColor;
@@ -163,7 +133,6 @@ const InterferometerCanvas: React.FC<{
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // HUD Overlay Text
             if (isLocked) {
                 ctx.fillStyle = '#10b981';
                 ctx.font = '12px "Orbitron"';
@@ -194,16 +163,25 @@ const InterferometerCanvas: React.FC<{
 };
 
 export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contributingFactors, systemState, sophiaEngine }) => {
-    const { score, status, entropyFlux, phaseSync } = data;
-    const [tuning, setTuning] = useState(0.5); // 0 to 1, target is 0.5
+    const { score, entropyFlux } = data;
+    const [tuning, setTuning] = useState(0.5); 
     const [aiThought, setAiThought] = useState(INTELLIGENCE_LOGS[0]);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [liveExternalMetric, setLiveExternalMetric] = useState<string | null>(null);
     
-    // Derived alignment metric based on user tuning
-    const phaseAlignment = (tuning - 0.5) * 2; // -1 to 1
+    const phaseAlignment = (tuning - 0.5) * 2; 
     const effectiveCoherence = score * (1 - Math.abs(phaseAlignment) * 0.5);
 
-    // AI Thought Loop
+    useEffect(() => {
+        // Subscribe to live external metrics (Solar wind etc) from Cosmos service
+        const unsub = cosmosCommsService.subscribe((state) => {
+            if (state.realWorldMetric && state.source !== 'AWAITING_NASA_UPLINK') {
+                setLiveExternalMetric(`${state.source}: ${state.realWorldMetric}`);
+            }
+        });
+        return unsub;
+    }, []);
+
     useEffect(() => {
         const interval = setInterval(() => {
             const nextThought = INTELLIGENCE_LOGS[Math.floor(Math.random() * INTELLIGENCE_LOGS.length)];
@@ -214,12 +192,10 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
 
     const handleOptimize = () => {
         setIsOptimizing(true);
-        // Simulate auto-tuning algorithm
         let steps = 0;
         const interval = setInterval(() => {
             setTuning(prev => {
                 const diff = 0.5 - prev;
-                // Easing function
                 if (Math.abs(diff) < 0.005) return 0.5;
                 return prev + diff * 0.15;
             });
@@ -257,7 +233,9 @@ export const CoherenceMonitor: React.FC<CoherenceMonitorProps> = ({ data, contri
             {/* Main Visualizer Area */}
             <div className="flex-1 min-h-[220px] relative z-10 flex flex-col gap-4">
                 <div className="flex justify-between items-center text-[9px] font-mono text-slate-500 uppercase tracking-widest px-2">
-                    <span>Moiré_Interference_Pattern</span>
+                    <span className={liveExternalMetric ? 'text-cyan-400' : ''}>
+                        {liveExternalMetric ? `EXTERNAL_INFLUENCE: ${liveExternalMetric}` : 'Moiré_Interference_Pattern'}
+                    </span>
                     <span className="text-violet-300 animate-pulse">{isOptimizing ? 'SEEKING_NULL_POINT...' : 'LIVE_FEED'}</span>
                 </div>
                 

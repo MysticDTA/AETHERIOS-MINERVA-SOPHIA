@@ -14,6 +14,7 @@ import {
 import { ApiService } from './services/api';
 import { collectiveResonanceService } from './services/collectiveResonanceService';
 import { audioAnalysisService } from './services/audioAnalysisService';
+import { SophiaEngineCore } from './services/sophiaEngine'; // Import for direct type usage if needed, mostly handled in component
 
 const PERSISTENCE_KEY = 'S7_OPERATOR_DATA';
 
@@ -219,6 +220,13 @@ export const initialSystemState: SystemState = {
     fieldStatus: 'STABLE',
     communities: []
   },
+  entropicField: {
+    globalStress: 0.1,
+    causalVolatility: 0.05,
+    shieldIntegrity: 1.0,
+    incomingVector: "NONE",
+    lastUpdate: 0
+  },
   legalEstate: {
     abnTrustId: 'ABN_TRUST_88_MCBRIDE',
     wrapperStatus: 'SEALED',
@@ -245,7 +253,14 @@ export const useSystemSimulation = (
   const tickRef = useRef(0);
   
   const simulationIntervalRef = useRef<number | null>(null);
+  const entropicIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
+  const engineRef = useRef<SophiaEngineCore | null>(null);
+
+  // Initialize Sophia Engine for backend checks (lazy load)
+  useEffect(() => {
+      engineRef.current = new SophiaEngineCore("System Monitor");
+  }, []);
 
   useEffect(() => {
     isMounted.current = true;
@@ -294,6 +309,39 @@ export const useSystemSimulation = (
       log: [{ id: `${Date.now()}-${Math.random().toString(36).substring(7)}`, type, message, timestamp: Date.now() }, ...prev.log].slice(0, 50) 
     }));
   }, []);
+
+  // Entropic Field Polling (Slow Cycle)
+  useEffect(() => {
+      const pollEntropicField = async () => {
+          if (!engineRef.current || !isMounted.current) return;
+          // Only fetch if stale (older than 2 minutes)
+          const now = Date.now();
+          if (now - systemState.entropicField.lastUpdate > 120000) {
+              const field = await engineRef.current.analyzeEntropicField(systemState.resonanceFactorRho);
+              if (isMounted.current) {
+                  setSystemState(prev => ({
+                      ...prev,
+                      entropicField: field,
+                      // Impact resonance based on stress
+                      resonanceFactorRho: Math.max(0.1, prev.resonanceFactorRho - (field.globalStress * 0.1)),
+                      quantumHealing: {
+                          ...prev.quantumHealing,
+                          decoherence: Math.min(1.0, prev.quantumHealing.decoherence + (field.causalVolatility * 0.05))
+                      }
+                  }));
+                  
+                  if (field.globalStress > 0.6) {
+                      addLogEntry(LogType.WARNING, `High Entropic Pressure detected: ${field.incomingVector}`);
+                  }
+              }
+          }
+      };
+
+      entropicIntervalRef.current = window.setInterval(pollEntropicField, 30000); // Check every 30s
+      return () => {
+          if (entropicIntervalRef.current) clearInterval(entropicIntervalRef.current);
+      };
+  }, [systemState.entropicField.lastUpdate, addLogEntry]);
 
   // Real-Time System Heartbeat (Driven by Live Audio & Performance)
   useEffect(() => {
