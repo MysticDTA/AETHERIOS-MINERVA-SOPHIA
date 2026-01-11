@@ -52,7 +52,7 @@ class AudioAnalysisService {
         if (!this.isActive || !this.analyser || !this.dataArray) {
             return new Uint8Array(0);
         }
-        this.analyser.getByteFrequencyData(this.dataArray);
+        this.analyser.getByteFrequencyData(this.dataArray as any);
         return this.dataArray;
     }
 
@@ -65,7 +65,7 @@ class AudioAnalysisService {
             return { resonance: 0, coherence: 0, entropy: 0 };
         }
 
-        this.analyser.getByteFrequencyData(this.dataArray);
+        this.analyser.getByteFrequencyData(this.dataArray as any);
         const length = this.dataArray.length;
         
         // 1. Calculate Resonance (Total Energy / RMS)
