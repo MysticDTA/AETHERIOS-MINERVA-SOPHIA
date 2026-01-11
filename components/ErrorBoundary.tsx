@@ -1,5 +1,4 @@
-
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -15,7 +14,7 @@ interface ErrorBoundaryState {
  * ErrorBoundary - Captures runtime fractures in the UI lattice.
  * Ensures system composure even during component-level decoherence.
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = {
     hasError: false,
   };
@@ -40,7 +39,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900/50 border-2 border-red-700/50 p-8 rounded-lg text-center backdrop-blur-xl">
+        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900/80 border-2 border-red-700/50 p-8 rounded-lg text-center backdrop-blur-xl shadow-[0_0_50px_rgba(220,38,38,0.2)]">
             <h1 className="font-orbitron text-2xl text-red-500 font-bold text-glow-red uppercase tracking-tighter">
                 Component Decoherence
             </h1>

@@ -133,7 +133,7 @@ export interface CausalStrategy {
     }>;
 }
 
-export type CommsStatus = 'AWAITING SIGNAL' | 'RECEIVING...' | 'DECODING...' | 'TRANSMISSION COMPLETE' | 'SIGNAL LOST';
+export type CommsStatus = 'AWAITING SIGNAL' | 'RECEIVING...' | 'DECODING...' | 'TRANSMISSION COMPLETE' | 'SIGNAL LOST' | 'SIMULATION UPLINK ACTIVE';
 
 export interface TransmissionState {
     id: string;

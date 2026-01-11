@@ -20,7 +20,8 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, 
   // Real-time visual optimization: subtle jitter to numbers makes it feel 'live'
   useEffect(() => {
       const interval = setInterval(() => {
-          const delta = (Math.random() - 0.5) * (value * 0.0005);
+          // Smaller jitter for elegance
+          const delta = (Math.random() - 0.5) * (value * 0.002); // 0.2% jitter
           setJitterValue(value + delta);
       }, 150);
       return () => clearInterval(interval);
@@ -46,29 +47,31 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, 
     const effectivePercent = isInverse ? 100 - percent : percent;
     let hue;
     if (effectivePercent < 50) {
-      hue = (effectivePercent / 50) * 45;
+      hue = (effectivePercent / 50) * 45; // Red to Gold
     } else {
-      hue = 45 + ((effectivePercent - 50) / 50) * (60 - 45);
+      hue = 45 + ((effectivePercent - 50) / 50) * (150 - 45); // Gold to Teal
     }
-    const saturation = 80 - (effectivePercent/100 * 40);
-    const lightness = 70;
-    const textLightness = 80;
+    const saturation = 90;
+    const lightness = 60;
 
     return {
       strokeColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
-      textColor: `hsl(${hue}, ${saturation}%, ${textLightness}%)`,
+      textColor: `hsl(${hue}, ${saturation}%, 85%)`,
     };
   };
 
   const { strokeColor, textColor } = getGradientColor(percentage);
 
-  const radius = 52;
+  // Geometry for SVG
+  const size = 120;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2 - 10;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const content = (
     <div 
-        className={`bg-dark-surface/50 border border-white/5 p-5 rounded-lg flex items-center justify-between border-glow-rose backdrop-blur-xl relative overflow-hidden group transition-all duration-700 hover:bg-dark-surface/80 hover:border-white/20 ${className} ${showSuccessIndicator ? 'scan-success-flash' : ''}`}
+        className={`bg-dark-surface/60 border border-white/5 p-5 rounded-xl flex items-center justify-between backdrop-blur-2xl relative overflow-hidden group transition-all duration-700 hover:bg-dark-surface/80 hover:border-white/10 ${className} ${showSuccessIndicator ? 'scan-success-flash' : ''}`}
         role="meter"
         aria-label={label}
         aria-valuenow={value}
@@ -76,82 +79,94 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = React.memo(({ label, 
         aria-valuemax={maxValue}
         aria-valuetext={getFormattedValue()}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
       
-      <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        <pattern id={`grid-${label.replace(/\s/g, '')}`} width="10" height="10" patternUnits="userSpaceOnUse">
-          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
-        </pattern>
-        <rect width="100%" height="100%" fill={`url(#grid-${label.replace(/\s/g, '')})`} />
-        <rect width="100%" height="2" fill="white" opacity="0.15" style={{ animation: 'scanline-sweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite' }} />
-      </svg>
-
-      <div className="flex-1 z-10 min-w-0 pr-4">
-        <div className="flex items-center gap-2 mb-2">
-            <div className="w-1 h-3 bg-gold/40 rounded-full" />
-            <p className="text-[9px] text-slate-500 uppercase tracking-[0.4em] truncate font-bold group-hover:text-gold transition-colors" id={`metric-label-${label}`} title={label}>{label}</p>
+      <div className="flex-1 z-10 min-w-0 pr-4 relative">
+        <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-px h-3 bg-white/30 group-hover:bg-white/60 transition-colors" />
+            <p className="text-[9px] text-slate-400 uppercase tracking-[0.25em] truncate font-semibold group-hover:text-pearl transition-colors" id={`metric-label-${label}`} title={label}>{label}</p>
         </div>
-        <div className="flex flex-wrap items-baseline gap-x-2">
+        <div className="flex flex-col">
             <p 
-            className="font-orbitron text-4xl sm:text-5xl font-bold transition-colors duration-500 leading-none tracking-tighter"
-            style={{ color: textColor, textShadow: `0 0 15px ${strokeColor}44` }}
+                className="font-orbitron text-3xl sm:text-4xl font-bold transition-colors duration-500 leading-none tracking-tighter"
+                style={{ color: textColor, textShadow: `0 0 20px ${strokeColor}33` }}
             >
-            {getFormattedValue()}
+                {getFormattedValue()}
             </p>
             {secondaryValue && (
-                <p className={`font-orbitron text-[10px] font-extrabold pb-0.5 transition-all duration-500 whitespace-nowrap bg-black/40 px-2 py-0.5 rounded border border-white/5 ${
-                    secondaryValue.startsWith('-') ? 'text-rose-400 border-rose-500/20' : 'text-green-400 border-green-500/20'
-                }`}>
-                    {secondaryValue}
-                </p>
+                <div className="flex items-center gap-2 mt-1.5">
+                    <span className={`text-[9px] font-mono opacity-60 ${secondaryValue.startsWith('-') ? 'text-rose-300' : 'text-emerald-300'}`}>
+                        {secondaryValue}
+                    </span>
+                </div>
             )}
         </div>
       </div>
       
-      <div className="w-20 h-20 sm:w-24 sm:h-24 relative z-10 flex-shrink-0" aria-hidden="true">
-        <svg className="w-full h-full" viewBox="0 0 120 120">
+      <div className="w-16 h-16 relative z-10 flex-shrink-0">
+        <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+          {/* Track (Segmented) */}
           <circle
-            className="text-slate-900/50"
-            strokeWidth="4"
-            stroke="currentColor"
-            fill="transparent"
-            r={radius + 4}
-            cx="60"
-            cy="60"
-          />
-          <circle
-            className="text-slate-800/20"
-            strokeWidth="8"
+            className="text-white/5"
+            strokeWidth={strokeWidth}
             stroke="currentColor"
             fill="transparent"
             r={radius}
-            cx="60"
-            cy="60"
+            cx={size/2}
+            cy={size/2}
+            strokeDasharray="2 4" 
           />
+          {/* Progress Segment */}
           <circle
             className="transition-all duration-1000 ease-out"
-            strokeWidth="8"
+            strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
-            strokeLinecap="butt"
+            strokeLinecap="round"
             stroke={strokeColor}
             fill="transparent"
             r={radius}
-            cx="60"
-            cy="60"
-            style={{ 
-                transform: 'rotate(-90deg)', 
-                transformOrigin: '50% 50%', 
-                filter: `drop-shadow(0 0 12px ${strokeColor}88)` 
-            }}
+            cx={size/2}
+            cy={size/2}
+            style={{ filter: `drop-shadow(0 0 4px ${strokeColor})` }}
+          />
+          
+          {/* Inner Decorative Spinner - Slower for elegance */}
+          <circle
+            className="text-white/10"
+            strokeWidth="0.5"
+            strokeDasharray="4 4"
+            stroke="currentColor"
+            fill="transparent"
+            r={radius - 8}
+            cx={size/2}
+            cy={size/2}
+            style={{ transformOrigin: 'center', animation: 'spin-slow 20s linear infinite' }}
+          />
+          
+          {/* Value Indicator Dot */}
+          <circle 
+             r="2.5" 
+             fill={strokeColor}
+             cx={size/2 + radius * Math.cos(2 * Math.PI * (percentage/100))}
+             cy={size/2 + radius * Math.sin(2 * Math.PI * (percentage/100))}
+             style={{ 
+                 transformOrigin: 'center', 
+                 transform: `rotate(${360 * (percentage/100)}deg)` 
+             }}
           />
         </svg>
+        
+        {/* Center label */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-[8px] font-mono text-white/20">{(percentage).toFixed(0)}</span>
+        </div>
       </div>
 
       <style>{`
-        @keyframes scanline-sweep {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(600%); }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
