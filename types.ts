@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { ThreeElements } from '@react-three/fiber';
 
 declare global {
   interface AIStudio {
@@ -24,11 +23,36 @@ declare global {
         mesh: any;
         sphereGeometry: any;
         meshBasicMaterial: any;
+        meshStandardMaterial: any;
         cylinderGeometry: any;
         gridHelper: any;
         color: any;
+        fog: any;
+        primitive: any;
 
+        // Catch-all for other R3F elements to prevent TS errors
         [elemName: string]: any;
+    }
+  }
+}
+
+// Ensure React.JSX is also augmented for newer React versions
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      ambientLight: any;
+      pointLight: any;
+      group: any;
+      mesh: any;
+      sphereGeometry: any;
+      meshBasicMaterial: any;
+      meshStandardMaterial: any;
+      cylinderGeometry: any;
+      gridHelper: any;
+      color: any;
+      fog: any;
+      primitive: any;
+      [elemName: string]: any;
     }
   }
 }
@@ -67,8 +91,6 @@ export enum LogType {
     CRITICAL = 'CRITICAL',
     SYSTEM = 'SYSTEM'
 }
-
-// Missing types added for application-wide consistency
 
 export interface OrbModeConfig {
   id: OrbMode;

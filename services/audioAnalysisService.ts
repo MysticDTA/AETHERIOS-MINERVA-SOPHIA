@@ -5,29 +5,38 @@ class AudioAnalysisService {
     private dataArray: Uint8Array | null = null;
     private source: MediaStreamAudioSourceNode | null = null;
     private isActive = false;
+    private historyBuffer: number[] = [];
 
     constructor() {
-        // Lazy init to respect browser autoplay policies
+        // Service initialized, waiting for stream connection via user interaction
     }
 
     public connectSource(stream: MediaStream) {
-        if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
+        try {
+            // Lazy load AudioContext to comply with browser policies
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+            
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
 
-        this.analyser = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 256; // Trade-off between resolution and performance
-        this.analyser.smoothingTimeConstant = 0.8;
-        
-        this.source = this.audioContext.createMediaStreamSource(stream);
-        this.source.connect(this.analyser);
-        
-        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-        this.isActive = true;
+            // Create Analyser for high-fidelity spectral data
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 2048; 
+            this.analyser.smoothingTimeConstant = 0.85; // Smooths out jitter for a more "organic" feel
+            
+            // Connect Stream
+            this.source = this.audioContext.createMediaStreamSource(stream);
+            this.source.connect(this.analyser);
+            
+            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+            this.isActive = true;
+            console.log("[AudioAnalysis] Bio-Acoustic Sensors Active. Listening for Resonance.");
+        } catch (e) {
+            console.error("[AudioAnalysis] Failed to connect bio-source:", e);
+        }
     }
 
     public disconnect() {
@@ -36,16 +45,68 @@ class AudioAnalysisService {
             this.source.disconnect();
             this.source = null;
         }
-        // We keep the context alive for re-use, or could close it if strictly necessary
+        // We keep audioContext alive for re-connection
     }
 
     public getFrequencyData(): Uint8Array {
         if (!this.isActive || !this.analyser || !this.dataArray) {
             return new Uint8Array(0);
         }
-        // Cast to any to bypass strict ArrayBuffer vs SharedArrayBuffer type mismatch in lib.dom.d.ts
-        this.analyser.getByteFrequencyData(this.dataArray as any);
+        this.analyser.getByteFrequencyData(this.dataArray);
         return this.dataArray;
+    }
+
+    /**
+     * Calculates Psychoacoustic Resonance and Signal Stability (Coherence)
+     * Returns normalized 0-1 values derived from real physics.
+     */
+    public getRealTimeMetrics() {
+        if (!this.isActive || !this.analyser || !this.dataArray) {
+            return { resonance: 0, coherence: 0, entropy: 0 };
+        }
+
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const length = this.dataArray.length;
+        
+        // 1. Calculate Resonance (Total Energy / RMS)
+        // High volume/energy = High Resonance
+        let sumSquares = 0;
+        for (let i = 0; i < length; i++) {
+            const val = this.dataArray[i] / 255; 
+            sumSquares += val * val;
+        }
+        const rms = Math.sqrt(sumSquares / length);
+        // Scale RMS to be more responsive (0.0 - 0.5 usually) -> map to 0.0 - 1.0
+        // We clamp it to 1.0. A quiet room is ~0.
+        const resonance = Math.min(1.0, rms * 5); 
+
+        // 2. Calculate Coherence (Stability of the signal over time)
+        // We track the variance of the resonance over the last 30 frames (~1.5s)
+        this.historyBuffer.push(resonance);
+        if (this.historyBuffer.length > 30) this.historyBuffer.shift();
+        
+        const mean = this.historyBuffer.reduce((a, b) => a + b, 0) / this.historyBuffer.length;
+        const variance = this.historyBuffer.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / this.historyBuffer.length;
+        const stdDev = Math.sqrt(variance);
+        
+        // Low deviation = High Coherence (Steady tone/voice/silence). High deviation = Low Coherence (Chaotic noise).
+        // Invert stdDev: 0 dev = 1 coherence.
+        // We use a non-linear curve to highlight stability.
+        const coherence = Math.max(0, 1.0 - (stdDev * 6)); 
+
+        // 3. Entropy (High frequency noise ratio)
+        // Check upper 30% of spectrum for chaotic energy
+        let noiseEnergy = 0;
+        const noiseStart = Math.floor(length * 0.7);
+        for(let i = noiseStart; i < length; i++) {
+            noiseEnergy += this.dataArray[i];
+        }
+        // Normalize noise energy relative to the number of bins checked
+        const entropyRaw = (noiseEnergy / (length - noiseStart)) / 255;
+        // Amplify for visibility: even small high-freq noise is entropy
+        const entropy = Math.min(1.0, entropyRaw * 8); 
+
+        return { resonance, coherence, entropy };
     }
 
     public getEnergyMetrics() {
@@ -54,16 +115,14 @@ class AudioAnalysisService {
         }
 
         const length = this.dataArray.length;
-        const bassEnd = Math.floor(length * 0.1); // Lower 10%
-        const midEnd = Math.floor(length * 0.5);  // Next 40%
+        // Frequency bands (approximate for 2048 FFT size)
+        const bassEnd = Math.floor(length * 0.05); // ~0-1000Hz
+        const midEnd = Math.floor(length * 0.4);   // ~1000-8000Hz
         
-        let bassSum = 0;
-        let midSum = 0;
-        let highSum = 0;
-        let totalSum = 0;
+        let bassSum = 0, midSum = 0, highSum = 0, totalSum = 0;
 
         for (let i = 0; i < length; i++) {
-            const val = this.dataArray[i] / 255.0; // Normalize 0-1
+            const val = this.dataArray[i] / 255.0;
             totalSum += val;
             
             if (i < bassEnd) bassSum += val;

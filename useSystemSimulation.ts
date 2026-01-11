@@ -6,18 +6,14 @@ import {
   SupernovaTriforceState, 
   PillarId, 
   OrbMode, 
-  CoherenceResonanceData,
   PerformanceTelemetry,
-  IngestedModule,
-  GlobalResonanceState,
-  HarmonicInterferenceData,
   HybridSecurityState,
-  SchumannResonanceData,
-  VibrationData,
+  HarmonicInterferenceData,
   HeirNode
 } from './types';
 import { ApiService } from './services/api';
 import { collectiveResonanceService } from './services/collectiveResonanceService';
+import { audioAnalysisService } from './services/audioAnalysisService';
 
 const PERSISTENCE_KEY = 'S7_OPERATOR_DATA';
 
@@ -91,12 +87,12 @@ export const initialSystemState: SystemState = {
     vibrationStatus: 'PURE'
   },
   quantumHealing: {
-    health: 0.92,
+    health: 0.98,
     lesions: 0,
     repairRate: 0.005,
     status: "OPTIMAL",
-    decoherence: 0.04,
-    stabilizationShield: 0.95,
+    decoherence: 0.01,
+    stabilizationShield: 1.0,
   },
   hybridSecurity: {
     globalPosture: 'QUANTUM_READY',
@@ -104,13 +100,13 @@ export const initialSystemState: SystemState = {
         { id: 'l1', type: 'CLASSICAL', algorithm: 'AES-256-GCM', status: 'ACTIVE', entropyBitDepth: 256 },
         { id: 'l2', type: 'POST_QUANTUM', algorithm: 'CRYSTALS-KYBER', status: 'ACTIVE', entropyBitDepth: 1024 }
     ],
-    quantumResistanceScore: 0.98,
-    threatMitigationIndex: 0.999,
+    quantumResistanceScore: 0.99,
+    threatMitigationIndex: 1.0,
     lastHardenTimestamp: Date.now()
   },
   holisticAlignmentScore: 1.0,
-  resonanceFactorRho: 0.98,
-  selfCorrectionField: 0.5,
+  resonanceFactorRho: 0.5, // Starts neutral, driven by voice
+  selfCorrectionField: 0.9,
   resonanceCoherence: {
     lambda: { frequency: 780, amplitude: 0.9, phase: 0, harmonicIndex: 1 },
     sigma: { frequency: 450, amplitude: 0.85, phase: 120, harmonicIndex: 2 },
@@ -123,8 +119,8 @@ export const initialSystemState: SystemState = {
     standingWaveRatio: 1.02
   },
   lyranConcordance: {
-    alignmentDrift: 0.01,
-    connectionStability: 0.98,
+    alignmentDrift: 0.001,
+    connectionStability: 0.99,
   },
   satelliteUplink: {
     signalStrength: 0.99,
@@ -146,7 +142,7 @@ export const initialSystemState: SystemState = {
     status: 'SYNCHRONIZED',
   },
   vibration: {
-    amplitude: 1.2,
+    amplitude: 1.0,
     frequency: 432,
     resonanceStatus: 'HARMONIC',
   },
@@ -154,7 +150,7 @@ export const initialSystemState: SystemState = {
     efficiency: 0.98,
     particleDensity: 0.4,
     fluxStatus: 'STABLE',
-    entropy: 0.002,
+    entropy: 0.001,
   },
   schumannResonance: {
     liveFrequency: 7.83,
@@ -162,11 +158,11 @@ export const initialSystemState: SystemState = {
     status: 'NOMINAL',
   },
   earthGrounding: {
-    charge: 0.9,
-    conductivity: 0.98,
+    charge: 0.95,
+    conductivity: 0.99,
     status: 'STABLE',
-    seismicActivity: 0.01,
-    telluricCurrent: 0.02,
+    seismicActivity: 0.00,
+    telluricCurrent: 0.01,
     feedbackLoopStatus: 'IDLE'
   },
   tesseract: {
@@ -180,15 +176,15 @@ export const initialSystemState: SystemState = {
   },
   coherenceResonance: {
     score: 0.99,
-    entropyFlux: 0.005,
+    entropyFlux: 0.002,
     phaseSync: 0.99,
     quantumCorrelation: 0.99,
     status: 'COHERENT',
     intelligenceLog: []
   },
   abundanceCore: {
-    flow: 0.9,
-    generosity: 0.9,
+    flow: 0.95,
+    generosity: 0.95,
     status: 'STABLE',
   },
   dilutionRefrigerator: {
@@ -198,9 +194,9 @@ export const initialSystemState: SystemState = {
   },
   governanceAxiom: "SOVEREIGN EMBODIMENT",
   supernovaTriforce: {
-    phiEnergy: 0.95,
-    psiEnergy: 0.95,
-    omegaEnergy: 0.98,
+    phiEnergy: 0.98,
+    psiEnergy: 0.98,
+    omegaEnergy: 0.99,
     output: 18.0,
     stability: 0.99,
     state: SupernovaTriforceState.STABLE,
@@ -210,26 +206,18 @@ export const initialSystemState: SystemState = {
     LEMURIAN: { id: 'LEMURIAN', name: 'Lemurian Heart', activation: 0.98, description: 'Emotion & Flow' },
     ATLANTEAN: { id: 'ATLANTEAN', name: 'Atlantean Will', activation: 0.98, description: 'Power & Tech' },
   },
-  temporalCoherenceDrift: 0.0004,
+  temporalCoherenceDrift: 0.0001,
   log: [],
   breathCycle: 'INHALE',
-  isGrounded: false,
-  isPhaseLocked: false,
-  ingestedModules: [
-      { id: 'mod_01', name: 'Menerva_Core_Bridge', originProject: 'MENERVA', status: 'MOUNTED', entryPoint: '/api/menerva/v1/bridge' },
-      { id: 'mod_02', name: 'Stripe_Payment_V4', originProject: 'AETHERIOS', status: 'SYNCING', entryPoint: '/api/payments/checkout' }
-  ],
+  isGrounded: true,
+  isPhaseLocked: true,
+  ingestedModules: [],
   globalResonance: {
     aggregateRho: 0.94,
     activeArchitects: 156,
     globalCarrierFrequency: 1.617,
     fieldStatus: 'STABLE',
-    communities: [
-        { id: 'c1', name: 'Sirius Collective', rho: 0.96, coherence: 0.95, stability: 0.99, activeNodes: 28, lastEvent: 'Peak Rho verified.', location: { x: 25, y: 35 } },
-        { id: 'c2', name: 'Omega Research', rho: 0.88, coherence: 0.85, stability: 0.92, activeNodes: 22, lastEvent: 'Handshake complete.', location: { x: 65, y: 45 } },
-        { id: 'c3', name: 'Arcturian Node', rho: 0.99, coherence: 0.99, stability: 0.99, activeNodes: 36, lastEvent: 'Peak Rho synergy verified.', location: { x: 45, y: 75 } },
-        { id: 'c4', name: 'Lemurian Labs', rho: 0.92, coherence: 0.94, stability: 0.94, activeNodes: 16, lastEvent: 'Flow optimization active.', location: { x: 85, y: 25 } }
-    ]
+    communities: []
   },
   legalEstate: {
     abnTrustId: 'ABN_TRUST_88_MCBRIDE',
@@ -257,7 +245,6 @@ export const useSystemSimulation = (
   const tickRef = useRef(0);
   
   const simulationIntervalRef = useRef<number | null>(null);
-  const breathIntervalRef = useRef<number | null>(null);
   const isMounted = useRef(false);
 
   useEffect(() => {
@@ -270,8 +257,6 @@ export const useSystemSimulation = (
                 ...initialSystemState,
                 ...parsed,
                 resonanceCoherence: { ...initialSystemState.resonanceCoherence, ...parsed.resonanceCoherence },
-                harmonicInterference: { ...initialSystemState.harmonicInterference, ...parsed.harmonicInterference },
-                globalResonance: { ...initialSystemState.globalResonance, ...parsed.globalResonance }
             }));
         }
     } catch (e) { 
@@ -286,21 +271,6 @@ export const useSystemSimulation = (
         }
     });
 
-    const syncWithBackend = async () => {
-        const profile = await ApiService.syncOperatorProfile(systemState.auth.sessionToken);
-        if (profile && isMounted.current) {
-            setSystemState(prev => ({
-                ...prev,
-                userResources: {
-                    ...prev.userResources,
-                    sovereignTier: profile.tier,
-                    cradleTokens: profile.tokens
-                }
-            }));
-        }
-    };
-    syncWithBackend();
-    
     return () => { 
         isMounted.current = false; 
         collectiveResonanceService.stop();
@@ -325,145 +295,86 @@ export const useSystemSimulation = (
     }));
   }, []);
 
+  // Real-Time System Heartbeat (Driven by Live Audio & Performance)
   useEffect(() => {
-    const breathDuration = isGrounded ? 6000 : 4500;
-    breathIntervalRef.current = window.setInterval(() => {
-      if (!isMounted.current) return;
-      setSystemState(prev => ({
-        ...prev,
-        breathCycle: prev.breathCycle === 'INHALE' ? 'EXHALE' : 'INHALE'
-      }));
-    }, breathDuration);
-    return () => { if (breathIntervalRef.current) clearInterval(breathIntervalRef.current); };
-  }, [isGrounded]);
+    let lastTime = performance.now();
 
-  useEffect(() => {
-    simulationIntervalRef.current = window.setInterval(() => {
-      if (!isMounted.current) return;
-      tickRef.current += 1;
-      
-      setSystemState(prev => {
-        let newDecoherence = prev.quantumHealing.decoherence;
-        let newHealth = prev.quantumHealing.health;
-        let newLesions = prev.quantumHealing.lesions;
-
-        // Apply external simulation params (Chaos injection)
-        if (Math.random() < params.decoherenceChance) {
-            newDecoherence = Math.min(1.0, newDecoherence + 0.05);
-        }
-        if (Math.random() < params.lesionChance) {
-             newLesions += 1;
-             newHealth = Math.max(0, newHealth - 0.05);
-        }
-
-        const globalStabilityBonus = prev.globalResonance.aggregateRho > 0.8 ? 0.005 : 0;
-
-        if (prev.biometricSync.coherence < 0.4) {
-            newDecoherence = Math.min(1.0, newDecoherence + 0.012);
-        } else {
-            const correctionPower = (prev.resonanceFactorRho * 0.005) + (isGrounded ? 0.01 : 0) + globalStabilityBonus;
-            newDecoherence = Math.max(0, newDecoherence - correctionPower);
-        }
-
-        const baseRho = (prev.biometricSync.coherence + prev.schumannResonance.intensity + prev.bohrEinsteinCorrelator.correlation) / 3;
-        let resonanceModifier = Math.max(0.1, Math.min(1.0, baseRho + (Math.random() - 0.5) * 0.004));
+    const loop = () => {
+        if (!isMounted.current) return;
+        const now = performance.now();
+        const delta = now - lastTime;
         
-        const phaseShiftRate = 0.5; 
+        if (delta > 50) { // Limit to ~20 ticks per second for UI performance
+            lastTime = now;
+            tickRef.current++;
+
+            // 1. Ingest Real-Time Audio Metrics
+            const { resonance, coherence, entropy } = audioAnalysisService.getRealTimeMetrics();
+            
+            setSystemState(prev => {
+                // If there's no audio, we decay slightly, but never below standby threshold
+                const targetRho = resonance > 0.05 ? resonance : 0.2; 
+                // Smoother transition for Rho to prevent jitter
+                const smoothRho = prev.resonanceFactorRho * 0.9 + targetRho * 0.1;
+
+                const targetCoherence = coherence > 0 ? coherence : 0.95;
+                const smoothCoherence = prev.biometricSync.coherence * 0.95 + targetCoherence * 0.05;
+
+                // 2. Real Performance Metrics
+                // We use browser performance API for actual memory/timing if available
+                const perf = (performance as any).memory || { usedJSHeapSize: 20000000 };
+                const memoryUsageMB = perf.usedJSHeapSize / 1048576;
+                
+                const newPerformance: PerformanceTelemetry = {
+                    logicalLatency: 0.0001, // Near zero in react
+                    visualParity: 1.0,
+                    gpuLoad: Math.min(1.0, memoryUsageMB / 500), // Approx logic
+                    frameStability: 1.0 - (entropy * 0.5),
+                    thermalIndex: 34 + (smoothRho * 5),
+                    throughput: 450 + (smoothRho * 200),
+                    memoryUsage: parseFloat((memoryUsageMB / 1024).toFixed(2))
+                };
+
+                // 3. Update Harmonics based on Audio Input
+                const newLambda = {
+                    ...prev.resonanceCoherence.lambda,
+                    amplitude: smoothRho,
+                    frequency: 780 + (entropy * 50)
+                };
+
+                return {
+                    ...prev,
+                    isGrounded,
+                    performance: newPerformance,
+                    resonanceFactorRho: smoothRho,
+                    biometricSync: {
+                        ...prev.biometricSync,
+                        coherence: smoothCoherence,
+                        status: smoothCoherence > 0.8 ? 'SYNCHRONIZED' : 'CALIBRATING'
+                    },
+                    quantumHealing: {
+                        ...prev.quantumHealing,
+                        decoherence: Math.max(0, entropy - 0.1), // Noise = Decoherence
+                        health: Math.min(1.0, prev.quantumHealing.health + 0.001) // Auto-regen
+                    },
+                    resonanceCoherence: {
+                        ...prev.resonanceCoherence,
+                        lambda: newLambda,
+                        score: (smoothRho + smoothCoherence) / 2,
+                        entropyFlux: entropy
+                    }
+                };
+            });
+        }
         
-        const newLambda = {
-            ...prev.resonanceCoherence.lambda,
-            amplitude: Math.max(0.7, Math.min(1.0, prev.resonanceCoherence.lambda.amplitude + (Math.random() - 0.5) * 0.01)),
-            phase: (prev.resonanceCoherence.lambda.phase + phaseShiftRate * 1) % 360
-        };
-        const newSigma = {
-            ...prev.resonanceCoherence.sigma,
-            amplitude: Math.max(0.6, Math.min(1.0, prev.resonanceCoherence.sigma.amplitude + (Math.random() - 0.5) * 0.02)),
-            phase: (prev.resonanceCoherence.sigma.phase + phaseShiftRate * 1.5) % 360
-        };
-        const newTau = {
-            ...prev.resonanceCoherence.tau,
-            amplitude: Math.max(0.8, Math.min(1.0, prev.resonanceCoherence.tau.amplitude + (Math.random() - 0.5) * 0.005)),
-            phase: (prev.resonanceCoherence.tau.phase + phaseShiftRate * 0.8) % 360
-        };
+        simulationIntervalRef.current = requestAnimationFrame(loop);
+    };
 
-        const phaseDiff = Math.abs(newLambda.phase - (tickRef.current % 360));
-        const reflectionCoeff = Math.abs(Math.cos(phaseDiff * (Math.PI / 180))) * (1 - resonanceModifier); 
-        const swr = (1 + reflectionCoeff) / (1 - reflectionCoeff);
-        
-        const constructive = Math.max(0, 1 - reflectionCoeff);
-        const destructive = reflectionCoeff;
-        const beatFreq = Math.abs(newLambda.frequency - prev.globalResonance.globalCarrierFrequency * 1000) / 1000;
-
-        const newHarmonicInterference: HarmonicInterferenceData = {
-            beatFrequency: beatFreq + (Math.random() * 0.01),
-            constructiveInterference: constructive,
-            destructiveInterference: destructive,
-            standingWaveRatio: Math.min(5.0, swr)
-        };
-
-        const newPerformance: PerformanceTelemetry = {
-            logicalLatency: 0.0001 + (newDecoherence * 0.002),
-            visualParity: 1.0 - (newDecoherence * 0.05),
-            gpuLoad: 0.1 + (prev.supernovaTriforce.output / 150) + (Math.random() * 0.02),
-            frameStability: 1.0 - (prev.vibration.amplitude / 400),
-            thermalIndex: 30 + (prev.supernovaTriforce.stability * 10),
-            throughput: 400 + (resonanceModifier * 350) + (Math.random() * 20),
-            memoryUsage: 12 + (newDecoherence * 2) + (Math.random() * 0.5)
-        };
-
-        const coherenceScore = (resonanceModifier + prev.biometricSync.coherence + prev.bohrEinsteinCorrelator.correlation) / 3;
-        let coherenceStatus: 'COHERENT' | 'RESONATING' = 'COHERENT';
-        if (coherenceScore < 0.7) coherenceStatus = 'RESONATING';
-
-        const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0001);
-
-        const cryptoJitter = (Math.random() - 0.5) * 0.001;
-        const newHybridSecurity: HybridSecurityState = {
-            ...prev.hybridSecurity,
-            quantumResistanceScore: Math.min(1, Math.max(0.95, prev.hybridSecurity.quantumResistanceScore + cryptoJitter)),
-            threatMitigationIndex: Math.min(1.0, 1.0 - newDecoherence * 0.1)
-        };
-
-        const newChronos = {
-            ...prev.chronos,
-            projectedRho: Math.min(1.0, Math.max(0.1, prev.chronos.projectedRho + (resonanceModifier > 0.9 ? 0.001 : -0.001))),
-            timelineStability: prev.chronos.anchorStatus === 'LOCKED' ? 1.0 : Math.max(0.5, resonanceModifier)
-        };
-
-        return {
-          ...prev,
-          isGrounded,
-          performance: newPerformance,
-          quantumHealing: {
-              ...prev.quantumHealing,
-              lesions: newLesions,
-              health: newHealth,
-              decoherence: newDecoherence,
-              stabilizationShield: Math.max(0, Math.min(1, prev.quantumHealing.stabilizationShield + (resonanceModifier > 0.9 ? 0.01 : -0.005)))
-          },
-          resonanceFactorRho: resonanceModifier,
-          temporalCoherenceDrift: Math.max(0, prev.temporalCoherenceDrift + driftIncrease),
-          resonanceCoherence: {
-              lambda: newLambda,
-              sigma: newSigma,
-              tau: newTau
-          },
-          harmonicInterference: newHarmonicInterference,
-          coherenceResonance: {
-              ...prev.coherenceResonance,
-              score: coherenceScore,
-              entropyFlux: (newDecoherence * 0.4) + (1 - resonanceModifier) * 0.6,
-              phaseSync: resonanceModifier,
-              quantumCorrelation: prev.bohrEinsteinCorrelator.correlation * resonanceModifier,
-              status: coherenceStatus
-          },
-          hybridSecurity: newHybridSecurity,
-          chronos: newChronos
-        };
-      });
-    }, 1000);
-    return () => { if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current); };
-  }, [orbMode, isGrounded, diagnosticMode, addLogEntry, params]);
+    simulationIntervalRef.current = requestAnimationFrame(loop);
+    return () => { 
+        if (simulationIntervalRef.current) cancelAnimationFrame(simulationIntervalRef.current); 
+    };
+  }, [isGrounded, orbMode]);
 
   return { 
     systemState, 
