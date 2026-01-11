@@ -5,6 +5,7 @@ import { BreathBar } from './BreathBar';
 import { Tooltip } from './Tooltip';
 import { OrbMode } from '../types';
 import { RealTimeIntelTicker } from './RealTimeIntelTicker';
+import { UniversalConnectome } from './UniversalConnectome';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -50,6 +51,9 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
 
       {/* 3D Unified Graphics Pipeline */}
       <UnifiedLatticeBackground rho={resonanceFactor} coherence={coherence} orbMode={orbMode} />
+
+      {/* --- UNIVERSAL CONNECTOME INTERCONNECT LAYER (NEW) --- */}
+      <UniversalConnectome rho={resonanceFactor} coherence={coherence} orbMode={orbMode} />
 
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
       <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-2 md:m-3 overflow-hidden rounded-xl shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
