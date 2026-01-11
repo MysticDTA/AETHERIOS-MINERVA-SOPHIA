@@ -46,6 +46,7 @@ import { MenervaBridge } from './components/MenervaBridge';
 import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
 import { CausalIngestionNexus } from './components/CausalIngestionNexus';
 import { QuantumComputeNexus } from './components/QuantumComputeNexus';
+import { HeirNetworkDisplay } from './components/HeirNetworkDisplay';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { Display3 } from './components/Display3'; // Restored
 
@@ -106,7 +107,7 @@ export const App: React.FC = () => {
       setHasInitialized(true);
   };
 
-  const handleLogin = (isCreator = false) => {
+  const handleLogin = (isCreator = false, isHeir = false) => {
       if (isCreator) {
           setSystemState(prev => ({
               ...prev,
@@ -125,6 +126,28 @@ export const App: React.FC = () => {
           }));
           addLogEntry(LogType.SYSTEM, 'ARCHITECT RECOGNIZED. SOVEREIGN PROTOCOLS ACTIVE.');
           audioEngineRef.current?.playHighResonanceChime();
+      } else if (isHeir) {
+          // HEIR LOGIC
+          setSystemState(prev => ({
+              ...prev,
+              auth: { 
+                  ...prev.auth, 
+                  isAuthenticated: true, 
+                  isBioVerified: true, 
+                  operatorId: 'HEIR_NODE_AUTHORIZED' 
+              },
+              userResources: { 
+                  ...prev.userResources, 
+                  sovereignTier: 'SOVEREIGN',
+                  cradleTokens: 50000, 
+                  sovereignLiquidity: 43710000, // Total Liquidity
+                  recoveryVault: 11210000       // Recovery Vault
+              }
+          }));
+          addLogEntry(LogType.SYSTEM, 'HEIR CREDENTIALS VERIFIED. DYNASTY LEDGER UNLOCKED.');
+          addLogEntry(LogType.INFO, 'Manifest Pulse: Kingscliff Reclamation Active.');
+          // Skip BIO for Heirs as handshake was part of login
+          setAuthView('LOGIN'); // Reset view state internally
       } else {
           setAuthView('BIO');
       }
@@ -186,6 +209,7 @@ export const App: React.FC = () => {
           case 11: return <Display11 systemState={systemState} />;
           case 12: return <Display12 systemState={systemState} />;
           case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
+          case 16: return <HeirNetworkDisplay systemState={systemState} />; // New Heir Network Page
           case 27: return <QuantumDynastyLedger systemState={systemState} />;
           case 28: return <KingdomSiteCommander />;
           case 29: return <AgenticOrchestrator active={true} />;

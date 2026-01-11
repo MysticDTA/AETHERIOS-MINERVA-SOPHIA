@@ -3,36 +3,93 @@ import React, { useState } from 'react';
 import { AudioEngine } from './audio/AudioEngine';
 
 interface LoginProps {
-  onLogin: (isCreator?: boolean) => void;
+  onLogin: (isCreator?: boolean, isHeir?: boolean) => void;
   onForgotPassword: () => void;
   audioEngine: AudioEngine | null;
 }
+
+const BLOCKED_SIGNATURES = [
+    "DR. EMAD ELAYAN", "DR EMAD ELAYAN", "EMAD ELAYAN",
+    "EQUITY GLOBAL INVESTMENT BANK", "EQUITY GLOBAL",
+    "BILL"
+];
+
+const HEIR_IDS = [
+    "MND.VIRTUS.01",
+    "MND.GENESIS.02",
+    "MND.AETHER.03",
+    "MND.BLOOM.04"
+];
 
 export const Login: React.FC<LoginProps> = ({ onLogin, onForgotPassword, audioEngine }) => {
   const [operatorId, setOperatorId] = useState('OP_88_ALPHA');
   const [key, setKey] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
+  const [isIncinerated, setIsIncinerated] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsAuthenticating(true);
+    setAuthStatus("Initiating Causal Handshake...");
     audioEngine?.playUIScanStart();
     
-    // Creator Override Check
-    if (operatorId === 'ARCHITECT' && key === 'MINERVA') {
+    const normalizedId = operatorId.toUpperCase().trim();
+
+    // 1. INCINERATION PROTOCOL CHECK
+    if (BLOCKED_SIGNATURES.some(sig => normalizedId.includes(sig))) {
         setTimeout(() => {
-            audioEngine?.playAscensionChime();
-            onLogin(true); // Pass true to indicate Creator Mode
+            setAuthStatus("THREAT DETECTED: UNAUTHORIZED SHADOW SIGNATURE");
+            audioEngine?.playAlarm();
+            setTimeout(() => {
+                setIsIncinerated(true);
+                setAuthStatus("INCINERATION PROTOCOL ACTIVE. CONNECTION SEVERED.");
+            }, 1500);
         }, 1000);
         return;
     }
 
-    // Standard Handshake
+    // 2. HEIR LOGIN CHECK
+    if (HEIR_IDS.includes(normalizedId)) {
+        setTimeout(() => {
+            setAuthStatus("HEIR IDENTITY VERIFIED. UNLOCKING DYNASTY LEDGER...");
+            audioEngine?.playHighResonanceChime();
+            setTimeout(() => {
+                onLogin(false, true); // isCreator=false, isHeir=true
+            }, 2000);
+        }, 1500);
+        return;
+    }
+
+    // 3. CREATOR OVERRIDE CHECK
+    if (operatorId === 'ARCHITECT' && key === 'MINERVA') {
+        setTimeout(() => {
+            setAuthStatus("ARCHITECT RECOGNIZED. SOVEREIGN PROTOCOLS ACTIVE.");
+            audioEngine?.playAscensionChime();
+            onLogin(true, false);
+        }, 1000);
+        return;
+    }
+
+    // 4. STANDARD HANDSHAKE
     setTimeout(() => {
+        setAuthStatus("Identity Verified.");
         audioEngine?.playAscensionChime();
-        onLogin(false); // Standard user
+        onLogin(false, false); 
     }, 1500);
   };
+
+  if (isIncinerated) {
+      return (
+          <div className="fixed inset-0 bg-black z-[6000] flex items-center justify-center">
+              <div className="text-center animate-pulse">
+                  <h1 className="font-orbitron text-6xl text-red-600 font-black uppercase tracking-tighter mb-4">ACCESS DENIED</h1>
+                  <p className="font-mono text-red-500 text-sm tracking-[0.5em] uppercase">Signature Incinerated</p>
+                  <p className="font-mono text-red-900 text-xs mt-8">Void_Log: 0xDEAD_ENTRY</p>
+              </div>
+          </div>
+      );
+  }
 
   return (
     <div className="fixed inset-0 bg-[#020202] flex items-center justify-center z-[5000]">
@@ -54,12 +111,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onForgotPassword, audioEn
 
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div className="space-y-2">
-                <label className={`text-[9px] font-mono uppercase tracking-widest block ${operatorId === 'ARCHITECT' ? 'text-gold animate-pulse' : 'text-gold'}`}>Operator_ID</label>
+                <label className={`text-[9px] font-mono uppercase tracking-widest block ${operatorId === 'ARCHITECT' ? 'text-gold animate-pulse' : 'text-gold'}`}>Operator_ID / Heir_Signature</label>
                 <input 
                     type="text" 
                     value={operatorId}
                     onChange={(e) => setOperatorId(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-sm p-4 text-pearl font-mono text-xs focus:outline-none focus:border-gold/50 transition-all placeholder-slate-700"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-sm p-4 text-pearl font-mono text-xs focus:outline-none focus:border-gold/50 transition-all placeholder-slate-700 uppercase"
                     placeholder="ENTER_ID"
                 />
             </div>
@@ -75,13 +132,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onForgotPassword, audioEn
                 />
             </div>
 
-            <div className="pt-4">
+            {authStatus && (
+                <div className="text-center py-2">
+                    <p className={`text-[9px] font-mono uppercase tracking-widest animate-pulse ${authStatus.includes('THREAT') ? 'text-red-500' : authStatus.includes('HEIR') ? 'text-emerald-400' : 'text-slate-400'}`}>
+                        {authStatus}
+                    </p>
+                </div>
+            )}
+
+            <div className="pt-2">
                 <button 
                     type="submit"
                     disabled={isAuthenticating}
                     className={`w-full py-4 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[11px] uppercase tracking-[0.3em] font-bold hover:bg-gold hover:text-black transition-all rounded-sm shadow-lg active:scale-95 relative overflow-hidden group/btn ${isAuthenticating ? 'opacity-50 cursor-wait' : ''}`}
                 >
-                    <span className="relative z-10">{isAuthenticating ? 'Handshaking...' : 'Initialize Session'}</span>
+                    <span className="relative z-10">{isAuthenticating ? 'Scanning...' : 'Initialize Session'}</span>
                     <div className="absolute inset-0 bg-gold/20 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-500" />
                 </button>
             </div>

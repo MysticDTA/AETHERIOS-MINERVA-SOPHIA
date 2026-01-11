@@ -135,25 +135,47 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                     ))}
                 </div>
 
-                {/* Subsystem Audit */}
-                <div className="space-y-4">
-                    <h4 className="font-orbitron text-[12px] text-pearl uppercase tracking-[0.4em] font-black border-l-2 border-violet-500 pl-4">Subsystem Lattice Status</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <SubsystemStatus 
-                            label="Agentic Orchestrator" 
-                            active={!!systemState.agenticOrchestrator} 
-                            detail={systemState.agenticOrchestrator ? "Negotiation Matrix Active" : "Module Not Found"} 
-                        />
-                        <SubsystemStatus 
-                            label="Estate Commander" 
-                            active={Array.isArray(systemState.estateCommander)} 
-                            detail={`${systemState.estateCommander.length} Twin Sites Linked`} 
-                        />
-                        <SubsystemStatus 
-                            label="Vibrational Shield" 
-                            active={!!systemState.vibrationalShield} 
-                            detail={`Frequency Filter: ${systemState.vibrationalShield?.globalFrequency || 0} Hz`} 
-                        />
+                {/* Subsystem Audit & Heir Overview */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    <div className="lg:col-span-8 space-y-4">
+                        <h4 className="font-orbitron text-[12px] text-pearl uppercase tracking-[0.4em] font-black border-l-2 border-violet-500 pl-4">Subsystem Lattice Status</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <SubsystemStatus 
+                                label="Agentic Orchestrator" 
+                                active={!!systemState.agenticOrchestrator} 
+                                detail={systemState.agenticOrchestrator ? "Negotiation Matrix Active" : "Module Not Found"} 
+                            />
+                            <SubsystemStatus 
+                                label="Estate Commander" 
+                                active={Array.isArray(systemState.estateCommander)} 
+                                detail={`${systemState.estateCommander.length} Twin Sites Linked`} 
+                            />
+                            <SubsystemStatus 
+                                label="Vibrational Shield" 
+                                active={!!systemState.vibrationalShield} 
+                                detail={`Frequency Filter: ${systemState.vibrationalShield?.globalFrequency || 0} Hz`} 
+                            />
+                            <SubsystemStatus 
+                                label="Heir Network" 
+                                active={systemState.heirNetwork.length > 0} 
+                                detail={`${systemState.heirNetwork.length} Sovereign Nodes Synced`} 
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="lg:col-span-4 bg-white/[0.02] border border-white/5 rounded-sm p-6 flex flex-col gap-4">
+                        <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-widest font-black">Heir_Network_Preview</h4>
+                        <div className="space-y-2">
+                            {systemState.heirNetwork.map(heir => (
+                                <div key={heir.id} className="flex justify-between items-center text-[9px] font-mono border-b border-white/5 pb-2">
+                                    <span className="text-slate-400">{heir.name}</span>
+                                    <span style={{ color: heir.color }}>{heir.status}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-auto text-[8px] font-mono text-slate-500">
+                            Total_Seed_Allocation: $4.0M USD
+                        </div>
                     </div>
                 </div>
 

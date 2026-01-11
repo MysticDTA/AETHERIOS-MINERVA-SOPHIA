@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ThreeElements } from '@react-three/fiber';
 
@@ -31,24 +30,6 @@ declare global {
         [elemName: string]: any;
     }
   }
-}
-
-// Augment React's JSX namespace directly to ensure compatibility across different TS setups
-declare module 'react' {
-    namespace JSX {
-        interface IntrinsicElements {
-            ambientLight: any;
-            pointLight: any;
-            group: any;
-            mesh: any;
-            sphereGeometry: any;
-            meshBasicMaterial: any;
-            cylinderGeometry: any;
-            gridHelper: any;
-            color: any;
-            [elemName: string]: any;
-        }
-    }
 }
 
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
@@ -464,17 +445,29 @@ export interface ChronosState {
     forecastHorizon: number; // Days into future
 }
 
+export interface HeirNode {
+    id: string;
+    name: string;
+    focus: string;
+    seedFund: number;
+    status: 'ACTIVE' | 'SYNCING' | 'LOCKED';
+    color: string;
+    symbol: string;
+}
+
 export interface SystemState {
   userResources: {
     cradleTokens: number;
     sovereignTier: UserTier;
     sovereignLiquidity: number; 
+    recoveryVault: number; // New field for Heir Protocol
     manifestPulse: number; 
     unlockedModules: string[];
     ledgerHistory: any[];
     subscriptionActive: boolean;
     menervaLegacyPoints: number;
   };
+  heirNetwork: HeirNode[]; // New field for Heir Protocol
   performance: PerformanceTelemetry;
   auth: {
     isAuthenticated: boolean;
@@ -489,7 +482,7 @@ export interface SystemState {
   estateCommander: EstateTelemetry[];
   sanctuary: SanctuaryState; 
   vehicle: VehicleTelemetry; 
-  chronos: ChronosState; // New Chronos Engine State
+  chronos: ChronosState; 
   vibrationalShield: VibrationalShieldState;
   resonanceFactorRho: number;
   temporalCoherenceDrift: number;

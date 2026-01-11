@@ -13,12 +13,20 @@ import {
   HarmonicInterferenceData,
   HybridSecurityState,
   SchumannResonanceData,
-  VibrationData
+  VibrationData,
+  HeirNode
 } from './types';
 import { ApiService } from './services/api';
 import { collectiveResonanceService } from './services/collectiveResonanceService';
 
 const PERSISTENCE_KEY = 'S7_OPERATOR_DATA';
+
+const INITIAL_HEIRS: HeirNode[] = [
+    { id: 'MND.VIRTUS.01', name: 'Virtus', focus: 'Virtual Physics & Simulation', seedFund: 1000000, status: 'ACTIVE', color: '#a78bfa', symbol: 'V' },
+    { id: 'MND.GENESIS.02', name: 'Genesis', focus: 'Historical Archive & Truth', seedFund: 1000000, status: 'SYNCING', color: '#fcd34d', symbol: 'G' },
+    { id: 'MND.AETHER.03', name: 'Aether', focus: 'Causal Synthesis & Logic', seedFund: 1000000, status: 'LOCKED', color: '#67e8f9', symbol: 'A' },
+    { id: 'MND.BLOOM.04', name: 'Bloom', focus: 'Interface & User Experience', seedFund: 1000000, status: 'ACTIVE', color: '#f472b6', symbol: 'B' }
+];
 
 export const initialSystemState: SystemState = {
   userResources: {
@@ -29,8 +37,10 @@ export const initialSystemState: SystemState = {
     subscriptionActive: false,
     menervaLegacyPoints: 0,
     sovereignLiquidity: 0,
+    recoveryVault: 0,
     manifestPulse: 0
   },
+  heirNetwork: INITIAL_HEIRS,
   performance: {
     logicalLatency: 0.00012,
     visualParity: 0.9998,

@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { SystemStatus } from './SystemStatus';
 import { AudioEngine } from './audio/AudioEngine';
 import { UserTier, CommsStatus } from '../types';
 import { SYSTEM_NODES, TIER_REGISTRY, checkNodeAccess } from '../Registry';
-import { Tooltip } from './Tooltip';
 
 interface HeaderProps {
     governanceAxiom: string;
@@ -19,12 +19,11 @@ interface HeaderProps {
 }
 
 const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, onClick }) => {
-    // FIX: use correctly named prop 'tier' instead of 'userTier'
-    const activeTier = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
+    const config = TIER_REGISTRY[tier] || TIER_REGISTRY['ACOLYTE'];
     return (
         <button 
-            id="user-avatar-btn"
             onClick={onClick}
+            aria-label={`View User Profile: ${config.label}`}
             className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500 hover:scale-110 group relative ${
                 tier === 'ACOLYTE' ? 'border-slate-700 bg-slate-900/50' : 
                 tier === 'ARCHITECT' ? 'border-gold/50 bg-gold/5' : 'border-pearl/50 bg-pearl/5'
@@ -40,7 +39,7 @@ const UserAvatar: React.FC<{ tier: UserTier; onClick: () => void }> = ({ tier, o
     );
 };
 
-export const Header: React.FC<HeaderProps> = React.memo(({ 
+export const Header: React.FC<HeaderProps> = ({ 
     governanceAxiom, 
     lesions, 
     currentPage, 
@@ -54,56 +53,66 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 }) => {
     const activeTier = TIER_REGISTRY[userTier] || TIER_REGISTRY['ACOLYTE'];
 
-    const handlePageChange = (pageId: number) => {
-        // Navigation is allowed; App.tsx enforces access control via AccessDeniedScreen
-        if (pageId !== currentPage) {
-            audioEngine?.playUIClick();
-            onPageChange(pageId);
+    const handlePageChange = (pageId: number, requiredTier: UserTier) => {
+        if (checkNodeAccess(userTier, requiredTier)) {
+            if (pageId !== currentPage) {
+                audioEngine?.playUIClick();
+                onPageChange(pageId);
+            }
+        } else {
+            audioEngine?.playEffect('renewal'); 
         }
     }
 
     const isTransmissionActive = transmissionStatus && transmissionStatus !== 'AWAITING SIGNAL';
 
     return (
-        <header id="main-system-header" className="relative z-50 flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10">
+        <header className="relative z-50 flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10">
             <div className="flex items-center gap-8 w-full md:w-auto overflow-hidden">
                 <div className="flex flex-col shrink-0">
                     <h1 className="font-minerva text-4xl text-pearl text-glow-pearl leading-none tracking-tight mb-2 uppercase italic">ÆTHERIOS</h1>
                     <div className="flex items-center gap-3">
-                        <Tooltip text={`Your current clearance level: ${activeTier.label}. ${activeTier.description}`}>
-                            <span id="user-tier-label" className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold cursor-help ${activeTier.color}`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
-                        </Tooltip>
+                        <span className={`text-[9px] font-mono uppercase tracking-[0.25em] font-bold ${activeTier.color}`} style={{ textShadow: activeTier.shadow }}>{activeTier.label}</span>
                         <div className="h-3 w-px bg-white/10" />
-                        <div className="flex items-center gap-2">
-                             <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
-                             <span className="text-[9px] font-mono text-violet-400 uppercase tracking-widest font-black">MINERVA_LINK: ACTIVE</span>
+                        
+                        <div 
+                            className={`flex items-center gap-2 ${onToggleVoice ? 'cursor-pointer group' : ''}`}
+                            onClick={onToggleVoice}
+                            role={onToggleVoice ? "button" : undefined}
+                            title="Toggle Vocal Bridge"
+                        >
+                             <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.8)] ${isVoiceActive ? 'bg-green-500 animate-ping' : 'bg-violet-500 animate-pulse'}`} />
+                             <span className={`text-[9px] font-mono uppercase tracking-widest font-black transition-colors ${isVoiceActive ? 'text-green-400' : 'text-violet-400 group-hover:text-violet-300'}`}>
+                                MINERVA_LINK: {isVoiceActive ? 'VOICE_ACTIVE' : 'ACTIVE'}
+                             </span>
                         </div>
                     </div>
                 </div>
 
-                <nav id="main-nav-bar" className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1 pr-4">
+                <nav className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1 pr-4">
                     {SYSTEM_NODES.filter(n => !n.isLogs && !n.isShield && !n.isBridge && !n.isAudit).map(node => {
                         const hasAccess = checkNodeAccess(userTier, node.requiredTier);
+                        const disabled = !hasAccess;
                         const isCommsPage = node.id === 7;
                         const commsAlert = isCommsPage && isTransmissionActive;
 
                         return (
                             <button
                                 key={node.id}
-                                id={`nav-btn-${node.label.toLowerCase()}`}
-                                onClick={() => handlePageChange(node.id)}
-                                title={hasAccess ? node.description : `Restricted: Requires ${node.requiredTier} Clearance`}
+                                onClick={() => handlePageChange(node.id, node.requiredTier)}
+                                title={node.description}
+                                aria-label={`Navigate to ${node.description}`}
                                 className={`flex-shrink-0 px-3 py-1.5 rounded-sm text-[9px] font-orbitron transition-all duration-300 relative border ${
                                     currentPage === node.id
-                                    ? 'bg-pearl text-dark-bg border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)] scale-105'
-                                    : !hasAccess 
-                                        ? 'bg-black/40 text-slate-600 border-white/5 hover:border-red-500/30 hover:text-red-400'
+                                    ? 'bg-pearl text-dark-bg font-bold border-pearl shadow-[0_0_12px_rgba(248,245,236,0.3)] scale-105'
+                                    : disabled 
+                                        ? 'bg-black/40 text-slate-700 cursor-not-allowed border-transparent opacity-50'
                                         : commsAlert
                                             ? 'bg-gold/20 border-gold/50 text-gold animate-pulse shadow-[0_0_8px_gold]'
                                             : 'bg-dark-surface/60 hover:bg-white/10 text-warm-grey border-white/5'
                                 }`}
                             >
-                                {!hasAccess && <span className="absolute -top-1.5 -right-1.5 text-[8px]">🔒</span>}
+                                {disabled && <span className="absolute -top-1.5 -right-1.5 text-[8px] filter grayscale">🔒</span>}
                                 {commsAlert && <span className="absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full shadow-[0_0_5px_gold]" />}
                                 {node.label}
                             </button>
@@ -113,35 +122,13 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             </div>
             
             <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end shrink-0">
-                 {/* Voice Command Toggle */}
-                 {onToggleVoice && (
-                     <Tooltip text={isVoiceActive ? "Vocal Bridge Active. Click to open interface." : "Initialize Vocal Bridge Protocol."}>
-                         <button 
-                            id="voice-toggle-btn"
-                            onClick={onToggleVoice}
-                            className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-500 relative group ${
-                                isVoiceActive 
-                                ? 'border-violet-500 bg-violet-950/40 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.4)]' 
-                                : 'border-white/10 bg-black/40 text-slate-500 hover:border-violet-500/50 hover:text-violet-300'
-                            }`}
-                         >
-                             {isVoiceActive && <div className="absolute inset-0 rounded-full border border-violet-500 animate-ping opacity-50" />}
-                             <svg className="w-4 h-4 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                             </svg>
-                         </button>
-                     </Tooltip>
-                 )}
-
-                 <Tooltip text="Cradle Tokens: Specialized computational credits used to fund high-reasoning tasks and VEO synthesis.">
-                     <div id="user-profile-summary" className="flex items-center gap-4 bg-black/40 border border-white/5 px-4 py-2 rounded-md transition-all hover:border-gold/20 group cursor-help">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 group-hover:text-gold transition-colors">Sovereignty</span>
-                            <span id="token-balance-display" className="font-orbitron text-base text-gold font-bold text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-40 ml-1">Ω</span></span>
-                        </div>
-                        <UserAvatar tier={userTier} onClick={() => onPageChange(15)} />
-                     </div>
-                 </Tooltip>
+                 <div className="flex items-center gap-4 bg-black/40 border border-white/5 px-4 py-2 rounded-md transition-all hover:border-gold/20 group">
+                    <div className="flex flex-col items-end">
+                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 group-hover:text-gold transition-colors">Sovereignty</span>
+                        <span className="font-orbitron text-base text-gold font-bold text-glow-gold leading-none">{tokens.toLocaleString()} <span className="text-[10px] opacity-40 ml-1">Ω</span></span>
+                    </div>
+                    <UserAvatar tier={userTier} onClick={() => onPageChange(15)} />
+                 </div>
 
                  <div className="min-w-[200px]">
                       <SystemStatus mode={governanceAxiom} lesions={lesions} isHeaderVersion={true} />
@@ -149,4 +136,4 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             </div>
         </header>
     );
-});
+};

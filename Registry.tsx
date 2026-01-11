@@ -7,6 +7,7 @@ export const SYSTEM_NODES = [
     { id: 6, label: 'STATUS', requiredTier: 'ACOLYTE' as UserTier, description: 'System Health & Audit' },
     { id: 31, label: 'CHRONOS', requiredTier: 'SOVEREIGN' as UserTier, description: 'Causal Engine & Timeline Simulation' },
     { id: 8, label: 'NEXUS', requiredTier: 'ARCHITECT' as UserTier, description: 'Noetic Graph State', isBridge: true },
+    { id: 16, label: 'HEIR_NET', requiredTier: 'SOVEREIGN' as UserTier, description: 'Sovereign Heir Network' },
     { id: 28, label: 'ESTATE', requiredTier: 'SOVEREIGN' as UserTier, description: 'Digital Twin Commander' },
     { id: 29, label: 'ORCHESTRATOR', requiredTier: 'SOVEREIGN' as UserTier, description: 'Agentic Negotiation Matrix' },
     { id: 30, label: 'SHIELD', requiredTier: 'ARCHITECT' as UserTier, description: 'Vibrational Frequency Filter', isShield: true },

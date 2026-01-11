@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HybridSecurityState, CipherSuite } from '../types';
 import { Tooltip } from './Tooltip';
 import { sovereignVault, SealedPayload } from '../services/AetheriosVault';
@@ -19,9 +19,10 @@ const ALGORITHM_METADATA: Record<CipherSuite, { bits: number, safety: string, co
 };
 
 const MathDefinition: React.FC = () => (
-    <div className="bg-black/60 border border-violet-500/20 p-4 rounded-sm font-mono text-[10px] text-violet-300/80 mb-6">
+    <div className="bg-black/60 border border-violet-500/20 p-4 rounded-sm font-mono text-[10px] text-violet-300/80 mb-6 relative overflow-hidden group">
+        <div className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
         <p className="mb-2 text-slate-500 uppercase tracking-widest text-[8px] font-black">Mathematical_Post_Quantum_Baseline</p>
-        <div className="flex flex-col gap-1.5 italic">
+        <div className="flex flex-col gap-1.5 italic relative z-10">
             <p>E<sub>hybrid</sub>(m) = Enc<sub>PQC</sub>(k<sub>psk</sub>) || Enc<sub>AES</sub>(k<sub>classical</sub>, m)</p>
             <p className="text-slate-600 not-italic">Where k<sub>psk</sub> is pre-shared quantum key and k<sub>classical</sub> is session key.</p>
         </div>
@@ -29,7 +30,7 @@ const MathDefinition: React.FC = () => (
 );
 
 const EntropyCanvas: React.FC<{ score: number }> = ({ score }) => {
-    const canvasRef = React.useRef<HTMLCanvasElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -37,30 +38,46 @@ const EntropyCanvas: React.FC<{ score: number }> = ({ score }) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        let frame: number;
-        const width = canvas.width = 300;
-        const height = canvas.height = 100;
+        let animationFrame: number;
+        // Fixed dimensions for the canvas context visual consistency
+        const width = 300;
+        const height = 100;
+        canvas.width = width;
+        canvas.height = height;
 
         const render = () => {
+            // Dark trail effect for oscilloscope look
             ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
             ctx.fillRect(0, 0, width, height);
 
             ctx.beginPath();
-            ctx.strokeStyle = '#ffd700';
+            ctx.strokeStyle = '#ffd700'; // Gold entropy line
             ctx.lineWidth = 1;
             
+            const time = Date.now() * 0.005;
+            
             for (let x = 0; x < width; x += 5) {
-                const noise = (Math.random() - 0.5) * (1 - score) * 50;
-                const y = height / 2 + Math.sin(x * 0.05 + Date.now() * 0.005) * 20 + noise;
+                // Entropy score affects the noise amplitude
+                // Higher score = Less noise (more stable entropy source)
+                const noise = (Math.random() - 0.5) * (1.1 - score) * 40;
+                const wave = Math.sin(x * 0.05 + time) * 20;
+                const y = height / 2 + wave + noise;
+                
                 if (x === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
 
-            frame = requestAnimationFrame(render);
+            // Glow effect
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = '#ffd700';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            animationFrame = requestAnimationFrame(render);
         };
         render();
-        return () => cancelAnimationFrame(frame);
+        return () => cancelAnimationFrame(animationFrame);
     }, [score]);
 
     return <canvas ref={canvasRef} className="w-full h-20 bg-black/40 rounded border border-white/5" />;
@@ -72,6 +89,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
 
     const handleHardenClick = async () => {
         setIsHardening(true);
+        // Simulate vault sealing operation
         const payload = await sovereignVault.sealAbundance("MANIFEST_DATA_0x88");
         setLastSeal(payload);
         onHarden();
@@ -80,9 +98,11 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
 
     return (
         <div className="w-full bg-[#0a0a0c] border border-violet-500/30 p-6 rounded-xl shadow-2xl relative overflow-hidden group transition-all duration-700 hover:border-violet-500/60">
+            {/* Background Texture */}
             <div className="absolute top-0 right-0 p-3 opacity-[0.03] font-orbitron text-6xl font-black italic pointer-events-none select-none uppercase">PQC_VAULT</div>
             
-            <div className="flex justify-between items-center mb-6 z-10 border-b border-white/5 pb-4">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6 z-10 border-b border-white/5 pb-4 relative">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-violet-900/10 border border-violet-500/40 rounded flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.2)]">
                         <svg className="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,6 +124,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
             <MathDefinition />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Active Layers List */}
                 <div className="space-y-4">
                     <h4 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-widest border-l-2 border-gold pl-2">Active Multi-Ciphers</h4>
                     <div className="space-y-2">
@@ -113,20 +134,27 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                                 <div key={layer.id} className="bg-black/60 border border-white/5 p-4 rounded flex justify-between items-center group/layer hover:border-white/20 transition-all">
                                     <div className="flex flex-col gap-1">
                                         <span className="text-[8px] font-mono text-slate-500 uppercase">{layer.type}_LAYER</span>
-                                        <span key={layer.algorithm} className="font-orbitron text-[11px] text-pearl font-bold tracking-wider animate-fade-in">{layer.algorithm}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span 
+                                                className="w-1.5 h-1.5 rounded-full" 
+                                                style={{ backgroundColor: meta.color, boxShadow: `0 0 5px ${meta.color}` }} 
+                                            />
+                                            <span className="font-orbitron text-[11px] text-pearl font-bold tracking-wider animate-fade-in">{layer.algorithm}</span>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
                                             <span className="text-[8px] font-mono text-slate-600 block">BIT_DEPTH</span>
                                             <span className="text-[10px] font-mono text-gold">{meta.bits} bits</span>
                                         </div>
-                                        <button 
-                                            onClick={() => onCycleAlgorithm(layer.id)}
-                                            className="w-8 h-8 rounded border border-white/10 flex items-center justify-center text-slate-600 hover:text-pearl hover:border-pearl transition-all bg-white/5 active:scale-95"
-                                            title="Cycle Algorithm (Agility Logic)"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                        </button>
+                                        <Tooltip text="Cycle Cipher Algorithm (Crypto-Agility)">
+                                            <button 
+                                                onClick={() => onCycleAlgorithm(layer.id)}
+                                                className="w-8 h-8 rounded border border-white/10 flex items-center justify-center text-slate-600 hover:text-pearl hover:border-pearl transition-all bg-white/5 active:scale-95"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                            </button>
+                                        </Tooltip>
                                     </div>
                                 </div>
                             );
@@ -134,6 +162,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                     </div>
                 </div>
 
+                {/* Entropy Visualizer */}
                 <div className="space-y-4">
                     <h4 className="font-orbitron text-[10px] text-warm-grey uppercase tracking-widest border-l-2 border-cyan-400 pl-2">Entropy Sink (QRNG)</h4>
                     <EntropyCanvas score={data.quantumResistanceScore} />
@@ -150,6 +179,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                 </div>
             </div>
 
+            {/* Metrics Dashboard */}
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-white/5 border border-white/5 p-4 rounded text-center group/metric hover:border-violet-500/30 transition-all">
                     <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-1 group-hover/metric:text-violet-300">Quantum Immunity</p>
@@ -165,6 +195,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                 </div>
             </div>
 
+            {/* Action Area */}
             <div className="flex gap-4">
                 <button 
                     onClick={handleHardenClick}
