@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { AethericTransferData, AethericTransferStatus } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
 
@@ -12,107 +12,86 @@ interface AethericTransferMonitorProps {
 const getStatusConfig = (status: AethericTransferStatus) => {
     switch(status) {
         case 'STABLE':
-            return { color: 'text-pearl', label: 'STABLE', particleColor: 'hsl(180, 50%, 80%)' };
+            return { color: 'text-pearl', label: 'STABLE', particleColor: 'rgba(165, 243, 252, 1)' }; // Cyan/Pearl
         case 'TURBULENT':
-            return { color: 'text-gold', label: 'TURBULENT', particleColor: 'hsl(50, 80%, 60%)' };
+            return { color: 'text-gold', label: 'TURBULENT', particleColor: 'rgba(253, 224, 71, 1)' }; // Gold
         case 'STAGNANT':
-            return { color: 'text-orange-400', label: 'STAGNANT', particleColor: 'hsl(30, 80%, 60%)' };
+            return { color: 'text-orange-400', label: 'STAGNANT', particleColor: 'rgba(251, 146, 60, 1)' }; // Orange
         default:
-            return { color: 'text-warm-grey', label: 'UNKNOWN', particleColor: 'hsl(0, 0%, 50%)' };
+            return { color: 'text-warm-grey', label: 'UNKNOWN', particleColor: 'rgba(120, 113, 108, 1)' };
     }
 }
 
-const ParticleFlow: React.FC<{ density: number; efficiency: number, color: string, status: AethericTransferStatus }> = ({ density, efficiency, color, status }) => {
-    const [tier, setTier] = useState<PerformanceTier>(performanceService.tier);
+const AetherStreamCanvas: React.FC<{ density: number; efficiency: number, color: string, status: AethericTransferStatus, entropy: number }> = ({ density, efficiency, color, status, entropy }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-      const unsubscribe = performanceService.subscribe(setTier);
-      return () => unsubscribe();
-    }, []);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-    const particleCount = useMemo(() => {
-        let baseDensity = density * 20;
-        let maxCount = 50;
-        if (tier === 'MEDIUM') {
-          baseDensity = density * 10;
-          maxCount = 25;
-        } else if (tier === 'LOW') {
-          baseDensity = density * 5;
-          maxCount = 10;
+        let animationFrame: number;
+        const width = canvas.offsetWidth;
+        const height = canvas.offsetHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particleCount = Math.floor(density * 100) + 20;
+        const particles: { x: number; y: number; vx: number; size: number }[] = [];
+
+        // Init
+        for(let i=0; i<particleCount; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() * 2 + 1) * efficiency,
+                size: Math.random() * 1.5 + 0.5
+            });
         }
-        return Math.max(5, Math.min(maxCount, Math.floor(baseDensity)));
-    }, [density, tier]);
 
-    const particles = useMemo(() => {
-        return Array.from({ length: particleCount }).map((_, i) => {
-            let animationStyle: React.CSSProperties = {};
-            const delay = Math.random() * -5;
-            let duration = (4 - (efficiency * 3)) + Math.random(); // 1s to 5s
-
-            switch (status) {
-                case 'TURBULENT':
-                    animationStyle = {
-                        animation: `particle-flow ${duration * 0.8}s ${delay}s linear infinite, particle-turbulence ${0.3 + Math.random() * 0.4}s linear infinite alternate`
-                    };
-                    break;
-                case 'STAGNANT':
-                     animationStyle = {
-                        animation: `particle-flow ${duration * 4}s ${delay}s linear infinite, particle-stagnant-flicker 1.5s ${delay}s ease-in-out infinite`
-                    };
-                    break;
-                case 'STABLE':
-                default:
-                     animationStyle = {
-                        animation: `particle-flow ${duration}s ${delay}s linear infinite`
-                    };
-                    break;
-            }
+        const render = () => {
+            // Trail
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, width, height);
             
-            return {
-                id: i,
-                x: Math.random() * 100,
-                size: 0.5 + Math.random() * 1.5,
-                style: animationStyle
-            };
-        });
-    }, [particleCount, efficiency, status]);
+            ctx.fillStyle = color;
+            ctx.globalCompositeOperation = 'screen';
 
-    return (
-        <div className="w-full h-full min-h-[120px] bg-black/20 rounded-md relative overflow-hidden">
-             <svg className="w-full h-full" preserveAspectRatio="none">
-                <style>{`
-                    @keyframes particle-flow {
-                        from { transform: translateY(-10%); }
-                        to { transform: translateY(110%); }
-                    }
-                    @keyframes particle-turbulence {
-                        from { transform: translateX(-5px) translateY(-10%); }
-                        to { transform: translateX(5px) translateY(-10%); }
-                    }
-                    @keyframes particle-stagnant-flicker {
-                        0%, 100% { opacity: 0.2; }
-                        50% { opacity: 0.8; }
-                    }
-                `}</style>
-                {particles.map(p => (
-                    <circle 
-                        key={p.id}
-                        cx={`${p.x}%`}
-                        cy="0"
-                        r={p.size}
-                        fill={color}
-                        opacity={0.8}
-                        style={{
-                            filter: `drop-shadow(0 0 2px ${color})`,
-                            ...p.style,
-                        }}
-                    />
-                ))}
-            </svg>
-        </div>
-    );
-}
+            particles.forEach(p => {
+                // Dynamics
+                let speedMod = 1;
+                if (status === 'STAGNANT') speedMod = 0.1;
+                if (status === 'TURBULENT') speedMod = 1.5;
 
+                p.x += p.vx * speedMod;
+                
+                // Turbulence/Entropy: Vertical Jitter
+                if (status === 'TURBULENT' || entropy > 0.1) {
+                    p.y += (Math.random() - 0.5) * (entropy * 10);
+                }
+
+                // Wrap
+                if (p.x > width) {
+                    p.x = 0;
+                    p.y = Math.random() * height;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            ctx.globalCompositeOperation = 'source-over';
+            animationFrame = requestAnimationFrame(render);
+        };
+
+        render();
+        return () => cancelAnimationFrame(animationFrame);
+    }, [density, efficiency, color, status, entropy]);
+
+    return <canvas ref={canvasRef} className="w-full h-full block rounded bg-black/20" />;
+};
 
 export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = ({ data, onPurge, isPurging }) => {
     const { efficiency, particleDensity, fluxStatus, entropy } = data;
@@ -143,8 +122,14 @@ export const AethericTransferMonitor: React.FC<AethericTransferMonitorProps> = (
                 </button>
             </div>
             
-            <div className="flex-1 min-h-0 relative">
-                <ParticleFlow density={particleDensity} efficiency={efficiency} color={displayConfig.particleColor} status={displayStatus} />
+            <div className="flex-1 min-h-0 relative border border-white/5 rounded overflow-hidden">
+                <AetherStreamCanvas 
+                    density={particleDensity} 
+                    efficiency={efficiency} 
+                    color={displayConfig.particleColor} 
+                    status={displayStatus}
+                    entropy={entropy}
+                />
             </div>
 
             <div className="mt-4 flex flex-wrap justify-center items-center gap-2 border-t border-dark-border/30 pt-3">

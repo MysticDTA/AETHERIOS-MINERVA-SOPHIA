@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { EarthGroundingData } from '../types';
 import { performanceService, PerformanceTier } from '../services/performanceService';
 import { Tooltip } from './Tooltip';
@@ -13,15 +13,15 @@ interface EarthGroundingCoreProps {
 const getStatusConfig = (status: EarthGroundingData['status']) => {
     switch(status) {
         case 'STABLE':
-            return { color: 'text-pearl', label: 'STABLE', particleColor: 'hsl(180, 50%, 80%)' };
+            return { color: 'text-pearl', label: 'STABLE', baseColor: 'rgba(167, 139, 250, 1)' }; // Pearl/Violet
         case 'CHARGING':
-            return { color: 'text-gold', label: 'CHARGING', particleColor: 'hsl(50, 80%, 60%)' };
+            return { color: 'text-gold', label: 'CHARGING', baseColor: 'rgba(255, 215, 0, 1)' }; // Gold
         case 'DISCHARGING':
-            return { color: 'text-cyan-400', label: 'DISCHARGING', particleColor: 'hsl(190, 90%, 70%)' };
+            return { color: 'text-cyan-400', label: 'DISCHARGING', baseColor: 'rgba(34, 211, 238, 1)' }; // Cyan
         case 'WEAK':
-            return { color: 'text-orange-400', label: 'WEAK', particleColor: 'hsl(30, 80%, 60%)' };
+            return { color: 'text-orange-400', label: 'WEAK', baseColor: 'rgba(251, 146, 60, 1)' }; // Orange
         default:
-            return { color: 'text-warm-grey', label: 'UNKNOWN', particleColor: 'hsl(0, 0%, 50%)' };
+            return { color: 'text-warm-grey', label: 'UNKNOWN', baseColor: 'rgba(120, 113, 108, 1)' };
     }
 }
 
@@ -40,90 +40,102 @@ const SeismicMeter: React.FC<{ value: number; label: string; color: string }> = 
     </div>
 );
 
-const GroundingVisual: React.FC<{ data: EarthGroundingData }> = ({ data }) => {
-    const { conductivity, status } = data;
-    const [tier, setTier] = useState<PerformanceTier>(performanceService.tier);
+const TelluricFluxCanvas: React.FC<{ data: EarthGroundingData }> = ({ data }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { conductivity, status, charge, seismicActivity } = data;
+    const config = getStatusConfig(status);
 
     useEffect(() => {
-      const unsubscribe = performanceService.subscribe(setTier);
-      return () => unsubscribe();
-    }, []);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-    const config = getStatusConfig(status);
-    
-    const particleCount = useMemo(() => {
-        let baseDensity = conductivity * 30;
-        let maxCount = 40;
-        if (tier === 'MEDIUM') {
-            baseDensity = conductivity * 15;
-            maxCount = 20;
-        } else if (tier === 'LOW') {
-            baseDensity = conductivity * 8;
-            maxCount = 10;
-        }
-        return Math.max(3, Math.min(maxCount, Math.floor(baseDensity)));
-    }, [conductivity, tier]);
+        let animationFrame: number;
+        let particles: { x: number; y: number; vy: number; size: number; life: number; color: string }[] = [];
+        
+        const density = Math.floor(conductivity * 50) + 20;
+        const height = canvas.offsetHeight;
+        const width = canvas.offsetWidth;
+        
+        canvas.width = width;
+        canvas.height = height;
 
-    const particles = useMemo(() => {
-        return Array.from({ length: particleCount }).map((_, i) => {
-            let animationStyle: any = {};
-            const delay = Math.random() * -4;
-            let duration = (5 - (conductivity * 4)) + Math.random() * 2;
+        const render = () => {
+            // Clear with heavy trail for "plasma" feel
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalCompositeOperation = 'lighter';
 
-            switch (status) {
-                case 'DISCHARGING':
-                    duration *= 0.2; // Much faster flow
-                    break;
-                case 'WEAK':
-                    animationStyle.animationName = 'grounding-flow, grounding-weak-flicker';
-                    animationStyle.animationTimingFunction = 'linear, ease-in-out';
-                    animationStyle.animationIterationCount = 'infinite, infinite';
-                    animationStyle.animationDuration = `${duration * 2}s, 2s`;
-                    break;
-                 case 'STABLE':
-                    duration *= 1.5; // Slower, calmer flow
-                    break;
+            // Spawn logic
+            if (particles.length < density) {
+                const spawnCount = status === 'DISCHARGING' ? 5 : 1;
+                for(let k=0; k<spawnCount; k++) {
+                    const x = width / 2 + (Math.random() - 0.5) * 40;
+                    const y = status === 'DISCHARGING' ? 0 : height; // Fall down if discharging, rise up otherwise
+                    
+                    particles.push({
+                        x,
+                        y,
+                        vy: status === 'DISCHARGING' ? (Math.random() * 5 + 5) : (Math.random() * -2 - 0.5),
+                        size: Math.random() * 2 + 0.5,
+                        life: 1.0,
+                        color: config.baseColor
+                    });
+                }
+            }
+
+            // Physics Loop
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                
+                // Seismic Jitter
+                p.x += (Math.random() - 0.5) * (seismicActivity * 10);
+                
+                // Velocity update
+                if (status === 'CHARGING') p.vy -= 0.1; // Accelerate up
+                p.y += p.vy;
+                p.life -= 0.01;
+
+                // Render
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color.replace('1)', `${p.life})`);
+                ctx.shadowBlur = 10 * charge;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+
+                if (p.life <= 0 || p.y < -10 || p.y > height + 10) {
+                    particles.splice(i, 1);
+                }
             }
             
-            return {
-                id: i,
-                x: 10 + Math.random() * 80,
-                size: 0.5 + Math.random(),
-                style: {
-                    animation: `grounding-flow ${duration}s ${delay}s linear infinite`,
-                    ...animationStyle
-                }
-            };
-        });
-    }, [particleCount, conductivity, status]);
+            // Core Crystal Graphic (Static overlay)
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = config.baseColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(width/2, height - 20);
+            ctx.lineTo(width/2 - 10, height - 40);
+            ctx.lineTo(width/2, height - 60);
+            ctx.lineTo(width/2 + 10, height - 40);
+            ctx.closePath();
+            ctx.stroke();
+            
+            if (status === 'CHARGING' || status === 'STABLE') {
+                ctx.fillStyle = config.baseColor.replace('1)', '0.2)');
+                ctx.fill();
+            }
 
-    return (
-        <div className="w-full h-28 bg-black/20 rounded-md relative overflow-hidden">
-             <svg className="w-full h-full" preserveAspectRatio="none">
-                <defs>
-                    <filter id="groundingGlow"><feGaussianBlur stdDeviation="2" /></filter>
-                </defs>
-                {/* Crystal */}
-                <path d="M 50 10 L 65 30 L 50 50 L 35 30 Z" fill={config.particleColor} opacity={0.3} filter="url(#groundingGlow)" />
-                <path d="M 50 10 L 65 30 L 50 50 L 35 30 Z" fill="none" stroke={config.particleColor} strokeWidth="1.5" />
-                
-                {/* Energy Flow */}
-                {particles.map(p => (
-                    <circle 
-                        key={p.id}
-                        cx={`${p.x}%`}
-                        cy="0"
-                        r={p.size}
-                        fill={config.particleColor}
-                        opacity={0.9}
-                        style={{ filter: `drop-shadow(0 0 2px ${config.particleColor})`, ...p.style }}
-                    />
-                ))}
-            </svg>
-        </div>
-    );
-}
+            animationFrame = requestAnimationFrame(render);
+        };
 
+        render();
+        return () => cancelAnimationFrame(animationFrame);
+    }, [conductivity, status, charge, seismicActivity, config.baseColor]);
+
+    return <canvas ref={canvasRef} className="w-full h-full block rounded-md" />;
+};
 
 export const EarthGroundingCore: React.FC<EarthGroundingCoreProps> = ({ data, onDischarge, isDischarging }) => {
     const { charge, conductivity, status, seismicActivity, telluricCurrent, feedbackLoopStatus } = data;
@@ -152,9 +164,11 @@ export const EarthGroundingCore: React.FC<EarthGroundingCoreProps> = ({ data, on
                 </button>
             </div>
             
-            <GroundingVisual data={data} />
+            <div className="flex-1 min-h-[120px] bg-black/40 rounded-md border border-white/5 relative overflow-hidden mb-3">
+                <TelluricFluxCanvas data={data} />
+            </div>
 
-            <div className="mt-3 space-y-2">
+            <div className="space-y-2">
                 <SeismicMeter value={seismicActivity || 0} label="Seismic Tremor" color={seismicActivity > 0.1 ? '#fb923c' : '#a78bfa'} />
                 <SeismicMeter value={telluricCurrent || 0} label="Telluric Flux" color={telluricCurrent > 0.1 ? '#facc15' : '#67e8f9'} />
             </div>
