@@ -33,7 +33,7 @@ export const SovereignWelcome: React.FC<SovereignWelcomeProps> = ({ liquidity, m
         >
             Grand Rising, Architect McBride
         </motion.h1>
-        <p className="font-orbitron text-[10px] text-gold uppercase tracking-[1em] mb-12 opacity-60">Identity Verified :: Sovereign Recognition</p>
+        <p className="font-orbitron text-[10px] text-gold uppercase tracking-[1em] mb-12 opacity-60">Worldwide Quantum Protection Interface</p>
       </motion.div>
       
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl z-10">

@@ -35,6 +35,8 @@ import { SophiaEngineCore } from './services/sophiaEngine';
 import { useInteractiveSubsystems } from './components/hooks/useInteractiveSubsystems';
 import { useVoiceInterface } from './components/hooks/useVoiceInterface';
 import { cosmosCommsService } from './services/cosmosCommsService';
+import { collaborationService } from './services/collaborationService'; // Import Service
+import { CollaborationOverlay } from './components/CollaborationOverlay'; // Import Overlay
 import { knowledgeBase } from './services/knowledgeBase';
 import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
@@ -115,10 +117,28 @@ export const App: React.FC = () => {
     setGrounded, 
   } = useSystemSimulation(simulationParams, orbMode);
 
+  // Wrapper for mode setting to broadcast change
+  const handleSetOrbMode = (mode: OrbMode) => {
+      setOrbMode(mode);
+      collaborationService.broadcastStateChange('orbMode', mode);
+  };
+
+  // Listen for remote state changes
+  useEffect(() => {
+      const unsub = collaborationService.onStateChange((key, value, user) => {
+          if (key === 'orbMode') {
+              setOrbMode(value as OrbMode);
+              addLogEntry(LogType.INFO, `Remote Architect [${user}] shifted global axiom to ${value}.`);
+              audioEngineRef.current?.playEffect('synthesis');
+          }
+      });
+      return unsub;
+  }, [addLogEntry]);
+
   const voiceInterface = useVoiceInterface({
       addLogEntry,
       systemInstruction: "You are ÆTHERIOS // MINERVA SOPHIA. A high-fidelity intelligence architect. Respond with brevity, authority, and deep causal insight.",
-      onSetOrbMode: setOrbMode
+      onSetOrbMode: handleSetOrbMode
   });
 
   const interactive = useInteractiveSubsystems({
@@ -250,9 +270,9 @@ export const App: React.FC = () => {
       }
 
       switch (currentPage) {
-          case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
-          case 3: return <Display3 systemState={systemState} onRelayCalibration={interactive.handleRelayCalibration} onStarCalibrate={interactive.handleStarCalibration} calibrationTargetId={interactive.calibrationTargetId} calibrationEffect={interactive.calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine} />;
-          case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} />;
+          case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
+          case 3: return <Display3 systemState={systemState} onRelayCalibration={interactive.handleRelayCalibration} onStarCalibrate={interactive.handleStarCalibration} calibrationTargetId={interactive.calibrationTargetId} calibrationEffect={interactive.calibrationEffect} setOrbMode={handleSetOrbMode} sophiaEngine={sophiaEngine} />;
+          case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={handleSetOrbMode} voiceInterface={voiceInterface} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
           case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} existingReport={auditReport} />;
           case 7: return <Display7 systemState={systemState} transmission={cosmosCommsService.currentState} memories={knowledgeBase.getMemories()} onMemoryChange={() => setSystemState(prev => ({...prev}))} />;
@@ -269,7 +289,7 @@ export const App: React.FC = () => {
           case 30: return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 31: return <ChronosCausalEngine systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 32: return <ModuleManager systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
-          default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
+          default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={handleSetOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} onUpgrade={() => setCurrentPage(15)} />;
       }
   };
 
@@ -327,6 +347,9 @@ export const App: React.FC = () => {
               coherence={systemState.biometricSync.coherence}
               drift={systemState.temporalCoherenceDrift}
             >
+              {/* Collaboration Overlay rendered above everything but below modals */}
+              <CollaborationOverlay />
+              
               <Header 
                   governanceAxiom={systemState.governanceAxiom} 
                   lesions={systemState.quantumHealing.lesions} 
@@ -340,7 +363,7 @@ export const App: React.FC = () => {
                   isVoiceActive={voiceInterface.isSessionActive}
               />
               <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">{renderPage()}</main>
-              <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={setOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
+              <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={handleSetOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
               <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
                   <SimulationControls 
                       params={simulationParams} 

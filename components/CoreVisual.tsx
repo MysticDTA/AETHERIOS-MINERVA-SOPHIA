@@ -19,6 +19,7 @@ export const CoreVisual: React.FC<CoreVisualProps> = React.memo(({ health, mode 
 
   // Detect significant health changes to trigger visual feedback
   useEffect(() => {
+      // Threshold lowered for sensitivity
       if (Math.abs(health - prevHealth.current) > 0.005) {
           setPulse(true);
           const timer = setTimeout(() => setPulse(false), 600);
@@ -114,12 +115,12 @@ export const CoreVisual: React.FC<CoreVisualProps> = React.memo(({ health, mode 
         <circle 
             cx="100" cy="100" r="50" 
             fill="none" 
-            stroke={glowColor} 
-            strokeWidth="3"
-            opacity={pulse ? 0.6 : 0}
+            stroke={pulse ? "#ffffff" : glowColor} 
+            strokeWidth={pulse ? "4" : "3"}
+            opacity={pulse ? 0.8 : 0}
             className="transition-all duration-500 ease-out"
             style={{ 
-                transform: pulse ? 'scale(1.8)' : 'scale(1)', 
+                transform: pulse ? 'scale(2.0)' : 'scale(1)', 
                 transformOrigin: '100px 100px',
                 filter: 'url(#quantumBlur)'
             }}

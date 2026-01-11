@@ -42,8 +42,9 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
     const [zenoMode, setZenoMode] = useState(false);
     const [isPulsing, setIsPulsing] = useState(false);
     const [terminalLogs, setTerminalLogs] = useState<string[]>([
-        "Initializing Hybrid Cryptographic Handshake...",
+        "Initializing Global Quantum Handshake...",
         "Lattice Topology: CRYSTALS-KYBER_1024_ACTIVE",
+        "GLOBAL_SENSOR_GRID_ACTIVE: EU, ASIA, US NODES LOCKED.",
         "Waiting for causal intercept..."
     ]);
 
@@ -295,12 +296,16 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                         🛡
                     </div>
                     <div>
-                        <h2 className="font-orbitron text-3xl text-pearl tracking-tighter uppercase font-extrabold text-glow-pearl">Quantum Shield Integrated</h2>
-                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Active Lattice Defense // Hybrid_Crypto_Ready</p>
+                        <h2 className="font-orbitron text-3xl text-pearl tracking-tighter uppercase font-extrabold text-glow-pearl">Global Quantum Shield</h2>
+                        <p className="text-slate-500 uppercase tracking-[0.6em] text-[10px] mt-2 font-bold">Active Worldwide Defense // Hybrid_Crypto_Ready</p>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4 bg-black/40 p-1 rounded-lg border border-white/10">
+                    <div className="hidden md:flex flex-col items-end mr-4">
+                        <span className="text-[9px] font-mono text-emerald-400 font-black uppercase tracking-widest">GLOBAL_COVERAGE</span>
+                        <span className="text-[12px] font-orbitron text-pearl font-bold">100%</span>
+                    </div>
                     <button onClick={() => setViewMode('CRYPTO')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'CRYPTO' ? 'bg-violet-900/40 text-violet-300 border border-violet-500/30' : 'text-slate-500 hover:text-white'}`}>Crypto_Vault</button>
                     <button onClick={() => setViewMode('SHIELD')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SHIELD' ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-500/30' : 'text-slate-500 hover:text-white'}`}>3D_Lattice</button>
                     <button onClick={() => setViewMode('SENTINEL')} className={`px-4 py-2 rounded font-orbitron text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'SENTINEL' ? 'bg-rose-900/40 text-rose-300 border border-rose-500/30' : 'text-slate-500 hover:text-white'}`}>Sentinel_Ops</button>
@@ -320,7 +325,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                     </div>
                     <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
                         <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
-                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Vault Audit Log</h4>
+                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Global Vault Audit Log</h4>
                             <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
                                 {terminalLogs.map((log, i) => (
                                     <div key={i} className="flex gap-3 animate-fade-in">
@@ -372,7 +377,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
 
                     <div className="lg:col-span-4 flex flex-col gap-6 h-full min-h-0">
                         <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-6 flex flex-col shadow-inner">
-                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Defense Terminal</h4>
+                            <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold mb-4 border-b border-white/5 pb-2">Global Defense Terminal</h4>
                             <div className="flex-1 overflow-y-auto scrollbar-thin font-mono text-[10px] space-y-2">
                                 {terminalLogs.map((log, i) => (
                                     <div key={i} className="flex gap-3 animate-fade-in">

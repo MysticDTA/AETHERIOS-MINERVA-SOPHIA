@@ -72,14 +72,14 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
             runIntelligentAudit();
         } else if (!sophiaEngine && !intelligentAudit) {
             setIntelligentAudit(`
-                <h3>Production Node Audit v1.4.1</h3>
-                <p>ÆTHERIOS Node 0x88 is operating within peak institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98%.</p>
+                <h3>Global Production Audit v1.4.1</h3>
+                <p>ÆTHERIOS Node 0x88 is operating within peak institutional bounds. The <b>Spectral Coherence Bridge</b> confirms a Phase-Lock parity of 99.98% across all worldwide nodes.</p>
                 <ul>
                     <li>Resonance Rho: ${systemState.resonanceFactorRho.toFixed(6)} [STABLE]</li>
                     <li>Causal Drift: ${systemState.temporalCoherenceDrift.toFixed(8)}Ψ [NOMINAL]</li>
                     <li>Biometric Coherence: ${(systemState.biometricSync.coherence * 100).toFixed(2)}% [PHASE_LOCKED]</li>
                 </ul>
-                <p><i>Recommendations: Maintain current resonance baseline to prevent entropic noise in the Noetic Graph. Security Posture is currently QUANTUM_READY.</i></p>
+                <p><i>Recommendations: Maintain current resonance baseline to prevent entropic noise in the global Noetic Graph. Security Posture is currently QUANTUM_READY and globally synchronized.</i></p>
             `);
         }
     }, [sophiaEngine, systemState, intelligentAudit, isSynthesizing, existingReport]);
@@ -112,7 +112,7 @@ export const SystemSummary: React.FC<SystemSummaryProps> = ({ systemState, sophi
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Status_Classification</span>
-                            <p className="font-mono text-xs text-emerald-400 font-black">SOVEREIGN_STABLE // E_HYBRID_ACTIVE</p>
+                            <p className="font-mono text-xs text-emerald-400 font-black">SOVEREIGN_STABLE // WORLDWIDE_SYNC</p>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest font-bold">Registry_ID</span>

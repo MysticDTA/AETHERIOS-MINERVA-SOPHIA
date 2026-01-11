@@ -36,6 +36,22 @@ declare global {
   }
 }
 
+// --- COLLABORATION TYPES ---
+export interface RemoteCursor {
+    id: string;
+    x: number;
+    y: number;
+    name: string;
+    color: string;
+    lastActive: number;
+    tier: UserTier;
+}
+
+export type CollaborationEvent = 
+    | { type: 'CURSOR_MOVE', payload: RemoteCursor }
+    | { type: 'STATE_CHANGE', payload: { key: string, value: any, user: string } }
+    | { type: 'PING', payload: { x: number, y: number, user: string } };
+
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
 
 export interface NegotiationNode {

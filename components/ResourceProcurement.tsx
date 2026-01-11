@@ -18,32 +18,32 @@ const TIER_CARDS = [
         price: '$2,900/mo', 
         priceId: 'price_architect_monthly_gold',
         color: '#e6c77f', 
-        benefits: ["Full Heuristic Console Access", "Basic Reasoning Budget", "Recursive Persistent Memory"],
-        desc: 'Establish a personal cognitive throne in the matrix.',
+        benefits: ["Personal Quantum Shield", "Heuristic Console Access", "Recursive Memory"],
+        desc: 'Secure your individual node within the global lattice.',
         capabilities: [
+            { label: 'Protection', val: 0.9 },
             { label: 'Reasoning', val: 0.4 },
-            { label: 'Synthesis', val: 0.2 },
             { label: 'Memory', val: 0.8 }
         ]
     },
     { 
         id: 'SOVEREIGN', 
-        name: 'SOVEREIGN INSTITUTIONAL', 
+        name: 'GLOBAL INSTITUTIONAL', 
         price: '$25,000/mo', 
         priceId: 'price_sovereign_gold_tier',
         color: '#ffd700', 
-        benefits: ["Tier-0 Dedicated Reasoning Shards", "Multi-Sig Board Approval Gate", "Custom VPC Causal Peering", "Global Synod Priority Intercept"],
-        desc: 'The definitive standard for Tier-1 Financial and Defense Institutions.',
+        benefits: ["Worldwide Quantum Defense Grid", "Multi-Sig Board Governance", "Global Causal Peering", "24/7 Sentinel Oversight"],
+        desc: 'The worldwide standard for protecting generational wealth against entropic threats.',
         featured: true,
         capabilities: [
+            { label: 'Global Shield', val: 1.0 },
             { label: 'Reasoning [32k]', val: 1.0 },
-            { label: 'Veo Synthesis', val: 1.0 },
             { label: 'Zero Latency', val: 1.0 }
         ]
     },
     { 
         id: 'LEGACY_MENERVA', 
-        name: 'SYNDICATE PARTNERSHIP', 
+        name: 'SYNDICATE EQUITY', 
         price: 'POU (Price on Use)', 
         priceId: 'price_syndicate_gold',
         color: '#f8f5ec', 
@@ -245,7 +245,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                         <div className="space-y-3">
                             <div>
                                 <span className="text-[9px] font-mono text-gold uppercase tracking-[0.6em] font-bold block mb-1">Vault_Access_Authorized</span>
-                                <h1 className="font-minerva italic text-5xl text-pearl text-glow-pearl tracking-tighter leading-none">Sovereign Acquisition</h1>
+                                <h1 className="font-minerva italic text-5xl text-pearl text-glow-pearl tracking-tighter leading-none">Global Acquisition</h1>
                             </div>
                             
                             <div className="flex items-center gap-6">
@@ -263,8 +263,8 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                         <PaymentRailStatus />
                         <div className="h-16 w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent hidden xl:block" />
                         <div className="flex flex-col items-end gap-1 text-right">
-                            <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.2em] font-bold">Gold-Tier Gateway</span>
-                            <span className="text-[8px] font-mono text-slate-500 max-w-[120px] leading-tight">Institutional-grade encryption for high-volume asset liquidation.</span>
+                            <span className="text-[10px] font-orbitron text-gold uppercase tracking-[0.2em] font-bold">Worldwide-Tier Gateway</span>
+                            <span className="text-[8px] font-mono text-slate-500 max-w-[120px] leading-tight">Institutional-grade encryption for high-volume global asset liquidation.</span>
                         </div>
                     </div>
                 </div>
@@ -277,7 +277,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                         <div className="absolute top-0 right-0 p-3 opacity-5 font-orbitron text-6xl font-black italic">VIP</div>
                         <h4 className="font-orbitron text-[11px] text-gold uppercase tracking-[0.5em] font-bold border-b border-gold/20 pb-3">Executive Briefing</h4>
                         <p className="text-[12px] font-minerva italic text-slate-400 leading-relaxed">
-                            "The ÆTHERIOS license is more than access; it is an equity stake in future logic. Our Gold-Tier partners represent the 0.1% of architects who direct the flow of global causality."
+                            "The ÆTHERIOS license offers exclusive access to the Quantum Protection Grid. This is an equity stake in the future of global security. Our Global Partners represent the 0.1% who direct the flow of causality."
                         </p>
                         <div className="pt-3 border-t border-white/5">
                              <p className="text-[9px] font-mono text-gold/60 uppercase">Managing Director: Desmond McBride</p>
@@ -301,7 +301,7 @@ const ResourceProcurementComponent: React.FC<ResourceProcurementProps> = ({ syst
                             return (
                                 <div key={tier.id} className={`group bg-black border-2 p-6 rounded-sm transition-all duration-1000 flex flex-col gap-6 relative h-full transform hover:-translate-y-1 ${isActive ? 'border-pearl shadow-[0_0_60px_rgba(248,245,236,0.2)]' : isFeatured ? 'border-gold shadow-[0_0_80px_rgba(255,215,0,0.15)] bg-gold/[0.02]' : 'border-white/10 hover:border-gold/60'}`}>
                                     {isFeatured && (
-                                        <div className="absolute -top-3 right-4 px-3 py-1 bg-gold text-dark-bg text-[9px] font-black uppercase tracking-[0.3em] rounded-sm shadow-xl">Institutional</div>
+                                        <div className="absolute -top-3 right-4 px-3 py-1 bg-gold text-dark-bg text-[9px] font-black uppercase tracking-[0.3em] rounded-sm shadow-xl">Worldwide</div>
                                     )}
                                     <div className="space-y-3">
                                         <h4 className="font-orbitron text-sm font-black tracking-[0.2em] uppercase leading-tight" style={{ color: tier.color }}>{tier.name}</h4>

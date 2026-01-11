@@ -13,13 +13,13 @@ const PUSH_LOGS = [
     "VERIFYING_CAUSAL_INTEGRITY_HASH...",
     "REGISTERING_DOMAIN [infodinetruthascensiocom.com]...",
     "BINDING_SSL_CERTIFICATES [TLS_1.3]...",
-    "RUNNING_SECURITY_SHARD_AUDIT...",
+    "RUNNING_SECURITY_SHARD_AUDIT [GLOBAL_SCOPE]...",
     "COMPILING_MINERVA_SOPHIA_V1.3.1...",
     "INJECTING_SECRET_SHARDS [API_KEY, STRIPE_SK]...",
-    "MAPPING_EDGE_FUNCTIONS_TO_REGIONS [GLOBAL]...",
-    "OPTIMIZING_AETHER_ASSET_CDN...",
+    "MAPPING_EDGE_FUNCTIONS_TO_REGIONS [ASIA, EU, US]...",
+    "OPTIMIZING_AETHER_ASSET_CDN [WORLDWIDE_DISTRIBUTION]...",
     "PROPAGATING_DNS_RECORDS [RESONANCE_PROD]...",
-    "FINALIZING_DEPLOYMENT_ENCRYPTION...",
+    "FINALIZING_DEPLOYMENT_ENCRYPTION [QUANTUM_HARDENED]...",
     "HANDSHAKE_COMPLETE: NODE_ONLINE_AT_THE_EDGE"
 ];
 
@@ -362,10 +362,10 @@ export const DeploymentManifest: React.FC<DeploymentManifestProps> = ({ systemSt
 
             <div className="absolute bottom-0 left-0 w-full p-10 bg-[#050505]/95 border-t border-gold/40 flex flex-col md:flex-row justify-between items-center gap-10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] z-50 backdrop-blur-xl">
                 <div className="flex flex-col gap-2 text-center md:text-left">
-                    <span className="text-[14px] text-gold font-bold uppercase tracking-[0.4em]">Validate Simulation Logic</span>
+                    <span className="text-[14px] text-gold font-bold uppercase tracking-[0.4em]">Validate Global Logic</span>
                     <p className="text-[17px] font-minerva italic text-pearl/90 max-w-2xl leading-relaxed">
                         {isGitAuthenticated 
-                            ? "Handshake Protocol: Run virtual push sequence to verify architectural parity."
+                            ? "Handshake Protocol: Run virtual push sequence to verify worldwide architectural parity."
                             : "AWAITING AUTH: Please connect repository to authorize causal write access."}
                     </p>
                 </div>

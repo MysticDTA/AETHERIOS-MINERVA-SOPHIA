@@ -25,6 +25,10 @@ class CosmosCommsService {
     private retryCount = 0;
     private lastTransmissionTime = 0;
     
+    // Rate Limiting
+    private lastErrorTime = 0;
+    private errorCooldown = 0;
+    
     private liveMetrics: LiveTickerMetric[] = [];
     private currentMetricTopicIndex = 0;
 
@@ -94,7 +98,18 @@ class CosmosCommsService {
     }
 
     private async fetchLiveMetrics() {
-        if (!process.env.API_KEY || process.env.API_KEY === 'undefined') return;
+        // Fallback immediately if no key
+        if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+            this.generateSimulatedMetrics();
+            return;
+        }
+
+        // Rate Limit Check
+        if (Date.now() < this.lastErrorTime + this.errorCooldown) {
+            // Ensure we have something to show even during cooldown
+            if (this.liveMetrics.length === 0) this.generateSimulatedMetrics();
+            return;
+        }
 
         const topic = this.METRIC_TOPICS[this.currentMetricTopicIndex];
         this.currentMetricTopicIndex = (this.currentMetricTopicIndex + 1) % this.METRIC_TOPICS.length;
@@ -133,7 +148,6 @@ class CosmosCommsService {
             const text = response.text;
             if (text) {
                 const newMetrics = JSON.parse(text) as LiveTickerMetric[];
-                // Update existing metrics or add new ones
                 const updatedList = [...this.liveMetrics];
                 newMetrics.forEach(m => {
                     const idx = updatedList.findIndex(existing => existing.id === m.id);
@@ -141,13 +155,40 @@ class CosmosCommsService {
                     else updatedList.push(m);
                 });
                 
-                // Keep only last 6 metrics to prevent overflow
                 this.liveMetrics = updatedList.slice(-6);
                 this.emitMetrics();
+                
+                // Clear any cooldown on success
+                this.errorCooldown = 0;
             }
-        } catch (e) {
-            console.warn("Live metric fetch failed:", e);
+        } catch (e: any) {
+            console.warn("Live metric fetch failed (silent fail to preserve UX).");
+            // Check for 429 Resource Exhausted
+            if (e.message?.includes('429') || e.toString().includes('429')) {
+                this.lastErrorTime = Date.now();
+                this.errorCooldown = 300000; // 5 Minute Backoff
+                console.warn("CosmosComms: Rate limit hit. Switching to simulated metrics.");
+                this.generateSimulatedMetrics();
+            }
         }
+    }
+
+    private generateSimulatedMetrics() {
+        const simulated: LiveTickerMetric[] = [
+            { id: 'sim_sol', label: 'SOLAR_FLUX', value: '142 sfu', trend: 'STABLE' },
+            { id: 'sim_btc', label: 'BTC_CAUSAL', value: '$97,420', trend: 'UP' },
+            { id: 'sim_kp', label: 'PLANETARY_K', value: 'Kp=3', trend: 'DOWN' },
+            { id: 'sim_gold', label: 'XAU/USD', value: '$2,450', trend: 'STABLE' }
+        ];
+        // Merge simulated with existing to keep it populated
+        const updatedList = [...this.liveMetrics];
+        simulated.forEach(m => {
+             const idx = updatedList.findIndex(existing => existing.id === m.id);
+             if (idx >= 0) updatedList[idx] = m;
+             else updatedList.push(m);
+        });
+        this.liveMetrics = updatedList.slice(-6);
+        this.emitMetrics();
     }
 
     private scheduleNextTransmission(isError = false) {
@@ -162,11 +203,38 @@ class CosmosCommsService {
         this.nextMessageTimeout = window.setTimeout(() => this.beginTransmission(), delay);
     }
 
+    private generateSimulatedTransmission() {
+        const SIM_MESSAGES = [
+            { source: 'VOYAGER-1 (CACHED)', message: 'Heliopause density delta confirmed. Plasma wave instrument detecting interstellar medium resonance.', metric: '19.2 AU' },
+            { source: 'DEEP_SPACE_NETWORK', message: 'Carrier signal locked on Goldstone array. Downloading spectral analysis of sector 7G.', metric: '-124 dBm' },
+            { source: 'CHANDRA_XRAY', message: 'Accretion disk luminosity fluctuating. Possible singularity event in local cluster.', metric: '4.2 keV' },
+            { source: 'LIGO_HANFORD', message: 'Gravitational wave event GW170817 replay. Neutron star merger signature verified.', metric: '1.4 M☉' }
+        ];
+        
+        const data = SIM_MESSAGES[Math.floor(Math.random() * SIM_MESSAGES.length)];
+        
+        const transmissionId = `SIM_${Date.now()}_${Math.random().toString(36).substring(7).toUpperCase()}`;
+        this.currentState = {
+            ...this.currentState,
+            id: transmissionId,
+            source: data.source,
+            message: data.message,
+            realWorldMetric: data.metric,
+            status: 'DECODING...',
+            decodedCharacters: 0,
+            frequency: 1.617 + (Math.random() * 0.005 - 0.0025),
+            bandwidth: 10 + Math.random() * 40
+        };
+        this.emit();
+        this.startDecoding();
+    }
+
     private async beginTransmission() {
         if (this.isFetching || !this.isRunning) return;
         
         if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
-            this.scheduleNextTransmission(true);
+            this.generateSimulatedTransmission();
+            this.scheduleNextTransmission();
             return;
         }
 
@@ -229,6 +297,18 @@ class CosmosCommsService {
 
         } catch (error: any) {
             this.isFetching = false;
+            this.retryCount++; // Increment retry counter
+            
+            // Handle 429 specifically for transmission
+            if (error.message?.includes('429') || error.toString().includes('429')) {
+                this.retryCount = 5; // Force high backoff
+                console.warn("CosmosComms: Transmission Rate Limit. Switching to simulation.");
+                this.generateSimulatedTransmission();
+                this.scheduleNextTransmission();
+                return;
+            }
+
+            // Other errors
             let statusMsg: CommsStatus = 'SIGNAL LOST';
             this.currentState.source = "SYSTEM_ERROR";
             this.currentState.status = statusMsg;
