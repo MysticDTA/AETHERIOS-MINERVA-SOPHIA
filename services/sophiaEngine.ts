@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse, Chat, Type, FunctionDeclaration } from '@google/genai';
 import { SystemState, FailurePrediction, CausalStrategy } from '../types';
 import { knowledgeBase } from './knowledgeBase';
@@ -78,7 +79,7 @@ export class SophiaEngineCore {
           model: 'gemini-3-pro-preview',
           config: {
             systemInstruction: this.systemInstruction,
-            thinkingConfig: { thinkingBudget: 32768 },
+            thinkingConfig: { thinkingBudget: 32768 } as any,
             tools: [{ functionDeclarations: [initiateSystemAuditDeclaration] }]
           },
         });
@@ -112,7 +113,7 @@ export class SophiaEngineCore {
             Identify specific fractures in the institutional lattice based on these findings. 
             Focus on the transition to Universal Year 1 (2026) and the sterility of the Sovereign Vault.
             Format as semantic HTML. Section titles in <h3>. Clear, profound, technical.`,
-            config: { thinkingConfig: { thinkingBudget: 32768 } }
+            config: { thinkingConfig: { thinkingBudget: 32768 } as any }
         });
         return { report: response.text || "Audit failed.", sources: [] };
     } catch (e) { return { report: "Audit fracture.", sources: [] }; }
@@ -167,7 +168,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: { 
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 16000 }
+                thinkingConfig: { thinkingBudget: 16000 } as any
             }
         });
         return response.text || null;
@@ -202,7 +203,7 @@ export class SophiaEngineCore {
                   },
                   required: ["summary", "status", "recommendations"]
               },
-              thinkingConfig: { thinkingBudget: 16000 }
+              thinkingConfig: { thinkingBudget: 16000 } as any
           }
       });
       return response.text || "{}";
@@ -232,7 +233,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 8000 },
+                thinkingConfig: { thinkingBudget: 8000 } as any,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -286,7 +287,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 16000 },
+                thinkingConfig: { thinkingBudget: 16000 } as any,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -342,7 +343,7 @@ export class SophiaEngineCore {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: prompt,
-            config: { thinkingConfig: { thinkingBudget: 16000 } }
+            config: { thinkingConfig: { thinkingBudget: 16000 } as any }
         });
         return response.text || "Synthesis of abstract failed.";
     } catch (e) { return "Abstract generation signal lost."; }
@@ -360,7 +361,7 @@ export class SophiaEngineCore {
             config: {
                 tools: [{ googleSearch: {} }],
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 4000 },
+                thinkingConfig: { thinkingBudget: 4000 } as any,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -389,7 +390,7 @@ export class SophiaEngineCore {
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 8000 },
+                thinkingConfig: { thinkingBudget: 8000 } as any,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -417,7 +418,7 @@ export class SophiaEngineCore {
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: prompt,
-            config: { thinkingConfig: { thinkingBudget: 4000 } }
+            config: { thinkingConfig: { thinkingBudget: 4000 } as any }
         });
         return response.text || "No causal link detected.";
     } catch (e) {

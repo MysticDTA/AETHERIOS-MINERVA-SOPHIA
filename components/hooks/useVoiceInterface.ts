@@ -170,17 +170,20 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                         }
                     }
 
-                    if (message.serverContent?.inputTranscription) {
-                        const text = message.serverContent.inputTranscription.text || '';
+                    // Cast to any to bypass missing property types in current SDK definition
+                    const serverContent = message.serverContent as any;
+
+                    if (serverContent?.inputTranscription) {
+                        const text = serverContent.inputTranscription.text || '';
                         currentTurnInputRef.current += text;
                         setUserInputTranscription(prev => prev + text);
                     }
-                    if (message.serverContent?.outputTranscription) {
-                        const text = message.serverContent.outputTranscription.text || '';
+                    if (serverContent?.outputTranscription) {
+                        const text = serverContent.outputTranscription.text || '';
                         currentTurnOutputRef.current += text;
                         setSophiaOutputTranscription(prev => prev + text);
                     }
-                    if (message.serverContent?.turnComplete) {
+                    if (serverContent?.turnComplete) {
                         const fullInput = currentTurnInputRef.current;
                         const fullOutput = currentTurnOutputRef.current;
                         if (fullInput.trim() || fullOutput.trim()) {
@@ -221,15 +224,14 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                     setIsSessionActive(false);
                 },
             },
-            // FIX: Changed 'notes' to 'config' as per @google/genai SDK specs
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } },
-                systemInstruction,
+                systemInstruction: { parts: [{ text: systemInstruction }] },
                 inputAudioTranscription: {},
                 outputAudioTranscription: {},
                 tools: [{ functionDeclarations: [updateSystemModeDeclaration] }],
-                thinkingConfig: { thinkingBudget: 4000 }
+                thinkingConfig: { thinkingBudget: 4000 } as any // Cast to any to resolve SDK type definition mismatch
             },
         });
     }, [isSessionActive, systemInstruction, addLogEntry, closeVoiceSession, onSetOrbMode]);
