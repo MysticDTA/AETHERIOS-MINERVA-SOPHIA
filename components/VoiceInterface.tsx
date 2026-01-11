@@ -104,10 +104,11 @@ const ResonanceMemoryPulsar: React.FC<{ active: boolean; audioLevel?: number }> 
 const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' | 'sophia' }> = ({ title, text, type }) => {
     const isUser = type === 'user';
     
-    // Distinct visual themes
+    // Distinct visual themes with stronger directional indicators
     const theme = isUser ? {
-        border: 'border-amber-500/30 hover:border-amber-500/50',
-        bg: 'bg-gradient-to-br from-amber-950/20 via-black/40 to-black',
+        // Left-heavy amber border for user input
+        border: 'border-y border-r border-amber-500/20 border-l-4 border-l-amber-500/60 hover:border-amber-500/40',
+        bg: 'bg-gradient-to-br from-amber-950/30 via-black/60 to-black',
         text: 'text-amber-100',
         subtext: 'text-amber-500',
         indicator: 'bg-amber-500',
@@ -115,8 +116,9 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
         iconBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
         pattern: 'bg-[radial-gradient(circle_at_center,_var(--gold)_1px,_transparent_1px)] bg-[length:24px_24px] opacity-[0.03]'
     } : {
-        border: 'border-violet-500/30 hover:border-violet-500/50',
-        bg: 'bg-gradient-to-bl from-violet-950/20 via-black/40 to-black',
+        // Right-heavy violet border for system output
+        border: 'border-y border-l border-violet-500/20 border-r-4 border-r-violet-500/60 hover:border-violet-500/40',
+        bg: 'bg-gradient-to-bl from-violet-950/30 via-black/60 to-black',
         text: 'text-violet-100',
         subtext: 'text-violet-400',
         indicator: 'bg-violet-500',
@@ -126,7 +128,7 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
     };
 
     return (
-        <div className={`flex-1 flex flex-col rounded-xl border p-6 transition-all duration-700 relative overflow-hidden backdrop-blur-md shadow-2xl group ${theme.bg} ${theme.border} ${text ? 'opacity-100' : 'opacity-70'}`}>
+        <div className={`flex-1 flex flex-col rounded-xl p-6 transition-all duration-700 relative overflow-hidden backdrop-blur-md shadow-2xl group ${theme.bg} ${theme.border} ${text ? 'opacity-100 shadow-[0_0_30px_rgba(0,0,0,0.3)]' : 'opacity-60'}`}>
             
             {/* Background Pattern */}
             <div className={`absolute inset-0 pointer-events-none ${theme.pattern}`} />
@@ -165,7 +167,7 @@ const TranscriptionVessel: React.FC<{ title: string, text: string, type: 'user' 
             </div>
             
             {/* Decorative Corner Accent */}
-            <div className={`absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 rounded-br-xl opacity-20 ${theme.border.split(' ')[0]}`} />
+            <div className={`absolute bottom-0 ${isUser ? 'left-0 rounded-tr-xl border-t-2 border-r-2' : 'right-0 rounded-tl-xl border-t-2 border-l-2'} w-12 h-12 opacity-10 ${isUser ? 'border-amber-500' : 'border-violet-500'}`} />
         </div>
     );
 };

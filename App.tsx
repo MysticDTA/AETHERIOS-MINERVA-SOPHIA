@@ -94,6 +94,16 @@ export const App: React.FC = () => {
       audioEngine: audioEngineRef.current
   });
 
+  // Grounding Protocol Integration
+  useEffect(() => {
+    if (orbMode === 'GROUNDING') {
+      setGrounded(true);
+      addLogEntry(LogType.SYSTEM, 'Grounding protocol initiated. Telluric discharge active.');
+    } else {
+      setGrounded(false);
+    }
+  }, [orbMode]);
+
   useEffect(() => {
       audioEngineRef.current = new AudioEngine();
       audioEngineRef.current.loadSounds();
