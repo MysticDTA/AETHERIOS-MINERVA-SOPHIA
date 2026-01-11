@@ -10,12 +10,18 @@
   --warm-grey: #b6b0a0;
   --aether-blue: #6d28d9;
   --aether-violet: #4c1d95;
-  --dark-bg: #010101;
-  --dark-surface: #050505;
-  --dark-border: rgba(255, 255, 255, 0.05);
+  --dark-bg: #020202;
+  --dark-surface: #080808;
+  --dark-border: rgba(255, 255, 255, 0.08);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+::selection {
+  background: rgba(255, 215, 0, 0.2);
+  color: #fff;
+  text-shadow: 0 0 10px #ffd700;
+}
 
 body {
   background: var(--dark-bg);
@@ -40,14 +46,42 @@ body {
   overflow: visible;
 }
 
+/* --- SYSTEM UI ENHANCEMENTS --- */
+
+/* Scanline Effect */
+.scanlines {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.1) 50%,
+    rgba(0,0,0,0.1)
+  );
+  background-size: 100% 4px;
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.15;
+}
+
+/* Vignette */
+.vignette {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  box-shadow: 0 0 200px rgba(0,0,0,0.9) inset;
+  pointer-events: none;
+  z-index: 9997;
+}
+
 /* --- RADIANT SYNTHESIS UTILITIES --- */
 .resonance-low {
-  filter: contrast(1.1) saturate(1.2) brightness(0.8);
+  filter: contrast(1.1) saturate(1.2) brightness(0.8) sepia(0.2);
   animation: chromatic-aberration 0.3s infinite;
 }
 
 .resonance-peak {
-  filter: brightness(1.08);
+  filter: brightness(1.05) contrast(1.05);
   box-shadow: inset 0 0 150px rgba(255, 215, 0, 0.03);
 }
 
@@ -69,16 +103,17 @@ body {
 
 /* --- COMPONENT STYLES --- */
 .glass-panel {
-  background: rgba(5, 5, 5, 0.6);
-  backdrop-filter: blur(40px) saturate(1.8);
+  background: rgba(5, 5, 5, 0.7);
+  backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid var(--dark-border);
-  transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-  will-change: border-color, background, transform;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .glass-panel:hover {
-  border-color: rgba(255, 215, 0, 0.15);
-  background: rgba(8, 8, 8, 0.7);
+  border-color: rgba(255, 215, 0, 0.2);
+  background: rgba(8, 8, 8, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 215, 0, 0.02);
 }
 
 /* --- ANIMATIONS --- */
@@ -94,8 +129,13 @@ body {
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(30px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes scale-in {
@@ -103,94 +143,60 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes blackhole-pulse {
-  0%, 100% { box-shadow: inset 0 0 50px #000; background-color: #000; }
-  50% { box-shadow: inset 0 0 150px #220000; background-color: #0a0000; }
-}
-
-@keyframes shake-damped {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  10% { transform: translate(-2px, -2px) rotate(-0.5deg); }
-  20% { transform: translate(2px, 2px) rotate(0.5deg); }
-  30% { transform: translate(-2px, 2px) rotate(0deg); }
-  40% { transform: translate(2px, -2px) rotate(0.5deg); }
-  50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-@keyframes glitch-anim {
-  0% { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 2px); }
-  20% { clip-path: inset(92% 0 1% 0); transform: translate(2px, -2px); }
-  40% { clip-path: inset(43% 0 1% 0); transform: translate(-2px, 2px); }
-  60% { clip-path: inset(25% 0 58% 0); transform: translate(2px, -2px); }
-  80% { clip-path: inset(54% 0 7% 0); transform: translate(-2px, 2px); }
-  100% { clip-path: inset(58% 0 43% 0); transform: translate(2px, -2px); }
-}
-
-@keyframes glitch-anim-2 {
-  0% { clip-path: inset(24% 0 29% 0); transform: translate(2px, -2px); }
-  20% { clip-path: inset(54% 0 21% 0); transform: translate(-2px, 2px); }
-  40% { clip-path: inset(12% 0 6% 0); transform: translate(2px, -2px); }
-  60% { clip-path: inset(87% 0 3% 0); transform: translate(-2px, 2px); }
-  80% { clip-path: inset(3% 0 61% 0); transform: translate(2px, -2px); }
-  100% { clip-path: inset(61% 0 12% 0); transform: translate(-2px, 2px); }
-}
-
-@keyframes blink {
+@keyframes pulse-slow {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50% { opacity: 0.6; }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: fade-in-up 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scale-in 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: scale-in 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
-
-.shake-effect-damped {
-  animation: shake-damped 3s infinite;
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
 }
 
 .logic-trace-bar {
-  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
   background-size: 200% 100%;
-  animation: logic-shimmer 1.5s infinite linear;
+  animation: logic-shimmer 2s infinite linear;
 }
 
 /* Custom Scrollbar Architecture */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { 
+  background: #222; 
+  border-radius: 2px; 
+  border: 1px solid #333;
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--gold); 
+  border-color: #fff;
+}
 
-.scrollbar-none {
-  scrollbar-width: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
 
 .gpu-accel {
     transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
+    will-change: transform, opacity;
 }
 
 /* High Fidelity Interactive Elements */
 .interaction-node {
-    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
 }
 .interaction-node:hover {
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-    transform: scale(1.02);
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+    transform: translateY(-1px);
 }
 
-.institutional-edge-glow {
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.03), inset 0 0 20px rgba(255, 215, 0, 0.02);
-}

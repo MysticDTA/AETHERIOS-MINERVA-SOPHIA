@@ -31,8 +31,7 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
   const isDecoherent = resonanceFactor < 0.6;
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const blurAmount = useMemo(() => 20 - (resonanceFactor * 10), [resonanceFactor]);
-  const grainOpacity = useMemo(() => 0.03 + (1 - resonanceFactor) * 0.05, [resonanceFactor]);
+  const grainOpacity = useMemo(() => 0.04 + (1 - resonanceFactor) * 0.06, [resonanceFactor]);
 
   return (
     <div 
@@ -41,56 +40,53 @@ export const Layout: React.FC<LayoutProps> = React.memo(({
     >
       
       {/* Background Noise Layer */}
-      <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000" style={{ backgroundImage: `url("${NOISE_DATA_URI}")`, opacity: grainOpacity }}></div>
+      <div className="fixed inset-0 pointer-events-none z-[1] transition-opacity duration-1000 mix-blend-soft-light" style={{ backgroundImage: `url("${NOISE_DATA_URI}")`, opacity: grainOpacity }}></div>
       
-      {/* Quantum Grain (Dynamic) */}
-      <div className="fixed inset-0 pointer-events-none z-[2] opacity-[0.03] mix-blend-overlay animate-[grain_8s_steps(10)_infinite]" style={{ backgroundImage: `url("${NOISE_DATA_URI}")` }}>
-          <style>{`@keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); } 30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); } 60% { transform: translate(15%, 0); } 70% { transform: translate(0, 10%); } 80% { transform: translate(-15%, 0); } 90% { transform: translate(10%, 5%); } }`}</style>
-      </div>
+      {/* CRT Scanline Effect */}
+      <div className="scanlines"></div>
+      
+      {/* Cinematic Vignette */}
+      <div className="vignette"></div>
 
       {/* 3D Unified Graphics Pipeline */}
       <UnifiedLatticeBackground rho={resonanceFactor} coherence={coherence} orbMode={orbMode} />
 
       {/* --- THE SOVEREIGN FRAME (HUD OVERLAY) --- */}
-      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-1 md:m-2 overflow-hidden rounded-lg">
+      <div className="fixed inset-0 pointer-events-none z-[100] border border-white/5 m-2 md:m-3 overflow-hidden rounded-xl shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
           {/* Top Intelligent Ticker */}
           <RealTimeIntelTicker orbMode={orbMode} rho={resonanceFactor} />
 
           {/* Micro Labels */}
-          <div className="absolute top-2 left-4 md:top-3 md:left-5 flex flex-col gap-0.5 opacity-30 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
+          <div className="absolute top-3 left-5 md:top-4 md:left-6 flex flex-col gap-0.5 opacity-40 group-hover:opacity-80 transition-opacity pointer-events-auto cursor-help">
               <Tooltip text="Your unique institutional node identifier within the ÆTHERIOS lattice.">
                   <div>
-                      <span className="text-[6px] font-mono text-gold uppercase tracking-[0.4em] font-black">Institutional_Node</span>
-                      <span className="text-[8px] font-mono text-pearl uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
+                      <span className="text-[6px] font-mono text-gold uppercase tracking-[0.4em] font-black block mb-0.5">Institutional_Node</span>
+                      <span className="text-[9px] font-mono text-pearl uppercase tracking-widest font-bold">0x88_SOPHIA_PRIME</span>
                   </div>
               </Tooltip>
           </div>
           
-          <div className="absolute top-2 right-4 md:top-3 md:right-5 text-right opacity-30 group-hover:opacity-60 transition-opacity pointer-events-auto cursor-help">
+          <div className="absolute top-3 right-5 md:top-4 md:right-6 text-right opacity-40 group-hover:opacity-80 transition-opacity pointer-events-auto cursor-help">
               <Tooltip text="Measures the temporal misalignment of local causal events.">
                   <div className="flex flex-col gap-0.5 items-end">
-                      <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black">Causal_Drift</span>
-                      <span className={`text-[8px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
+                      <span className="text-[6px] font-mono text-slate-600 uppercase tracking-[0.4em] font-black block mb-0.5">Causal_Drift</span>
+                      <span className={`text-[9px] font-mono font-bold transition-colors duration-1000 ${drift > 0.05 ? 'text-rose-400' : 'text-cyan-400'}`}>Δ +{drift.toFixed(6)}Ψ</span>
                   </div>
               </Tooltip>
           </div>
 
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-32 md:h-64 bg-gradient-to-b from-transparent via-white/5 to-transparent" />
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[1px] h-32 md:h-64 bg-gradient-to-b from-transparent via-white/5 to-transparent" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-24 md:h-48 bg-gradient-to-b from-transparent via-gold/10 to-transparent" />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[1px] h-24 md:h-48 bg-gradient-to-b from-transparent via-gold/10 to-transparent" />
       </div>
       
       {/* Optimized Main Content Area */}
-      <div className="relative z-20 flex-grow flex flex-col px-2 py-2 md:px-4 md:py-3 max-w-[2400px] mx-auto w-full h-full">
+      <div className="relative z-20 flex-grow flex flex-col px-3 py-3 md:px-6 md:py-4 max-w-[2400px] mx-auto w-full h-full">
         {children}
       </div>
       
       <footer className="relative z-30 pointer-events-none mt-auto" role="contentinfo">
         <BreathBar cycle={breathCycle} isGrounded={isGrounded} />
       </footer>
-
-      <style>{`
-        .resonance-peak { filter: contrast(1.05) brightness(1.05); }
-      `}</style>
     </div>
   );
 });
