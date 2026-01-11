@@ -87,7 +87,30 @@ export const App: React.FC = () => {
       return () => cosmosCommsService.stop();
   }, []);
 
-  const handleLogin = () => setAuthView('BIO');
+  const handleLogin = (isCreator = false) => {
+      if (isCreator) {
+          setSystemState(prev => ({
+              ...prev,
+              auth: { 
+                  ...prev.auth, 
+                  isAuthenticated: true, 
+                  isBioVerified: true, 
+                  operatorId: 'ARCHITECT_MCBRIDE' 
+              },
+              userResources: { 
+                  ...prev.userResources, 
+                  sovereignTier: 'SOVEREIGN',
+                  cradleTokens: 999999, 
+                  sovereignLiquidity: 1000000000 
+              }
+          }));
+          addLogEntry(LogType.SYSTEM, 'ARCHITECT RECOGNIZED. SOVEREIGN PROTOCOLS ACTIVE.');
+          audioEngineRef.current?.playHighResonanceChime();
+      } else {
+          setAuthView('BIO');
+      }
+  };
+
   const handleBioVerification = () => {
       setSystemState(prev => ({
           ...prev,

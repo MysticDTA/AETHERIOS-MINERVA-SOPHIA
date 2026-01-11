@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AudioEngine } from './audio/AudioEngine';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (isCreator?: boolean) => void;
   onForgotPassword: () => void;
   audioEngine: AudioEngine | null;
 }
@@ -18,10 +18,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onForgotPassword, audioEn
     setIsAuthenticating(true);
     audioEngine?.playUIScanStart();
     
-    // Simulate handshake delay
+    // Creator Override Check
+    if (operatorId === 'ARCHITECT' && key === 'MINERVA') {
+        setTimeout(() => {
+            audioEngine?.playAscensionChime();
+            onLogin(true); // Pass true to indicate Creator Mode
+        }, 1000);
+        return;
+    }
+
+    // Standard Handshake
     setTimeout(() => {
         audioEngine?.playAscensionChime();
-        onLogin();
+        onLogin(false); // Standard user
     }, 1500);
   };
 
@@ -45,7 +54,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onForgotPassword, audioEn
 
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div className="space-y-2">
-                <label className="text-[9px] font-mono text-gold uppercase tracking-widest block">Operator_ID</label>
+                <label className={`text-[9px] font-mono uppercase tracking-widest block ${operatorId === 'ARCHITECT' ? 'text-gold animate-pulse' : 'text-gold'}`}>Operator_ID</label>
                 <input 
                     type="text" 
                     value={operatorId}
