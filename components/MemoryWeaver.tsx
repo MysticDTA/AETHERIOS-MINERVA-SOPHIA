@@ -177,7 +177,7 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                     </div>
                 </div>
             ) : (
-                <div className="w-full h-full overflow-y-auto scrollbar-thin p-4 space-y-2">
+                <div className="w-full h-full overflow-y-auto scrollbar-thin p-4 grid grid-cols-1 gap-3 content-start">
                     {memories.length === 0 ? (
                         <div className="h-full flex items-center justify-center text-[10px] text-slate-500 font-mono uppercase tracking-widest opacity-50">
                             No Short-Term Memories
@@ -186,11 +186,35 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
                         memories.map((mem, i) => (
                             <div 
                                 key={mem.id} 
-                                className={`p-3 rounded border text-left cursor-pointer transition-all ${activeMemory?.id === mem.id ? 'bg-white/10 border-gold/50 text-pearl' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'}`}
+                                className={`
+                                    relative p-4 rounded-lg border transition-all duration-500 cursor-pointer group/petal overflow-hidden
+                                    ${activeMemory?.id === mem.id 
+                                        ? 'bg-white/[0.08] border-gold/60 shadow-[0_0_15px_rgba(255,215,0,0.1)] translate-x-1' 
+                                        : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-gold/30 hover:translate-x-1'
+                                    }
+                                `}
                                 onClick={() => setActiveMemory(mem)}
                             >
-                                <p className="text-[11px] font-mono truncate">{mem.content}</p>
-                                <span className="text-[8px] text-slate-600 uppercase mt-1 block">Context: {mem.pillarContext || 'GENERAL'}</span>
+                                {/* Petal Accent - A subtle bar on the left */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-500 ${activeMemory?.id === mem.id ? 'bg-gold' : 'bg-slate-800 group-hover/petal:bg-gold/50'}`} />
+                                
+                                <div className="pl-3 flex flex-col gap-2 relative z-10">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-bold">
+                                            {mem.pillarContext || 'GENERAL_CONTEXT'}
+                                        </span>
+                                        <span className="text-[8px] font-mono text-slate-700">
+                                            {new Date(mem.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        </span>
+                                    </div>
+                                    
+                                    <p className={`text-[11px] font-minerva italic leading-relaxed line-clamp-2 ${activeMemory?.id === mem.id ? 'text-pearl' : 'text-slate-400 group-hover/petal:text-slate-200'}`}>
+                                        "{mem.content}"
+                                    </p>
+                                </div>
+
+                                {/* Hover Glow Gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-gold/5 to-transparent opacity-0 group-hover/petal:opacity-100 transition-opacity duration-700 pointer-events-none" />
                             </div>
                         ))
                     )}
@@ -200,23 +224,32 @@ export const MemoryWeaver: React.FC<MemoryWeaverProps> = ({ memories, onMemoryCh
 
         {/* Selected Memory Detail */}
         {activeMemory && viewMode === 'LIST' && (
-            <div className="min-h-[100px] bg-black/80 border-t border-white/10 p-4 animate-slide-up relative">
+            <div className="min-h-[120px] bg-[#0f1115] border-t border-white/10 p-5 animate-slide-up relative flex flex-col gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
                 <button 
                     onClick={() => setActiveMemory(null)}
-                    className="absolute top-2 right-2 text-slate-600 hover:text-white"
+                    className="absolute top-3 right-3 text-slate-600 hover:text-rose-400 transition-colors"
                 >
-                    ×
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
-                <div className="flex gap-2 items-center mb-2">
-                    <span className="text-[9px] font-mono text-gold uppercase tracking-widest">Active_Node</span>
-                    <span className="text-[8px] text-slate-500">{new Date(activeMemory.timestamp).toLocaleTimeString()}</span>
+                
+                <div className="flex gap-3 items-center border-b border-white/5 pb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+                    <span className="text-[9px] font-mono text-gold uppercase tracking-[0.2em] font-bold">Active_Memory_Node</span>
+                    <span className="text-[8px] text-slate-600 font-mono ml-auto tracking-tight opacity-50">{activeMemory.id}</span>
                 </div>
-                <p className="text-[12px] font-minerva italic text-pearl leading-relaxed">
-                    "{activeMemory.content}"
-                </p>
-                <div className="mt-3 flex gap-2">
-                    <button onClick={() => handleCopy(activeMemory.content)} className="text-[9px] font-mono uppercase border border-white/20 px-2 py-1 rounded hover:bg-white/10 text-slate-400 hover:text-pearl transition-all">
-                        {copied ? 'COPIED' : 'COPY_TEXT'}
+                
+                <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 max-h-[120px]">
+                    <p className="text-[13px] font-minerva text-pearl leading-relaxed tracking-wide select-text">
+                        "{activeMemory.content}"
+                    </p>
+                </div>
+                
+                <div className="flex justify-between items-center pt-2">
+                    <span className="text-[8px] text-slate-500 font-mono">
+                        Captured: {new Date(activeMemory.timestamp).toLocaleString()}
+                    </span>
+                    <button onClick={() => handleCopy(activeMemory.content)} className={`text-[9px] font-mono uppercase border px-3 py-1.5 rounded transition-all ${copied ? 'border-green-500 text-green-400 bg-green-900/20' : 'border-white/20 text-slate-400 hover:text-pearl hover:border-pearl/40 hover:bg-white/5'}`}>
+                        {copied ? 'Content_Copied' : 'Copy_Data'}
                     </button>
                 </div>
             </div>
