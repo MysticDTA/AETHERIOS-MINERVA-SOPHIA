@@ -1,15 +1,23 @@
+
 import React, { useState, useEffect } from 'react';
 import { emitSophiaEvent } from '../services/sophiaEvents';
 
 interface ApiKeyGuardProps {
   children: React.ReactNode;
+  bypass?: boolean;
 }
 
-export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
+export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children, bypass = false }) => {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
+    // Immediate bypass if authorized (e.g., Architect Mode)
+    if (bypass) {
+        setHasKey(true);
+        return;
+    }
+
     const checkConfiguration = async () => {
       // 1. Primary Vector: check for build-time injected process.env.API_KEY
       const envKey = process.env.API_KEY;
@@ -36,7 +44,7 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
     };
 
     checkConfiguration();
-  }, []);
+  }, [bypass]);
 
   const handleSelectKey = async () => {
     if (typeof window === 'undefined' || !window.aistudio) return;
@@ -53,13 +61,13 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
     }
   };
 
-  if (hasKey === null) return (
+  if (hasKey === null && !bypass) return (
       <div className="fixed inset-0 bg-[#020202] flex items-center justify-center z-[3000]">
           <div className="w-12 h-12 border-2 border-gold/10 border-t-gold rounded-full animate-spin shadow-[0_0_20px_rgba(255,215,0,0.1)]" />
       </div>
   );
 
-  if (!hasKey) {
+  if (!hasKey && !bypass) {
     return (
       <div id="api-key-guard-overlay" className="fixed inset-0 z-[3000] bg-dark-bg flex flex-col items-center justify-center p-8 text-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,199,127,0.1)_0%,transparent_70%)] pointer-events-none" />

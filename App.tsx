@@ -89,6 +89,7 @@ export const App: React.FC = () => {
 
   const handleLogin = (isCreator = false) => {
       if (isCreator) {
+          // ARCHITECT MODE: FULL SOVEREIGN ACCESS & UNLIMITED RESOURCES
           setSystemState(prev => ({
               ...prev,
               auth: { 
@@ -107,16 +108,19 @@ export const App: React.FC = () => {
           addLogEntry(LogType.SYSTEM, 'ARCHITECT RECOGNIZED. SOVEREIGN PROTOCOLS ACTIVE.');
           audioEngineRef.current?.playHighResonanceChime();
       } else {
+          // STANDARD USER: Redirect to Biometric Handshake
           setAuthView('BIO');
       }
   };
 
   const handleBioVerification = () => {
+      // STANDARD USER VERIFICATION: GRANTS ACOLYTE ACCESS ONLY
       setSystemState(prev => ({
           ...prev,
           auth: { ...prev.auth, isAuthenticated: true, isBioVerified: true },
-          userResources: { ...prev.userResources, sovereignTier: 'SOVEREIGN' } 
+          userResources: { ...prev.userResources, sovereignTier: 'ACOLYTE' } 
       }));
+      addLogEntry(LogType.INFO, 'Biometric Handshake Complete. User Tier: ACOLYTE.');
   };
 
   const handleDiagnosticComplete = () => {
@@ -143,6 +147,7 @@ export const App: React.FC = () => {
   };
 
   const renderPage = () => {
+      // Only show Sovereign Welcome if user is genuinely Sovereign (Architect or upgraded)
       if (showWelcome && systemState.userResources.sovereignTier === 'SOVEREIGN' && currentPage === 1) {
           return (
               <div className="absolute inset-0 z-50 animate-fade-in" onClick={() => setShowWelcome(false)}>
@@ -192,7 +197,7 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <ErrorBoundary>
-        <ApiKeyGuard>
+        <ApiKeyGuard bypass={systemState.userResources.sovereignTier === 'SOVEREIGN'}>
           <Layout breathCycle={systemState.breathCycle} isGrounded={systemState.isGrounded} resonanceFactor={systemState.resonanceFactorRho} orbMode={orbMode} coherence={systemState.biometricSync.coherence}>
             <Header 
                 governanceAxiom={systemState.governanceAxiom} 

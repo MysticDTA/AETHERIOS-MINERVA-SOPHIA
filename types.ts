@@ -17,6 +17,17 @@ declare global {
   
   namespace JSX {
     interface IntrinsicElements {
+        // React Three Fiber elements
+        ambientLight: any;
+        pointLight: any;
+        group: any;
+        mesh: any;
+        sphereGeometry: any;
+        meshBasicMaterial: any;
+        cylinderGeometry: any;
+        gridHelper: any;
+        color: any;
+
         [elemName: string]: any;
     }
   }

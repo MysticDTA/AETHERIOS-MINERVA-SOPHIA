@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { SystemState } from '../types';
+import { SystemState, CipherSuite } from '../types';
 import { AudioEngine } from './audio/AudioEngine';
 import { QuantumSecuritySentinel } from './QuantumSecuritySentinel';
 import { QuantumSentinelPulse } from './QuantumSentinelPulse';
@@ -264,7 +264,7 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                 const layerIdx = prev.hybridSecurity.activeLayers.findIndex(l => l.id === id);
                 if (layerIdx === -1) return prev;
                 
-                const nextAlg: Record<string, string> = {
+                const nextAlg: Record<CipherSuite, CipherSuite> = {
                     'CRYSTALS-KYBER': 'DILITHIUM',
                     'DILITHIUM': 'FALCON',
                     'FALCON': 'SPHINCS+',
@@ -273,9 +273,10 @@ export const SecurityShieldAudit: React.FC<SecurityShieldAuditProps> = ({ system
                 };
 
                 const newLayers = [...prev.hybridSecurity.activeLayers];
+                const currentAlg = newLayers[layerIdx].algorithm;
                 newLayers[layerIdx] = {
                     ...newLayers[layerIdx],
-                    algorithm: (nextAlg[newLayers[layerIdx].algorithm] || 'CRYSTALS-KYBER') as any
+                    algorithm: nextAlg[currentAlg] || 'CRYSTALS-KYBER'
                 };
 
                 return {

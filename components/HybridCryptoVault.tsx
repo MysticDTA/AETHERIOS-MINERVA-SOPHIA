@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HybridSecurityState, CipherSuite } from '../types';
 import { Tooltip } from './Tooltip';
@@ -112,7 +113,7 @@ export const HybridCryptoVault: React.FC<HybridCryptoVaultProps> = ({ data, onHa
                                 <div key={layer.id} className="bg-black/60 border border-white/5 p-4 rounded flex justify-between items-center group/layer hover:border-white/20 transition-all">
                                     <div className="flex flex-col gap-1">
                                         <span className="text-[8px] font-mono text-slate-500 uppercase">{layer.type}_LAYER</span>
-                                        <span className="font-orbitron text-[11px] text-pearl font-bold tracking-wider">{layer.algorithm}</span>
+                                        <span key={layer.algorithm} className="font-orbitron text-[11px] text-pearl font-bold tracking-wider animate-fade-in">{layer.algorithm}</span>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
