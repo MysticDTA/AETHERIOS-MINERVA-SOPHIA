@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children?: ReactNode;
@@ -14,17 +14,17 @@ interface State {
  * ErrorBoundary - Captures runtime fractures in the UI lattice.
  * Ensures system composure even during component-level decoherence.
  */
-export class ErrorBoundary extends React.Component<Props, State> {
-  state: State = {
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
     hasError: false,
   };
 
-  static getDerivedStateFromError(_: Error): State {
+  public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Pass error details to the provided callback for robust logging
     if (this.props.onError) {
         this.props.onError(error, errorInfo);
@@ -32,11 +32,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error captured by Boundary:", error, errorInfo);
   }
 
-  handleReset = () => {
+  private handleReset = () => {
     this.setState({ hasError: false });
   };
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
         <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900/50 border-2 border-red-700/50 p-8 rounded-lg text-center backdrop-blur-xl">

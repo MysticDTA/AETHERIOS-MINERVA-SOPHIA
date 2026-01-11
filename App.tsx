@@ -7,8 +7,12 @@ import { SystemFooter } from './components/SystemFooter';
 import { Dashboard } from './components/Dashboard';
 import { Display4 } from './components/Display4';
 import { Display5 } from './components/Display5';
+import { Display6 } from './components/Display6';
 import { Display7 } from './components/Display7';
+import { Display8 } from './components/Display8'; // UPDATED
 import { Display10 } from './components/Display10';
+import { Display11 } from './components/Display11';
+import { Display12 } from './components/Display12';
 import { ResourceProcurement } from './components/ResourceProcurement';
 import { SecurityShieldAudit } from './components/SecurityShieldAudit';
 import { DeepDiagnosticOverlay } from './components/DeepDiagnosticOverlay';
@@ -34,7 +38,16 @@ import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
 import { ChronosCausalEngine } from './components/ChronosCausalEngine';
 import { ModuleManager } from './components/ModuleManager';
+import { SovereignPortal } from './components/SovereignPortal';
+import { DeploymentManifest } from './components/DeploymentManifest';
+import { VeoFluxSynthesizer } from './components/VeoFluxSynthesizer';
+import { SystemOptimizationTerminal } from './components/SystemOptimizationTerminal';
+import { MenervaBridge } from './components/MenervaBridge';
+import { CollectiveCoherenceView } from './components/CollectiveCoherenceView';
+import { CausalIngestionNexus } from './components/CausalIngestionNexus';
+import { QuantumComputeNexus } from './components/QuantumComputeNexus';
 import { OrbMode, OrbModeConfig, LogType } from './types';
+import { Display3 } from './components/Display3'; // Restored
 
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring.' },
@@ -54,6 +67,7 @@ export const App: React.FC = () => {
   const [showDiagnostic, setShowDiagnostic] = useState(false); 
   const [showWelcome, setShowWelcome] = useState(true);
   const [authView, setAuthView] = useState<'LOGIN' | 'RESET' | 'BIO'>('LOGIN');
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   const [sophiaEngine, setSophiaEngine] = useState<SophiaEngineCore | null>(null);
   const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -87,9 +101,13 @@ export const App: React.FC = () => {
       return () => cosmosCommsService.stop();
   }, []);
 
+  const handlePortalInitialization = () => {
+      audioEngineRef.current?.playAscensionChime();
+      setHasInitialized(true);
+  };
+
   const handleLogin = (isCreator = false) => {
       if (isCreator) {
-          // ARCHITECT MODE: FULL SOVEREIGN ACCESS & UNLIMITED RESOURCES
           setSystemState(prev => ({
               ...prev,
               auth: { 
@@ -108,13 +126,11 @@ export const App: React.FC = () => {
           addLogEntry(LogType.SYSTEM, 'ARCHITECT RECOGNIZED. SOVEREIGN PROTOCOLS ACTIVE.');
           audioEngineRef.current?.playHighResonanceChime();
       } else {
-          // STANDARD USER: Redirect to Biometric Handshake
           setAuthView('BIO');
       }
   };
 
   const handleBioVerification = () => {
-      // STANDARD USER VERIFICATION: GRANTS ACOLYTE ACCESS ONLY
       setSystemState(prev => ({
           ...prev,
           auth: { ...prev.auth, isAuthenticated: true, isBioVerified: true },
@@ -125,7 +141,7 @@ export const App: React.FC = () => {
 
   const handleDiagnosticComplete = () => {
       setShowDiagnostic(false);
-      setCurrentPage(6); // Navigate to System Summary (Status) after scan
+      setCurrentPage(6); 
   };
 
   const handleParamsChange = (param: string, value: number) => {
@@ -140,14 +156,13 @@ export const App: React.FC = () => {
   const handleManualReset = () => {
       setSystemState(prev => ({
           ...initialSystemState,
-          auth: prev.auth // Keep auth state
+          auth: prev.auth 
       }));
       addLogEntry(LogType.SYSTEM, 'Manual system reset initiated.');
       audioEngineRef.current?.playEffect('reset');
   };
 
   const renderPage = () => {
-      // Only show Sovereign Welcome if user is genuinely Sovereign (Architect or upgraded)
       if (showWelcome && systemState.userResources.sovereignTier === 'SOVEREIGN' && currentPage === 1) {
           return (
               <div className="absolute inset-0 z-50 animate-fade-in" onClick={() => setShowWelcome(false)}>
@@ -161,12 +176,15 @@ export const App: React.FC = () => {
 
       switch (currentPage) {
           case 1: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
+          case 3: return <Display3 systemState={systemState} onRelayCalibration={interactive.handleRelayCalibration} onStarCalibrate={interactive.handleStarCalibration} calibrationTargetId={interactive.calibrationTargetId} calibrationEffect={interactive.calibrationEffect} setOrbMode={setOrbMode} sophiaEngine={sophiaEngine} />;
           case 4: return <Display4 systemState={systemState} orbMode={orbMode} sophiaEngine={sophiaEngine} onSaveInsight={() => {}} onToggleInstructionsModal={() => {}} onRelayCalibration={interactive.handleRelayCalibration} setOrbMode={setOrbMode} voiceInterface={voiceInterface} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
           case 6: return <SystemSummary systemState={systemState} sophiaEngine={sophiaEngine} />;
           case 7: return <Display7 systemState={systemState} transmission={cosmosCommsService.currentState} memories={knowledgeBase.getMemories()} onMemoryChange={() => setSystemState(prev => ({...prev}))} />;
-          case 8: return <NoeticGraphNexus systemState={systemState} memories={knowledgeBase.getMemories()} logs={systemState.log} sophiaEngine={sophiaEngine} />;
+          case 8: return <Display8 systemState={systemState} onPurgeAethericFlow={interactive.handlePurgeAethericFlow} isPurgingAether={interactive.isPurgingAether} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 10: return <Display10 systemState={systemState} />;
+          case 11: return <Display11 systemState={systemState} />;
+          case 12: return <Display12 systemState={systemState} />;
           case 15: return <ResourceProcurement systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 27: return <QuantumDynastyLedger systemState={systemState} />;
           case 28: return <KingdomSiteCommander />;
@@ -177,6 +195,14 @@ export const App: React.FC = () => {
           default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;
       }
   };
+
+  if (!hasInitialized) {
+      return (
+          <ThemeProvider>
+              <SovereignPortal onInitialize={handlePortalInitialization} />
+          </ThemeProvider>
+      );
+  }
 
   if (!systemState.auth.isAuthenticated) {
       return (

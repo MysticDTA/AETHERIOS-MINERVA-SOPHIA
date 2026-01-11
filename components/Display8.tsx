@@ -1,20 +1,42 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { SystemState } from '../types';
 import { AethericTransferMonitor } from './AethericTransferMonitor';
-import { AbundanceCore } from './AbundanceCore';
+import { EntropicStreamLoom } from './EntropicStreamLoom';
+import { AudioEngine } from './audio/AudioEngine';
 
 interface Display8Props {
   systemState: SystemState;
   onPurgeAethericFlow: () => void;
   isPurgingAether: boolean;
+  setSystemState: React.Dispatch<React.SetStateAction<SystemState>>; // Needed for updates
+  audioEngine?: AudioEngine | null;
 }
 
 export const Display8: React.FC<Display8Props> = ({ 
     systemState,
     onPurgeAethericFlow,
     isPurgingAether,
+    setSystemState,
+    audioEngine
 }) => {
+  
+  const handleLoomStabilization = useCallback((amount: number) => {
+      setSystemState(prev => ({
+          ...prev,
+          quantumHealing: {
+              ...prev.quantumHealing,
+              health: Math.min(1.0, prev.quantumHealing.health + amount),
+              decoherence: Math.max(0, prev.quantumHealing.decoherence - amount)
+          },
+          coherenceResonance: {
+              ...prev.coherenceResonance,
+              score: Math.min(1.0, prev.coherenceResonance.score + amount),
+              entropyFlux: Math.max(0, prev.coherenceResonance.entropyFlux - amount)
+          }
+      }));
+  }, [setSystemState]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN --- */}
@@ -28,7 +50,11 @@ export const Display8: React.FC<Display8Props> = ({
 
       {/* --- RIGHT COLUMN --- */}
       <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
-         <AbundanceCore data={systemState.abundanceCore} />
+         <EntropicStreamLoom 
+            entropy={systemState.coherenceResonance.entropyFlux}
+            onStabilize={handleLoomStabilization}
+            audioEngine={audioEngine}
+         />
       </div>
     </div>
   );

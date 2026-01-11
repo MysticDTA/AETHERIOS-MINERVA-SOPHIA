@@ -121,7 +121,7 @@ export const Display5: React.FC<Display5Props> = ({
              <h4 className="font-orbitron text-[10px] text-gold uppercase tracking-[0.5em] font-black border-b border-gold/20 pb-4">Heuristic Mesh Topology</h4>
              
              <div className="h-48 rounded-lg bg-black/40 border border-white/5 relative overflow-hidden">
-                <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
+                <Canvas camera={{ position: [0, 0, 15], fov: 45 }} dpr={[1, 2]}>
                     <ambientLight intensity={0.5} />
                     <HeuristicPermutationMesh resonance={systemState.resonanceFactorRho} />
                 </Canvas>

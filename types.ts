@@ -33,6 +33,24 @@ declare global {
   }
 }
 
+// Augment React's JSX namespace directly to ensure compatibility across different TS setups
+declare module 'react' {
+    namespace JSX {
+        interface IntrinsicElements {
+            ambientLight: any;
+            pointLight: any;
+            group: any;
+            mesh: any;
+            sphereGeometry: any;
+            meshBasicMaterial: any;
+            cylinderGeometry: any;
+            gridHelper: any;
+            color: any;
+            [elemName: string]: any;
+        }
+    }
+}
+
 export type UserTier = 'ACOLYTE' | 'ARCHITECT' | 'SOVEREIGN' | 'LEGACY_MENERVA';
 
 export interface NegotiationNode {

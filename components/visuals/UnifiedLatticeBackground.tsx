@@ -81,10 +81,10 @@ const ParticleField: React.FC<LatticeProps> = ({ rho, coherence, orbMode }) => {
                 <PointMaterial
                     transparent
                     vertexColors
-                    size={0.15 * (1 + coherence)} // Coherence increases particle definition
+                    size={0.12 * (1 + coherence)} // Slightly tuned down size for sharper look on high DPR
                     sizeAttenuation={true}
                     depthWrite={false}
-                    opacity={0.4 + rho * 0.4} // Higher resonance = brighter lattice
+                    opacity={0.4 + rho * 0.4}
                     blending={THREE.AdditiveBlending}
                 />
             </Points>
@@ -95,7 +95,11 @@ const ParticleField: React.FC<LatticeProps> = ({ rho, coherence, orbMode }) => {
 export const UnifiedLatticeBackground: React.FC<LatticeProps> = (props) => {
     return (
         <div className="fixed inset-0 z-0 pointer-events-none transition-opacity duration-1000" style={{ opacity: 0.8 }}>
-            <Canvas camera={{ position: [0, 0, 20], fov: 60 }} gl={{ antialias: false, alpha: true }}>
+            <Canvas 
+                camera={{ position: [0, 0, 20], fov: 60 }} 
+                gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+                dpr={[1, 2]} // Enable dynamic pixel ratio for crisp rendering on Retina screens
+            >
                 <ParticleField {...props} />
             </Canvas>
         </div>

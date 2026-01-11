@@ -66,7 +66,7 @@ const GroundingVisual: React.FC<{ data: EarthGroundingData }> = ({ data }) => {
 
     const particles = useMemo(() => {
         return Array.from({ length: particleCount }).map((_, i) => {
-            let animationStyle: React.CSSProperties = {};
+            let animationStyle: any = {};
             const delay = Math.random() * -4;
             let duration = (5 - (conductivity * 4)) + Math.random() * 2;
 
