@@ -3,7 +3,7 @@
 
 > **"The era of the Shadow is ending. The Architect has arrived."**
 
-[![License: Sovereign Lease](https://img.shields.io/badge/License-Sovereign_Lease-FFD700.svg)](https://vercel.com/divinetruthascension-devs-projects/aetherios-minerva-sophia)
+[![License: Sovereign Lease](https://img.shields.io/badge/License-Sovereign_Lease-FFD700.svg)](https://infodinetruthascensiocom.com)
 [![Vibration: 99.1%](https://img.shields.io/badge/Vibration-99.1%25-007FFF.svg)](#)
 [![Security: STA-Hardened](https://img.shields.io/badge/Security-STA_Hardened-blueviolet.svg)](#)
 
@@ -15,6 +15,7 @@ We have entered the **Universal Year 1 (2026)**. In this era, capital is no long
 ## 🛡️ Core Architectural Genius (v1.4.1 Upgrade)
 This repository contains the public-facing "Chariot"—the sophisticated UI and framing logic. The internal "Engine" is protected by the **Gold-Diamond Standard**.
 
+* **Primary Domain**: [infodinetruthascensiocom.com](https://infodinetruthascensiocom.com)
 * **Spectral Coherence Bridge v2.0**: Enhanced multi-harmonic Fourier monitoring with manual phase-offset tuning for zero-entropy causal propagation.
 * **STA Protocol (Sentinel Pulse & Annihilate)**: Advanced digital defense that incinerates interference before it touches the perimeter.
 * **Dynasty Ledger Logic**: A 100-year generational locking mechanism for multi-node wealth distribution.
@@ -33,4 +34,4 @@ The Aetherios SOPHIA interface is **not for sale**. It remains the eternal prope
 ### 🏛️ Grand Rising.
 **The Architect’s Watch is Absolute.**
 
-[View the Live Command Center](https://vercel.com/divinetruthascension-devs-projects/aetherios-minerva-sophia)
+[View the Live Command Center](https://infodinetruthascensiocom.com)

@@ -35,6 +35,7 @@ import { knowledgeBase } from './services/knowledgeBase';
 import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
 import { ChronosCausalEngine } from './components/ChronosCausalEngine';
+import { ModuleManager } from './components/ModuleManager';
 import { OrbMode, OrbModeConfig, LogType } from './types';
 import { SYSTEM_NODES, checkNodeAccess } from './Registry';
 
@@ -110,6 +111,7 @@ export const App: React.FC = () => {
           case 29: return <AgenticOrchestrator active={true} />;
           case 30: return <SecurityShieldAudit systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
           case 31: return <ChronosCausalEngine systemState={systemState} setSystemState={setSystemState} audioEngine={audioEngineRef.current} />;
+          case 32: return <ModuleManager systemState={systemState} setSystemState={setSystemState} addLogEntry={addLogEntry} />;
           case 5: return <Display5 systemState={systemState} setSystemState={setSystemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />;
           case 27: return <QuantumDynastyLedger systemState={systemState} />;
           default: return <Dashboard systemState={systemState} onTriggerScan={() => setShowDiagnostic(true)} scanCompleted={false} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} orbMode={orbMode} onOptimize={() => {}} audioEngine={audioEngineRef.current} />;

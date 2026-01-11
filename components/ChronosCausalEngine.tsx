@@ -1,9 +1,9 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Line, PerspectiveCamera, OrbitControls, Environment } from '@react-three/drei';
+import { Line, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { SystemState, ChronosState, TimelineType } from '../types';
+import { SystemState, TimelineType } from '../types';
 import { AudioEngine } from './audio/AudioEngine';
 
 interface ChronosCausalEngineProps {

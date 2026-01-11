@@ -12,6 +12,7 @@ export const SYSTEM_NODES = [
     { id: 30, label: 'SHIELD', requiredTier: 'ARCHITECT' as UserTier, description: 'Vibrational Frequency Filter', isShield: true },
     { id: 27, label: 'DYNASTY', requiredTier: 'ARCHITECT' as UserTier, description: 'Estate Binding' },
     { id: 5, label: 'HARMONY', requiredTier: 'ARCHITECT' as UserTier, description: 'Resonance Monitor' },
+    { id: 32, label: 'LOGIC', requiredTier: 'ARCHITECT' as UserTier, description: 'External Logic Shard Manager' },
     { id: 4, label: 'CONSOLE', requiredTier: 'ACOLYTE' as UserTier, description: 'Command Console', isBridge: true },
     { id: 10, label: 'BREATH', requiredTier: 'ACOLYTE' as UserTier, description: 'Respiratory Sync' },
     { id: 7, label: 'DECODER', requiredTier: 'ARCHITECT' as UserTier, description: 'Signal Intercept', isAudit: true },

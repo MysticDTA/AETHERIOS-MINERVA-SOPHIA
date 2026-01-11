@@ -77,7 +77,7 @@ export const QuantumComputeNexus: React.FC<QuantumComputeNexusProps> = ({ system
                     <QuantumCryptography />
                 )}
                 {activeTab === 'ANOMALY' && (
-                    <QuantumAnomalyDetector />
+                    <QuantumAnomalyDetector systemState={systemState} />
                 )}
                 {activeTab === 'TELEPORT' && (
                     <QuantumTeleportation />
