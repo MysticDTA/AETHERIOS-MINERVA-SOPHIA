@@ -34,7 +34,7 @@ import { QuantumDynastyLedger } from './components/QuantumDynastyLedger';
 import { SovereignWelcome } from './components/SovereignWelcome';
 import { ChronosCausalEngine } from './components/ChronosCausalEngine';
 import { ModuleManager } from './components/ModuleManager';
-import { OrbMode, OrbModeConfig } from './types';
+import { OrbMode, OrbModeConfig, LogType } from './types';
 
 const ORB_MODES: OrbModeConfig[] = [
   { id: 'STANDBY', name: 'Standby', description: 'Low-power monitoring.' },
@@ -99,6 +99,24 @@ export const App: React.FC = () => {
   const handleDiagnosticComplete = () => {
       setShowDiagnostic(false);
       setCurrentPage(6); // Navigate to System Summary (Status) after scan
+  };
+
+  const handleParamsChange = (param: string, value: number) => {
+    setSimulationParams(prev => ({ ...prev, [param]: value }));
+  };
+
+  const handleScenarioChange = (newParams: { decoherenceChance: number; lesionChance: number }) => {
+    setSimulationParams(newParams);
+    addLogEntry(LogType.SYSTEM, 'Simulation scenario updated.');
+  };
+
+  const handleManualReset = () => {
+      setSystemState(prev => ({
+          ...initialSystemState,
+          auth: prev.auth // Keep auth state
+      }));
+      addLogEntry(LogType.SYSTEM, 'Manual system reset initiated.');
+      audioEngineRef.current?.playEffect('reset');
   };
 
   const renderPage = () => {
@@ -168,7 +186,15 @@ export const App: React.FC = () => {
             <main className="flex-grow flex flex-col min-h-0 relative z-10 overflow-hidden">{renderPage()}</main>
             <div className="mt-4 shrink-0"><SystemFooter orbModes={ORB_MODES} currentMode={orbMode} setMode={setOrbMode} currentPage={currentPage} setCurrentPage={setCurrentPage} onOpenConfig={() => setShowConfig(true)} /></div>
             <Modal isOpen={showConfig} onClose={() => setShowConfig(false)}>
-                <SimulationControls params={simulationParams} onParamsChange={() => {}} onScenarioChange={() => {}} onManualReset={() => {}} onGrounding={() => {}} isGrounded={systemState.isGrounded} audioEngine={audioEngineRef.current} />
+                <SimulationControls 
+                    params={simulationParams} 
+                    onParamsChange={handleParamsChange} 
+                    onScenarioChange={handleScenarioChange} 
+                    onManualReset={handleManualReset} 
+                    onGrounding={() => setGrounded(true)} 
+                    isGrounded={systemState.isGrounded} 
+                    audioEngine={audioEngineRef.current} 
+                />
             </Modal>
             {showDiagnostic && (
                 <DeepDiagnosticOverlay onClose={() => setShowDiagnostic(false)} onComplete={handleDiagnosticComplete} systemState={systemState} sophiaEngine={sophiaEngine} audioEngine={audioEngineRef.current} />

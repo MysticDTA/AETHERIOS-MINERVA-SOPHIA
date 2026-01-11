@@ -43,7 +43,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     if (isOpen) {
         window.addEventListener('keydown', handleEsc);
         window.addEventListener('keydown', handleFocusTrap);
-        // Attempt to focus the close button for accessibility when opened
         closeButtonRef.current?.focus();
     }
 
@@ -57,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[3500] p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -65,20 +64,22 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     >
       <div 
         ref={modalRef}
-        className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="bg-[#050505] border border-white/10 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[90vh] flex flex-col relative overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-4 flex-grow overflow-y-auto">
-            {children}
-        </div>
-        <div className="p-3 border-t border-slate-800 text-right">
-            <button
+        <div className="absolute top-0 right-0 p-4">
+             <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="px-4 py-2 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-sm transition-colors"
+                className="text-slate-500 hover:text-white transition-colors"
             >
-                Close
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
             </button>
+        </div>
+        <div className="p-6 flex-grow overflow-y-auto scrollbar-thin">
+            {children}
         </div>
       </div>
     </div>

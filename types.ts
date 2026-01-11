@@ -16,7 +16,9 @@ declare global {
   }
   
   namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
+    interface IntrinsicElements {
+        [elemName: string]: any;
+    }
   }
 }
 

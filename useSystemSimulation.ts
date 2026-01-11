@@ -334,6 +334,18 @@ export const useSystemSimulation = (
       
       setSystemState(prev => {
         let newDecoherence = prev.quantumHealing.decoherence;
+        let newHealth = prev.quantumHealing.health;
+        let newLesions = prev.quantumHealing.lesions;
+
+        // Apply external simulation params (Chaos injection)
+        if (Math.random() < params.decoherenceChance) {
+            newDecoherence = Math.min(1.0, newDecoherence + 0.05);
+        }
+        if (Math.random() < params.lesionChance) {
+             newLesions += 1;
+             newHealth = Math.max(0, newHealth - 0.05);
+        }
+
         const globalStabilityBonus = prev.globalResonance.aggregateRho > 0.8 ? 0.005 : 0;
 
         if (prev.biometricSync.coherence < 0.4) {
@@ -395,7 +407,6 @@ export const useSystemSimulation = (
 
         const driftIncrease = prev.isPhaseLocked ? -0.0005 : (newDecoherence * 0.0001);
 
-        // HYBRID CRYPTO SIMULATION
         const cryptoJitter = (Math.random() - 0.5) * 0.001;
         const newHybridSecurity: HybridSecurityState = {
             ...prev.hybridSecurity,
@@ -403,7 +414,6 @@ export const useSystemSimulation = (
             threatMitigationIndex: Math.min(1.0, 1.0 - newDecoherence * 0.1)
         };
 
-        // CHRONOS ENGINE SIMULATION
         const newChronos = {
             ...prev.chronos,
             projectedRho: Math.min(1.0, Math.max(0.1, prev.chronos.projectedRho + (resonanceModifier > 0.9 ? 0.001 : -0.001))),
@@ -416,8 +426,9 @@ export const useSystemSimulation = (
           performance: newPerformance,
           quantumHealing: {
               ...prev.quantumHealing,
+              lesions: newLesions,
+              health: newHealth,
               decoherence: newDecoherence,
-              health: Math.max(0, 1.0 - newDecoherence * 0.8),
               stabilizationShield: Math.max(0, Math.min(1, prev.quantumHealing.stabilizationShield + (resonanceModifier > 0.9 ? 0.01 : -0.005)))
           },
           resonanceFactorRho: resonanceModifier,
@@ -442,7 +453,7 @@ export const useSystemSimulation = (
       });
     }, 1000);
     return () => { if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current); };
-  }, [orbMode, isGrounded, diagnosticMode, addLogEntry]);
+  }, [orbMode, isGrounded, diagnosticMode, addLogEntry, params]);
 
   return { 
     systemState, 
