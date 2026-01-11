@@ -44,7 +44,8 @@ export const VeoFluxSynthesizer: React.FC<VeoFluxSynthesizerProps> = ({ systemSt
     }, 4000);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Cast to any to access experimental video features not yet in the official type definition
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY }) as any;
       
       const prompt = `A cinematic, high-fidelity visualization of the aetheric flux in a quantum computer. Glowing gold and violet energy particles swirling in a perfect golden ratio helix. Macro photography style, deep shadows, 8k resolution, ethereal and intellectual atmosphere. Current Coherence: ${systemState.resonanceFactorRho}`;
 

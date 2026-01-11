@@ -231,8 +231,8 @@ export const useVoiceInterface = ({ addLogEntry, systemInstruction, onSetOrbMode
                 inputAudioTranscription: {},
                 outputAudioTranscription: {},
                 tools: [{ functionDeclarations: [updateSystemModeDeclaration] }],
-                thinkingConfig: { thinkingBudget: 4000 } as any // Cast to any to resolve SDK type definition mismatch
-            },
+                thinkingConfig: { thinkingBudget: 4000 }
+            } as any, // Cast to any to resolve SDK type definition mismatch for inputAudioTranscription and thinkingConfig
         });
     }, [isSessionActive, systemInstruction, addLogEntry, closeVoiceSession, onSetOrbMode]);
 
