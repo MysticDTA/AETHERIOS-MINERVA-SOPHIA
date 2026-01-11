@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { performanceService, PerformanceTier } from '../services/performanceService';
 
 interface CoreVisualProps {
@@ -9,11 +9,23 @@ interface CoreVisualProps {
 
 export const CoreVisual: React.FC<CoreVisualProps> = React.memo(({ health, mode }) => {
   const [tier, setTier] = useState<PerformanceTier>(performanceService.tier);
+  const [pulse, setPulse] = useState(false);
+  const prevHealth = useRef(health);
 
   useEffect(() => {
     const unsubscribe = performanceService.subscribe(setTier);
     return () => unsubscribe();
   }, []);
+
+  // Detect significant health changes to trigger visual feedback
+  useEffect(() => {
+      if (Math.abs(health - prevHealth.current) > 0.005) {
+          setPulse(true);
+          const timer = setTimeout(() => setPulse(false), 600);
+          return () => clearTimeout(timer);
+      }
+      prevHealth.current = health;
+  }, [health]);
 
   const maxParticleCount = useMemo(() => {
     switch (tier) {
@@ -97,6 +109,21 @@ export const CoreVisual: React.FC<CoreVisualProps> = React.memo(({ health, mode 
              <stop offset="100%" stopColor={glowColor} stopOpacity="0" />
           </linearGradient>
         </defs>
+
+        {/* Dynamic Pulse Ripple for System State Changes */}
+        <circle 
+            cx="100" cy="100" r="50" 
+            fill="none" 
+            stroke={glowColor} 
+            strokeWidth="3"
+            opacity={pulse ? 0.6 : 0}
+            className="transition-all duration-500 ease-out"
+            style={{ 
+                transform: pulse ? 'scale(1.8)' : 'scale(1)', 
+                transformOrigin: '100px 100px',
+                filter: 'url(#quantumBlur)'
+            }}
+        />
 
         {/* Outer Orbital Rings - High Tech */}
         <g style={{ animation: `spin ${60 / rotationVelocity}s linear infinite`, transformOrigin: '100px 100px' }}>
