@@ -27,10 +27,10 @@ export const Display11: React.FC<Display11Props> = ({ systemState }) => {
          <div className="absolute top-5 left-8 z-20">
              <span className="text-[10px] font-mono text-gold uppercase tracking-[0.5em] font-black opacity-40">Temporal_Phase_Engine</span>
          </div>
-         <div className="flex-1 min-h-0">
+         <div className="flex-1 min-h-0 relative">
             <TemporalDriftVisualizer drift={systemState.temporalCoherenceDrift} />
          </div>
-         <div className="p-8 border-t border-white/5 bg-black/40 relative z-10">
+         <div className="p-8 border-t border-white/5 bg-black/40 relative z-10 shrink-0">
              <div className="flex items-center gap-6">
                  <div className="w-1 h-10 bg-gold rounded-full shadow-[0_0_12px_gold]" />
                  <p className="text-[14px] font-minerva italic text-pearl/70 leading-relaxed">

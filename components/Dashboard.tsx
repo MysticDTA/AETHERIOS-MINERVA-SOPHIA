@@ -39,10 +39,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const isSovereign = systemState.userResources.sovereignTier === 'SOVEREIGN';
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-4 px-2">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 pb-4 h-full min-h-0 overflow-y-auto pr-2 scrollbar-thin">
       
       {/* --- COLUMN 1: SYSTEM TOPOLOGY & LATTICE (3/12) --- */}
-      <div className="xl:col-span-3 flex flex-col gap-6 pr-2">
+      <div className="xl:col-span-3 flex flex-col gap-6">
         <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex flex-col">
@@ -63,17 +63,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <NodeStabilityMatrix resonance={systemState.resonanceFactorRho} decoherence={systemState.quantumHealing.decoherence} />
 
             {isSovereign ? (
-                <div className="bg-black/40 border border-gold/30 p-4 rounded-sm relative overflow-hidden group">
+                <div className="bg-black/40 border border-gold/30 p-4 rounded-sm relative overflow-hidden group shadow-lg">
+                    <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-[8px] font-mono text-gold uppercase tracking-widest font-black">Capital_Reserve</span>
                         <div className="w-1.5 h-1.5 bg-gold rounded-full shadow-[0_0_5px_gold] animate-pulse" />
                     </div>
-                    <p className="font-orbitron text-xl text-pearl font-black">
+                    <p className="font-orbitron text-xl text-pearl font-black tracking-tight">
                         ${(systemState.userResources.sovereignLiquidity || 22500000).toLocaleString()}
                     </p>
                     <div className="mt-2 flex justify-between text-[7px] font-mono text-slate-500 uppercase">
                         <span>Manifest Pulse</span>
-                        <span className="text-blue-400">ACTIVE</span>
+                        <span className="text-blue-400 font-bold">ACTIVE</span>
                     </div>
                 </div>
             ) : (
@@ -93,7 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             <div className="space-y-4">
-                <div className="bg-black/40 border border-violet-500/20 p-4 rounded-xl relative overflow-hidden group">
+                <div className="bg-black/40 border border-violet-500/20 p-4 rounded-xl relative overflow-hidden group shadow-lg">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-[8px] font-mono text-violet-400 uppercase tracking-widest font-black">Quantum_Posture</span>
                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_5px_#10b981] animate-pulse" />
@@ -103,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <span className="text-[9px] font-mono text-slate-500">Hybrid_Cipher</span>
                     </div>
                     <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 w-[98%]" />
+                        <div className="h-full bg-violet-500 w-[98%] shadow-[0_0_10px_#8b5cf6]" />
                     </div>
                 </div>
 
@@ -120,13 +121,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div className="flex gap-2">
                             <button 
                                 onClick={onTriggerScan}
-                                className="flex-1 py-2 bg-emerald-600/10 border border-emerald-500/40 text-emerald-400 font-orbitron text-[9px] uppercase font-bold hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
+                                className="flex-1 py-3 bg-emerald-600/10 border border-emerald-500/40 text-emerald-400 font-orbitron text-[9px] uppercase font-bold hover:bg-emerald-600 hover:text-white transition-all rounded-sm shadow-lg active:scale-95"
                             >
                                 FULL_SYSTEM_AUDIT
                             </button>
                             <button 
                                 onClick={onOptimize}
-                                className="flex-1 py-2 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
+                                className="flex-1 py-3 bg-gold/10 border border-gold/40 text-gold font-orbitron text-[9px] uppercase font-bold hover:bg-gold hover:text-dark-bg transition-all rounded-sm shadow-lg active:scale-95"
                             >
                                 OPTIMIZE_NODE
                             </button>
@@ -149,23 +150,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- COLUMN 2: CORE VISUALS & PERFORMANCE (5/12) --- */}
-      <div className="xl:col-span-5 flex flex-col items-center gap-6 px-2">
-        <div className="w-full flex flex-col items-center justify-center min-h-[440px] relative shrink-0">
+      <div className="xl:col-span-5 flex flex-col items-center gap-6">
+        <div className="w-full flex flex-col items-center justify-center min-h-[350px] relative shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.02)_0%,transparent_80%)] pointer-events-none" />
             
             <Tooltip text="Causal Health Visualization: Represents the structural integrity of the local reality shard. A stable, coherent core indicates optimal logic flow (1.0).">
-                <div className="cursor-help">
+                <div className="cursor-help transform hover:scale-105 transition-transform duration-700">
                     <CoreVisual health={systemState.quantumHealing.health} mode={systemState.governanceAxiom} />
                 </div>
             </Tooltip>
 
-            <div className="mt-8 w-full max-w-[420px]">
+            <div className="mt-6 w-full max-w-[420px]">
                 <MetricDisplay 
                     label="Resonance Rho" 
                     value={systemState.resonanceFactorRho} 
                     maxValue={1} 
                     formatAs="decimal" 
-                    className="hover:border-gold/30"
+                    className="hover:border-gold/30 bg-black/40 backdrop-blur-md"
                     secondaryValue={`Δ+${(systemState.resonanceFactorRho * 0.04).toFixed(6)}Ψ`}
                     tooltip="The primary coefficient of systemic harmony."
                 />
@@ -179,7 +180,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- COLUMN 3: COGNITIVE ANALYSIS & ARCHIVE (4/12) --- */}
-      <div className="xl:col-span-4 flex flex-col gap-6">
+      <div className="xl:col-span-4 flex flex-col gap-6 h-full">
         <div className="flex-shrink-0 h-[360px]">
              <SophiaCognitiveCore 
                 systemState={systemState} 
@@ -189,9 +190,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 audioEngine={audioEngine}
              />
         </div>
-        <div className="flex-grow min-h-[400px] bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden">
+        <div className="flex-grow min-h-[400px] bg-black/30 rounded-2xl border border-white/5 relative group flex flex-col overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 p-3 opacity-[0.02] font-orbitron text-5xl font-black italic group-hover:opacity-[0.05] transition-opacity pointer-events-none">ANALYSIS</div>
-            <div className="flex-1 relative">
+            <div className="flex-1 relative overflow-hidden">
                 <SystemAnalysis systemState={systemState} sophiaEngine={sophiaEngine} setOrbMode={setOrbMode} />
             </div>
         </div>

@@ -37,7 +37,7 @@ export const Display7: React.FC<Display7Props> = ({
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full min-h-0 animate-fade-in">
       {/* --- DECODING INSTRUMENT (LEFT/CENTER) --- */}
-      <div className="xl:col-span-8 2xl:col-span-8 h-full min-h-0 flex flex-col bg-black/20 rounded-xl border border-white/5 shadow-2xl relative overflow-hidden">
+      <div className="xl:col-span-8 2xl:col-span-8 h-full min-h-0 flex flex-col bg-black/20 rounded-xl border border-white/5 shadow-2xl relative overflow-hidden group">
         <div className="flex justify-between items-center bg-black/40 border-b border-white/10 px-6 py-3 shrink-0 backdrop-blur-md z-10">
             <div className="flex items-center gap-4">
                 <span className="text-[11px] font-mono text-gold uppercase tracking-[0.25em] font-black">Signal Reception Array</span>
@@ -62,7 +62,7 @@ export const Display7: React.FC<Display7Props> = ({
       </div>
 
       {/* --- CAUSAL MEMORY HUB (RIGHT) --- */}
-      <div className="xl:col-span-4 2xl:col-span-4 h-full min-h-0 flex flex-col gap-4">
+      <div className="xl:col-span-4 2xl:col-span-4 h-full min-h-0 flex flex-col gap-6">
          <div className="flex-1 min-h-0 flex flex-col bg-black/20 rounded-xl border border-white/5 shadow-lg overflow-hidden">
              <div className="flex justify-between items-center bg-black/40 border-b border-white/10 px-5 py-3 shrink-0 backdrop-blur-md">
                 <span className="text-[11px] font-mono text-pearl uppercase tracking-[0.25em] font-black">Recursive Memory Core</span>

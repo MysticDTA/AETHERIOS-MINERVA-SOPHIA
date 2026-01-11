@@ -130,6 +130,14 @@ export interface TransmissionState {
     realWorldMetric?: string;
 }
 
+export interface LiveTickerMetric {
+    id: string;
+    label: string;
+    value: string;
+    trend: 'UP' | 'DOWN' | 'STABLE';
+    description?: string;
+}
+
 export type SatelliteLockStatus = 'LOCKED' | 'ACQUIRING' | 'DRIFTING' | 'OFFLINE';
 
 export interface SatelliteUplinkData {

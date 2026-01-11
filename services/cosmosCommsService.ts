@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from '@google/genai';
-import { TransmissionState, CommsStatus } from '../types';
+import { TransmissionState, CommsStatus, LiveTickerMetric } from '../types';
 
 export interface CosmosTransmission extends TransmissionState {
     frequency: number; // in GHz (Radio Astronomy Spectrum)
@@ -10,17 +10,31 @@ export interface CosmosTransmission extends TransmissionState {
 }
 
 type CommsListener = (state: CosmosTransmission) => void;
+type MetricListener = (metrics: LiveTickerMetric[]) => void;
 
 class CosmosCommsService {
     private listeners = new Set<CommsListener>();
+    private metricListeners = new Set<MetricListener>();
+    
     private decodingInterval: number | null = null;
     private nextMessageTimeout: number | null = null;
+    private metricInterval: number | null = null;
+    
     private isRunning = false;
     private isFetching = false;
     private retryCount = 0;
     private lastTransmissionTime = 0;
     
-    // HEURISTIC COOLDOWN: 5 minutes (300,000ms) to prevent quota over-saturation
+    private liveMetrics: LiveTickerMetric[] = [];
+    private currentMetricTopicIndex = 0;
+
+    private readonly METRIC_TOPICS = [
+        { id: 'SPACE', query: 'current real-time solar wind speed km/s and Kp index. Return numbers.' },
+        { id: 'CRYPTO', query: 'current live price of Bitcoin and Ethereum in USD. Return numbers.' },
+        { id: 'ECONOMY', query: 'current price of Gold per ounce and S&P 500 index. Return numbers.' }
+    ];
+    
+    // HEURISTIC COOLDOWN: 5 minutes (300,000ms) for main transmissions
     private readonly MIN_SYNC_INTERVAL = 300000;
 
     public initialState: CosmosTransmission = {
@@ -33,7 +47,6 @@ class CosmosCommsService {
         bandwidth: 50
     };
 
-    // Fix: Make public to allow App.tsx access via cosmosCommsService['currentState']
     public currentState: CosmosTransmission = { ...this.initialState };
 
     subscribe(listener: CommsListener): () => void {
@@ -42,33 +55,105 @@ class CosmosCommsService {
         return () => this.listeners.delete(listener);
     }
 
+    subscribeMetrics(listener: MetricListener): () => void {
+        this.metricListeners.add(listener);
+        listener(this.liveMetrics);
+        return () => this.metricListeners.delete(listener);
+    }
+
     private emit() {
         this.listeners.forEach(fn => fn({ ...this.currentState }));
+    }
+
+    private emitMetrics() {
+        this.metricListeners.forEach(fn => fn([...this.liveMetrics]));
     }
 
     start() {
         if (this.isRunning) return;
         this.isRunning = true;
         
+        // Start main transmission loop
         const timeSinceLast = Date.now() - this.lastTransmissionTime;
         if (timeSinceLast > this.MIN_SYNC_INTERVAL) {
             this.beginTransmission();
         } else {
             this.scheduleNextTransmission();
         }
+
+        // Start Live Metric Cycle (every 90 seconds)
+        this.fetchLiveMetrics();
+        this.metricInterval = window.setInterval(() => this.fetchLiveMetrics(), 90000);
     }
     
     stop() {
         this.isRunning = false;
         if(this.decodingInterval) clearInterval(this.decodingInterval);
         if(this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
+        if(this.metricInterval) clearInterval(this.metricInterval);
+    }
+
+    private async fetchLiveMetrics() {
+        if (!process.env.API_KEY || process.env.API_KEY === 'undefined') return;
+
+        const topic = this.METRIC_TOPICS[this.currentMetricTopicIndex];
+        this.currentMetricTopicIndex = (this.currentMetricTopicIndex + 1) % this.METRIC_TOPICS.length;
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const prompt = `
+                Fetch real-time data for: "${topic.query}".
+                Return a JSON array of 2 key metrics found.
+                Format: [{ "id": "UNIQUE_ID", "label": "SHORT_LABEL", "value": "VALUE_WITH_UNIT", "trend": "UP/DOWN/STABLE" }]
+                Example: [{ "id": "BTC", "label": "BITCOIN", "value": "$98,420", "trend": "UP" }]
+            `;
+
+            const response = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: prompt,
+                config: {
+                    tools: [{ googleSearch: {} }],
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                id: { type: Type.STRING },
+                                label: { type: Type.STRING },
+                                value: { type: Type.STRING },
+                                trend: { type: Type.STRING, enum: ['UP', 'DOWN', 'STABLE'] }
+                            },
+                            required: ["id", "label", "value", "trend"]
+                        }
+                    }
+                }
+            });
+
+            const text = response.text;
+            if (text) {
+                const newMetrics = JSON.parse(text) as LiveTickerMetric[];
+                // Update existing metrics or add new ones
+                const updatedList = [...this.liveMetrics];
+                newMetrics.forEach(m => {
+                    const idx = updatedList.findIndex(existing => existing.id === m.id);
+                    if (idx >= 0) updatedList[idx] = m;
+                    else updatedList.push(m);
+                });
+                
+                // Keep only last 6 metrics to prevent overflow
+                this.liveMetrics = updatedList.slice(-6);
+                this.emitMetrics();
+            }
+        } catch (e) {
+            console.warn("Live metric fetch failed:", e);
+        }
     }
 
     private scheduleNextTransmission(isError = false) {
         if (!this.isRunning) return;
         if (this.nextMessageTimeout) clearTimeout(this.nextMessageTimeout);
 
-        // OPTIMIZATION: If we're just waiting for a key, check every 10 seconds
         const isWaitingForKey = !process.env.API_KEY || process.env.API_KEY === 'undefined';
         const baseDelay = isWaitingForKey ? 10000 : (isError ? 30000 * Math.pow(2, this.retryCount) : 900000); 
         const jitter = Math.random() * 5000;

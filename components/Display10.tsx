@@ -51,7 +51,7 @@ export const Display10: React.FC<Display10Props> = ({ systemState }) => {
             </div>
          </div>
 
-         <div className="flex-1 bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm flex flex-col justify-center text-center">
+         <div className="flex-1 bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg border-glow-gold backdrop-blur-sm flex flex-col justify-center text-center min-h-[200px]">
              <p className="text-sm text-warm-grey uppercase tracking-widest mb-4">Operator Guidance</p>
              <p className="text-pearl font-orbitron text-lg leading-relaxed px-4">
                  {breathCycle === 'INHALE' 

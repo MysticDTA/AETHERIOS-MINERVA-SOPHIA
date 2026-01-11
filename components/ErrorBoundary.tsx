@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
@@ -16,12 +15,9 @@ interface ErrorBoundaryState {
  * Ensures system composure even during component-level decoherence.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false,
-    };
-  }
+  state: ErrorBoundaryState = {
+    hasError: false,
+  };
 
   public static getDerivedStateFromError(_: Error): Partial<ErrorBoundaryState> {
     // Update state so the next render will show the fallback UI.

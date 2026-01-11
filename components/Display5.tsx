@@ -149,8 +149,8 @@ export const Display5: React.FC<Display5Props> = ({
       {/* --- RIGHT COLUMN: HIGH-FIDELITY SPECTRAL ANALYSIS --- */}
       <div className="lg:col-span-6 flex flex-col gap-6 h-full min-h-0 overflow-y-auto pr-2 scrollbar-thin scroll-smooth">
         
-        <div className="flex-shrink-0 flex flex-col gap-6">
-            <div className="h-[440px] rounded-2xl relative group shadow-2xl backdrop-blur-xl transition-all duration-700 hover:border-gold/30 border border-transparent">
+        <div className="flex-shrink-0 flex flex-col gap-6 flex-grow">
+            <div className="flex-1 min-h-[350px] rounded-2xl relative group shadow-2xl backdrop-blur-xl transition-all duration-700 hover:border-gold/30 border border-transparent">
                <SpectralCoherenceBridge 
                   rho={systemState.resonanceFactorRho} 
                   coherence={systemState.biometricSync.coherence}
@@ -159,7 +159,7 @@ export const Display5: React.FC<Display5Props> = ({
                />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[240px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[240px] shrink-0">
                 <div className="h-full">
                     <PhaseSpaceAttractor 
                         rho={systemState.resonanceFactorRho}

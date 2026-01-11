@@ -26,8 +26,8 @@ export const Display3: React.FC<Display3Props> = ({
 }) => {
   return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0">
-        {/* --- LEFT COLUMN --- */}
-        <div className="flex flex-col gap-6 h-full min-h-0">
+        {/* --- LEFT COLUMN: CONCORDANCE MAP --- */}
+        <div className="flex flex-col h-full min-h-0">
           <div className="flex-1 min-h-0 relative">
              <LyranStarMap 
                 data={systemState.lyranConcordance}
@@ -40,8 +40,8 @@ export const Display3: React.FC<Display3Props> = ({
           </div>
         </div>
 
-        {/* --- RIGHT COLUMN --- */}
-        <div className="flex flex-col gap-6 h-full min-h-0">
+        {/* --- RIGHT COLUMN: UPLINK ARRAY --- */}
+        <div className="flex flex-col h-full min-h-0">
           <div className="flex-1 min-h-0 relative">
             <CosmicUplinkArray 
                 uplinkData={systemState.satelliteUplink} 

@@ -183,7 +183,7 @@ export const Display12: React.FC<Display12Props> = ({ systemState }) => {
             <ResonanceHistoryChart currentRho={rho} coherence={coherence} />
          </div>
 
-         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg flex-1 min-h-0 flex flex-col border-glow-gold backdrop-blur-sm overflow-hidden transition-colors duration-1000"
+         <div className="bg-dark-surface/50 border border-dark-border/50 p-4 rounded-lg flex-1 min-h-[300px] flex flex-col border-glow-gold backdrop-blur-sm overflow-hidden transition-colors duration-1000"
               style={{ borderColor: coherence > 0.8 ? 'rgba(167, 139, 250, 0.3)' : 'rgba(255, 255, 255, 0.05)' }}>
             <div className="flex justify-between items-center mb-4 px-1 shrink-0">
                 <h4 className="font-orbitron text-sm text-warm-grey uppercase">Chakra Alignment</h4>
@@ -223,11 +223,13 @@ export const Display12: React.FC<Display12Props> = ({ systemState }) => {
       </div>
 
       {/* --- CENTER/RIGHT: AURA SCANNER --- */}
-      <div className="lg:col-span-2 h-full min-h-0">
-        <AuraScanner 
-            biometricData={systemState.biometricSync}
-            resonance={systemState.resonanceFactorRho}
-        />
+      <div className="lg:col-span-2 h-full min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 bg-black/20 rounded-2xl border border-white/5 overflow-hidden">
+            <AuraScanner 
+                biometricData={systemState.biometricSync}
+                resonance={systemState.resonanceFactorRho}
+            />
+        </div>
       </div>
     </div>
   );

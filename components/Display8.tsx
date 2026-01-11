@@ -40,7 +40,7 @@ export const Display8: React.FC<Display8Props> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full min-h-0">
       {/* --- LEFT COLUMN --- */}
-      <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
+      <div className="flex flex-col h-full min-h-0">
         <AethericTransferMonitor 
             data={systemState.aethericTransfer}
             onPurge={onPurgeAethericFlow}
@@ -49,7 +49,7 @@ export const Display8: React.FC<Display8Props> = ({
       </div>
 
       {/* --- RIGHT COLUMN --- */}
-      <div className="lg:col-span-1 flex flex-col gap-6 h-full min-h-0">
+      <div className="flex flex-col h-full min-h-0">
          <EntropicStreamLoom 
             entropy={systemState.coherenceResonance.entropyFlux}
             onStabilize={handleLoomStabilization}

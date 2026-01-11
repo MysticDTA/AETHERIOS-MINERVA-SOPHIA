@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { OrbMode } from '../types';
+import { OrbMode, LiveTickerMetric } from '../types';
+import { cosmosCommsService } from '../services/cosmosCommsService';
 
 interface RealTimeIntelTickerProps {
     orbMode: OrbMode;
@@ -10,6 +11,25 @@ interface RealTimeIntelTickerProps {
 export const RealTimeIntelTicker: React.FC<RealTimeIntelTickerProps> = ({ orbMode, rho }) => {
     const [timeString, setTimeString] = useState('');
     const [utcString, setUtcString] = useState('');
+    const [metrics, setMetrics] = useState<LiveTickerMetric[]>([]);
+    const [currentMetricIdx, setCurrentMetricIdx] = useState(0);
+
+    // Subscribe to live data
+    useEffect(() => {
+        const unsub = cosmosCommsService.subscribeMetrics((newMetrics) => {
+            setMetrics(newMetrics);
+        });
+        return unsub;
+    }, []);
+
+    // Cycle through metrics every 4 seconds
+    useEffect(() => {
+        if (metrics.length === 0) return;
+        const interval = setInterval(() => {
+            setCurrentMetricIdx(prev => (prev + 1) % metrics.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [metrics]);
     
     // Atomic Clock Logic: Update every frame/interval for millisecond precision
     useEffect(() => {
@@ -24,20 +44,22 @@ export const RealTimeIntelTicker: React.FC<RealTimeIntelTickerProps> = ({ orbMod
         return () => clearInterval(interval);
     }, []);
 
+    const activeMetric = metrics.length > 0 ? metrics[currentMetricIdx] : null;
+
     return (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-4xl h-9 flex items-center justify-center overflow-hidden border-x border-b border-white/10 bg-black/80 backdrop-blur-xl rounded-b-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] z-50 pointer-events-auto cursor-help group transition-all hover:border-gold/30 hover:h-10">
             <div className="flex items-center gap-4 w-full px-4 relative justify-between">
                 
                 {/* Left: Mode Status */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-1/4">
                     <div className={`w-1.5 h-1.5 rounded-full ${rho > 0.5 ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-gold animate-pulse'}`} />
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest truncate">
                         SYS: <span className="text-pearl font-bold">{orbMode}</span>
                     </span>
                 </div>
                 
                 {/* Center: Atomic Clock */}
-                <div className="flex flex-col items-center leading-none">
+                <div className="flex flex-col items-center leading-none w-1/2">
                     <span className="font-orbitron text-lg text-pearl font-bold tracking-widest tabular-nums">
                         {timeString}
                     </span>
@@ -46,14 +68,29 @@ export const RealTimeIntelTicker: React.FC<RealTimeIntelTickerProps> = ({ orbMod
                     </span>
                 </div>
 
-                {/* Right: Live Rho */}
-                <div className="flex items-center gap-3">
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest text-right">
-                        Live_Resonance<br/>
-                        <span className={`font-bold ${rho > 0.8 ? 'text-violet-400' : 'text-slate-200'}`}>
-                            {rho.toFixed(6)} Ψ
+                {/* Right: Live Data Stream */}
+                <div className="flex items-center gap-3 w-1/4 justify-end">
+                    {activeMetric ? (
+                        <div className="flex flex-col items-end animate-fade-in key={activeMetric.id}">
+                            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-bold">
+                                {activeMetric.label}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                                <span className={`text-[10px] font-bold ${activeMetric.trend === 'UP' ? 'text-green-400' : activeMetric.trend === 'DOWN' ? 'text-rose-400' : 'text-gold'}`}>
+                                    {activeMetric.value}
+                                </span>
+                                {activeMetric.trend === 'UP' && <span className="text-[8px] text-green-500">▲</span>}
+                                {activeMetric.trend === 'DOWN' && <span className="text-[8px] text-rose-500">▼</span>}
+                            </div>
+                        </div>
+                    ) : (
+                        <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest text-right">
+                            Live_Resonance<br/>
+                            <span className={`font-bold ${rho > 0.8 ? 'text-violet-400' : 'text-slate-200'}`}>
+                                {rho.toFixed(6)} Ψ
+                            </span>
                         </span>
-                    </span>
+                    )}
                     <div className="h-4 w-px bg-white/10" />
                     <div className="w-2 h-2 border border-white/20 rotate-45 group-hover:rotate-90 transition-transform duration-700 bg-black" />
                 </div>
