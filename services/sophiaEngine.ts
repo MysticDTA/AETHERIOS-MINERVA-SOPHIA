@@ -39,6 +39,7 @@ export class SophiaEngineCore {
   private chat: Chat | null = null;
   private systemInstruction: string;
   private isConnecting = false;
+  private static hasLoggedMissingKey = false; // Static flag to prevent log spam
 
   constructor(systemInstruction: string) {
     this.instanceId = `ENG_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -53,7 +54,10 @@ export class SophiaEngineCore {
 
   private getClient(): GoogleGenAI | null {
       if (!this.hasValidKey()) {
-          console.info("SophiaCore: No API Key detected. Engine active in Simulation Mode.");
+          if (!SophiaEngineCore.hasLoggedMissingKey) {
+              console.info("SophiaCore: No API Key detected. Engine active in Simulation Mode.");
+              SophiaEngineCore.hasLoggedMissingKey = true;
+          }
           return null;
       }
       try {
@@ -95,8 +99,18 @@ export class SophiaEngineCore {
   async performSystemAudit(systemState: SystemState, scanFindings: string[] = []): Promise<{ report: string; sources: any[] }> {
     const ai = this.getClient();
     if (!ai) {
+        // Simulation Mode Response
         return { 
-            report: "<h3>Audit Core Offline</h3><p>The system is currently operating in <strong>local simulation mode</strong>. To perform a deep heuristic audit, please provision a valid API key.</p><ul><li>Local Parity: CHECKED</li><li>Cloud Sync: PENDING</li></ul>", 
+            report: `
+                <h3>Audit Core Offline (Simulation Mode)</h3>
+                <p>The system is currently operating in <strong>local heuristic simulation mode</strong> because a valid API key was not detected. The Deep Diagnostic sequence has verified local parity, but cloud-based reasoning is unavailable.</p>
+                <ul>
+                    <li>Local Parity: <strong>VERIFIED</strong></li>
+                    <li>Cloud Sync: <strong>PENDING_KEY</strong></li>
+                    <li>Resonance Rho: ${systemState.resonanceFactorRho.toFixed(4)}</li>
+                </ul>
+                <p><em>To enable the Gemini 3 Pro reasoning engine, please provision an API key in the environment configuration.</em></p>
+            `, 
             sources: [] 
         };
     }
@@ -128,6 +142,7 @@ export class SophiaEngineCore {
   ) {
     const activeChat = await this.ensureConnection();
     if (!activeChat) {
+        // Simulation Mode Response
         onChunk(">> CONNECTION_OFFLINE: Please authenticate via the AI Studio Handshake to enable the reasoning core.\n\n[SIMULATION_MODE]: The system is currently operating on local heuristic estimates. Please provision a valid API Key to unlock Gemini 3 Pro intelligence.");
         return;
     }
@@ -159,7 +174,7 @@ export class SophiaEngineCore {
 
   async getProactiveInsight(systemState: SystemState, context: string): Promise<string | null> {
     const ai = this.getClient();
-    if (!ai) return null;
+    if (!ai) return null; // Silently fail in simulation mode to avoid visual noise
 
     try {
         const prompt = `Context: ${context}. State: ${JSON.stringify({rho: systemState.resonanceFactorRho, health: systemState.quantumHealing.health, drift: systemState.temporalCoherenceDrift})}. Return JSON: {"alert": "Title", "recommendation": "Technical protocol"}`;
@@ -177,7 +192,14 @@ export class SophiaEngineCore {
 
   async getSystemAnalysis(systemState: SystemState): Promise<string> {
     const ai = this.getClient();
-    if (!ai) throw new Error("API Key Handshake Required");
+    if (!ai) {
+        // Fallback simulation response
+        return JSON.stringify({
+            summary: "System running in Heuristic Simulation Mode. Metrics are estimated locally.",
+            status: "STABLE",
+            recommendations: ["Provision API Key for full analysis", "Monitor local resonance drift"]
+        });
+    }
 
     const prompt = `Perform a deep systemic analysis of the current state: Rho=${systemState.resonanceFactorRho}, Health=${systemState.quantumHealing.health}, Temporal Coherence Drift=${systemState.temporalCoherenceDrift}. 
     Analyze the lattice integrity and resonant synergy.
@@ -262,7 +284,6 @@ export class SophiaEngineCore {
     }
   }
 
-  // Added getComplexStrategy method to resolve the property existence error in useSophiaCore hook.
   async getComplexStrategy(systemState: SystemState): Promise<CausalStrategy> {
     const ai = this.getClient();
     

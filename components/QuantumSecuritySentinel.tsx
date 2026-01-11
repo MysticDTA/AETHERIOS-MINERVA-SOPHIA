@@ -50,8 +50,22 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
     const threatsRef = useRef<Threat[]>([]);
     const huntersRef = useRef<Hunter[]>([]);
     const beamsRef = useRef<{ x: number, y: number, life: number }[]>([]);
+    
+    // Ref to track if we need to sync state
+    const needsSyncRef = useRef(false);
 
     const resonance = systemState?.resonanceFactorRho || 0.9;
+
+    // Sync Interval: Updates React State from Refs at a controlled rate (5Hz) to prevent UI lag
+    useEffect(() => {
+        const syncInterval = setInterval(() => {
+            if (needsSyncRef.current) {
+                setThreats([...threatsRef.current]);
+                needsSyncRef.current = false;
+            }
+        }, 200);
+        return () => clearInterval(syncInterval);
+    }, []);
 
     // Initialize & Loop
     useEffect(() => {
@@ -100,7 +114,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                     isGhost: true
                 };
                 threatsRef.current.push(newThreat);
-                setThreats([...threatsRef.current]);
+                needsSyncRef.current = true;
                 return;
             }
 
@@ -121,7 +135,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                     isGhost: false
                 };
                 threatsRef.current.push(newThreat);
-                setThreats([...threatsRef.current]);
+                needsSyncRef.current = true;
                 audioEngine?.playEffect('ui_click'); 
             }
         };
@@ -242,6 +256,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
                     threatsRef.current.splice(i, 1);
                     setNeutralizedCount(prev => prev + 1);
                     audioEngine?.playEffect('ui_click');
+                    needsSyncRef.current = true;
                     continue;
                 }
 
@@ -343,6 +358,7 @@ export const QuantumSecuritySentinel: React.FC<QuantumSecuritySentinelProps> = (
             beamsRef.current.push({ x: t.x, y: t.y, life: 1.0 });
             t.integrity = 0; // Instant kill
         });
+        needsSyncRef.current = true;
     };
 
     const handleHardening = () => {

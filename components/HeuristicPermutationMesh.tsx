@@ -25,8 +25,11 @@ const Branch: React.FC<{ start: THREE.Vector3; end: THREE.Vector3; opacity: numb
 
 export const HeuristicPermutationMesh: React.FC<HeuristicPermutationMeshProps> = ({ resonance }) => {
     const groupRef = useRef<THREE.Group>(null);
+    const pulseRef = useRef<THREE.Mesh>(null); // Ref for the pulse mesh
     const [isThinking, setIsThinking] = useState(false);
-    const [thoughtPulse, setThoughtPulse] = useState(0);
+    
+    // Mutable value for animation state, avoiding re-renders
+    const pulseY = useRef(0);
 
     // Subscribe to engine activity
     useEffect(() => {
@@ -68,12 +71,16 @@ export const HeuristicPermutationMesh: React.FC<HeuristicPermutationMeshProps> =
             const rotationSpeed = isThinking ? 0.8 : 0.1;
             groupRef.current.rotation.y += delta * rotationSpeed;
             groupRef.current.rotation.z += delta * rotationSpeed * 0.2;
+        }
+
+        // Direct manipulation of the pulse mesh
+        if (pulseRef.current && isThinking) {
+            pulseY.current = (pulseY.current + delta * 2) % 1;
+            pulseRef.current.position.y = (pulseY.current - 0.5) * 12;
             
-            if (isThinking) {
-                setThoughtPulse(p => (p + delta * 2) % 1);
-            } else {
-                setThoughtPulse(p => THREE.MathUtils.lerp(p, 0, 0.1));
-            }
+            // Optional: Pulsing scale
+            const scale = 1 + Math.sin(state.clock.elapsedTime * 10) * 0.2;
+            pulseRef.current.scale.set(scale, scale, scale);
         }
     });
 
@@ -111,9 +118,9 @@ export const HeuristicPermutationMesh: React.FC<HeuristicPermutationMeshProps> =
                 );
             })}
 
-            {/* Radiant Pulse */}
+            {/* Radiant Pulse - Render conditionally but animate via Ref */}
             {isThinking && (
-                <mesh position={[0, (thoughtPulse - 0.5) * 12, 0]}>
+                <mesh ref={pulseRef}>
                     <sphereGeometry args={[1.5, 32, 32]} />
                     <meshBasicMaterial color="#ffd700" transparent opacity={0.15} blending={THREE.AdditiveBlending} />
                 </mesh>

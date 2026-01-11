@@ -30,7 +30,7 @@ export const SovereignPortal: React.FC<SovereignPortalProps> = ({ onInitialize }
             }} />
             
             {/* Floating Release Tag */}
-            <div className={`absolute top-10 right-10 flex flex-col items-end gap-1 transition-all duration-[3000ms] ${step >= 1 ? 'opacity-100' : 'opacity-0 translate-y--4'}`}>
+            <div className={`absolute top-10 right-10 flex flex-col items-end gap-1 transition-all duration-[3000ms] ${step >= 1 ? 'opacity-100' : 'opacity-0 -translate-y-4'}`}>
                 <span className="text-[8px] font-orbitron text-gold uppercase tracking-[0.4em] font-bold">Release_Milestone</span>
                 <span className="text-[14px] font-mono text-pearl bg-gold/10 border border-gold/30 px-3 py-1 rounded-sm shadow-[0_0_15px_rgba(255,215,0,0.1)]">v1.3.0 // RADIANT</span>
             </div>
