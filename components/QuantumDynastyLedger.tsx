@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { DynastyEpoch, LedgerTransaction, SystemState } from '../types';
 import { Tooltip } from './Tooltip';
 import { ManifestationFormula } from './ManifestationFormula';
+import { TruthReconciliationInterface } from './TruthReconciliationInterface';
 
 interface QuantumDynastyLedgerProps {
     systemState: SystemState;
@@ -123,29 +124,19 @@ export const QuantumDynastyLedger: React.FC<QuantumDynastyLedgerProps> = ({ syst
                     </div>
                 </div>
 
-                {/* Right Column: Trust Details */}
+                {/* Right Column: Truth Reconciliation & Trust Details */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
-                    <div className="bg-dark-surface/60 border border-white/5 p-6 rounded-xl shadow-2xl flex flex-col gap-4">
-                        <h4 className="font-orbitron text-[10px] text-slate-500 uppercase tracking-widest font-black border-b border-white/5 pb-2">Trust Integrity</h4>
-                        <div className="flex flex-col items-center py-6 gap-6">
-                            <div className="w-32 h-32 rounded-sm border-2 border-gold/40 flex items-center justify-center relative rotate-45 group">
-                                <div className="absolute inset-0 bg-gold/5 animate-pulse" />
-                                <span className="font-orbitron text-gold font-black text-3xl -rotate-45">ABN</span>
-                            </div>
-                            <div className="text-center space-y-1">
-                                <p className="font-mono text-[10px] text-pearl">Verified Sovereign Trust</p>
-                                <p className="font-mono text-[8px] text-slate-600">ID: 0x88_TRUST_MCBRIDE</p>
-                            </div>
-                        </div>
-                        <div className="space-y-3 font-mono text-[9px] text-slate-500 border-t border-white/5 pt-4">
-                            <div className="flex justify-between"><span>Legal_Hash:</span><span className="text-gold truncate pl-4">SHA512_88_MCBRIDE_SECURE</span></div>
-                            <div className="flex justify-between"><span>Jurisdiction:</span><span className="text-pearl">Sovereign_State_Alpha</span></div>
-                            <div className="flex justify-between"><span>Tax_Sterility:</span><span className="text-emerald-400">100%_LOCKED</span></div>
-                        </div>
+                    {/* TRUTH RECONCILIATION ENGINE - REPLACES STATIC TRUST PANEL */}
+                    <div className="flex-grow min-h-[350px]">
+                        <TruthReconciliationInterface 
+                            initialMatter={22} 
+                            initialLiquidity={8} 
+                            initialVirtual={15} 
+                        />
                     </div>
 
                     <div className="p-6 bg-gold/5 border border-gold/20 rounded-xl italic text-[11px] text-warm-grey leading-relaxed font-minerva">
-                        "The equation represents the constructive interference of your will. As you maintain high vibration and gratitude, the 'n' exponent (your legacy) scales the physical reality of the Kingscliff Sanctuary."
+                        "The Physical Density Constant (P_d) ensures your Sovereign Net Worth is not inflated by air. True Wealth is solid. Adjust your asset allocation until the Core Density stabilizes."
                     </div>
                 </div>
             </div>
